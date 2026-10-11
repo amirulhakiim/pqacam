@@ -1,0 +1,22 @@
+:root {
+  --bg: oklch(0.97 0.01 75);
+  --surface: oklch(0.99 0.004 80);
+  --ink: oklch(0.3 0.02 60);
+  --ink-soft: oklch(0.5 0.02 65);
+  --line: oklch(0.9 0.01 70);
+  --accent: oklch(0.5 0.04 150);
+  --shopee: oklch(0.58 0.15 40);
+  --tiktok: oklch(0.26 0.015 60);
+  --whatsapp: oklch(0.5 0.11 150);
+  --danger: oklch(0.5 0.1 30);
+  --serif: 'Instrument Serif', serif;
+  --sans: 'DM Sans', sans-serif;
+  --mono: 'DM Mono', monospace;
+}
+body {
+  margin: 0;
+  background: var(--bg);
+  font-family: var(--sans);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
