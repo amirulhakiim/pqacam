@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=DM+Mono&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:oklch(0.965 0.01 75);font-family:'DM Sans',sans-serif;color:oklch(0.3 0.02 60);-webkit-font-smoothing:antialiased}
+a{color:oklch(0.45 0.05 150)}a:hover{color:oklch(0.35 0.05 150)}
+input::placeholder,textarea::placeholder{color:oklch(0.62 0.02 70)}
+@keyframes drawerIn{from{transform:translateX(40px);opacity:0}to{transform:none;opacity:1}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+</style>
+</helmet>
+
+<sc-if value="{{ signedOut }}" hint-placeholder-val="{{ true }}">
+<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box;background:radial-gradient(60% 40% at 0% 0%,oklch(0.93 0.04 30) 0%,transparent 70%),radial-gradient(55% 45% at 100% 15%,oklch(0.93 0.04 150) 0%,transparent 70%),radial-gradient(70% 50% at 20% 100%,oklch(0.93 0.035 260) 0%,transparent 70%),oklch(0.97 0.01 75)">
+<div style="width:100%;max-width:400px;background:oklch(0.99 0.004 80 / 0.8);backdrop-filter:blur(16px);border-radius:28px;padding:40px 32px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;box-shadow:0 20px 60px oklch(0.5 0.03 60 / 0.12)">
+<div style="font-size:12px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:oklch(0.5 0.04 150)">Admin</div>
+<h1 style="margin:0;font-family:'Instrument Serif',serif;font-weight:400;font-size:40px;line-height:1">{{ shopName }}</h1>
+<p style="margin:4px 0 18px;font-size:14.5px;line-height:1.5;color:oklch(0.45 0.02 60);text-wrap:pretty">Sign in to manage your products, reviews and links.</p>
+<button onClick="{{ openChooser }}" style="width:100%;height:52px;border-radius:14px;border:1px solid oklch(0.88 0.01 70);background:oklch(0.995 0.002 80);font:inherit;font-size:15px;font-weight:600;color:oklch(0.3 0.02 60);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:12px" style-hover="background:oklch(0.97 0.006 80)">
+<span style="width:24px;height:24px;border-radius:50%;border:1px solid oklch(0.88 0.01 70);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:oklch(0.55 0.15 255)">G</span>Continue with Google</button>
+<sc-if value="{{ hasAuthErr }}" hint-placeholder-val="{{ false }}">
+<div style="width:100%;box-sizing:border-box;margin-top:6px;padding:12px 14px;border-radius:12px;background:oklch(0.95 0.03 30);color:oklch(0.42 0.1 30);font-size:13.5px;line-height:1.45;text-align:left">{{ authErr }}</div>
+</sc-if>
+<p style="margin:14px 0 0;font-size:12px;color:oklch(0.55 0.02 65)">Only approved Google accounts can sign in.</p>
+</div>
+</div>
+<sc-if value="{{ chooser }}" hint-placeholder-val="{{ false }}">
+<div onClick="{{ closeChooser }}" style="position:fixed;inset:0;z-index:30;background:oklch(0.3 0.02 60 / 0.35);display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeIn .2s">
+<div onClick="{{ stop }}" style="width:100%;max-width:380px;background:oklch(0.995 0.002 80);border-radius:20px;padding:24px;box-sizing:border-box;display:flex;flex-direction:column;gap:14px;font-family:system-ui,sans-serif">
+<div style="display:flex;flex-direction:column;gap:4px;align-items:center;text-align:center">
+<span style="font-weight:700;font-size:20px;color:oklch(0.55 0.15 255)">G</span>
+<div style="font-size:19px;color:oklch(0.25 0.01 260)">Choose an account</div>
+<div style="font-size:13px;color:oklch(0.45 0.01 260)">to continue to {{ shopName }} Admin</div>
+</div>
+<div style="display:flex;flex-direction:column;border-top:1px solid oklch(0.92 0.005 260)">
+<sc-for list="{{ accounts }}" as="acc" hint-placeholder-count="2">
+<button onClick="{{ acc.pick }}" style="display:flex;align-items:center;gap:12px;padding:12px 6px;border:none;border-bottom:1px solid oklch(0.92 0.005 260);background:transparent;font:inherit;text-align:left;cursor:pointer" style-hover="background:oklch(0.97 0.005 260)">
+<span style="width:36px;height:36px;border-radius:50%;background:{{ acc.bg }};color:oklch(0.99 0.004 80);display:flex;align-items:center;justify-content:center;font-weight:600">{{ acc.initial }}</span>
+<span style="display:flex;flex-direction:column;gap:2px"><span style="font-size:14px;font-weight:500;color:oklch(0.25 0.01 260)">{{ acc.name }}</span><span style="font-size:12.5px;color:oklch(0.45 0.01 260)">{{ acc.email }}</span></span>
+</button>
+</sc-for>
+</div>
+</div>
+</div>
+</sc-if>
+</sc-if>
+
+<sc-if value="{{ signedIn }}" hint-placeholder-val="{{ false }}">
+<div style="min-height:100vh;display:flex;flex-wrap:wrap;align-items:flex-start">
+<sc-if value="{{ narrow }}" hint-placeholder-val="{{ false }}">
+<header style="position:sticky;top:0;z-index:10;width:100%;box-sizing:border-box;padding:14px 16px 10px;background:oklch(0.975 0.008 75 / 0.92);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid oklch(0.91 0.01 70);display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:center;gap:10px">
+<div style="flex:1;min-width:0;display:flex;flex-direction:column"><span style="font-family:'Instrument Serif',serif;font-size:22px;line-height:1.05">{{ shopName }}</span><span style="font-size:10.5px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:oklch(0.5 0.04 150)">Admin</span></div>
+<a href="Home Finds Links.dc.html" target="_blank" style="height:36px;padding:0 12px;border-radius:999px;border:1px solid oklch(0.88 0.01 70);background:oklch(0.99 0.004 80);font-size:12.5px;font-weight:600;text-decoration:none;display:flex;align-items:center">View page ↗</a>
+<button onClick="{{ signOut }}" title="Sign out" style="width:36px;height:36px;flex:none;border-radius:50%;border:none;background:oklch(0.62 0.07 150);color:oklch(0.99 0.004 80);font:inherit;font-weight:600;cursor:pointer">{{ me.initial }}</button>
+</div>
+<nav style="display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 -16px;padding:0 16px">
+<sc-for list="{{ nav }}" as="n" hint-placeholder-count="4">
+<button onClick="{{ n.go }}" style="flex:none;height:36px;border-radius:999px;border:none;padding:0 14px;font:inherit;font-size:13.5px;font-weight:500;cursor:pointer;background:{{ n.bg }};color:{{ n.fg }}">{{ n.label }}</button>
+</sc-for>
+</nav>
+</header>
+</sc-if>
+<sc-if value="{{ wide }}" hint-placeholder-val="{{ true }}">
+<aside style="flex:1 1 220px;max-width:260px;min-width:200px;box-sizing:border-box;padding:28px 18px;display:flex;flex-direction:column;gap:24px;position:sticky;top:0;min-height:100vh;border-right:1px solid oklch(0.91 0.01 70);background:oklch(0.975 0.008 75)">
+<div style="display:flex;flex-direction:column;gap:2px;padding:0 10px">
+<div style="font-family:'Instrument Serif',serif;font-size:26px;line-height:1.05">{{ shopName }}</div>
+<div style="font-size:12px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:oklch(0.5 0.04 150)">Admin</div>
+</div>
+<nav style="display:flex;flex-direction:column;gap:4px">
+<sc-for list="{{ nav }}" as="n" hint-placeholder-count="4">
+<button onClick="{{ n.go }}" style="height:42px;border-radius:12px;border:none;padding:0 12px;text-align:left;font:inherit;font-size:14.5px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:space-between;background:{{ n.bg }};color:{{ n.fg }}">{{ n.label }}<span style="font-size:12px;opacity:0.7">{{ n.count }}</span></button>
+</sc-for>
+</nav>
+<div style="display:flex;flex-direction:column;gap:8px;padding:0 10px">
+<a href="Home Finds Links.dc.html" target="_blank" style="font-size:13.5px;font-weight:500;text-decoration:none">View live page ↗</a>
+<a href="Phone Preview.dc.html" target="_blank" style="font-size:13.5px;font-weight:500;text-decoration:none">Phone preview ↗</a>
+</div>
+<div style="margin-top:auto;display:flex;align-items:center;gap:10px;padding:12px 10px;border-top:1px solid oklch(0.91 0.01 70)">
+<span style="width:34px;height:34px;flex:none;border-radius:50%;background:oklch(0.62 0.07 150);color:oklch(0.99 0.004 80);display:flex;align-items:center;justify-content:center;font-weight:600">{{ me.initial }}</span>
+<span style="display:flex;flex-direction:column;min-width:0;flex:1"><span style="font-size:13.5px;font-weight:500">{{ me.name }}</span><span style="font-size:11.5px;color:oklch(0.5 0.02 65);overflow:hidden;text-overflow:ellipsis">{{ me.email }}</span></span>
+<button onClick="{{ signOut }}" title="Sign out" style="border:none;background:transparent;font:inherit;font-size:12.5px;color:oklch(0.45 0.02 60);cursor:pointer;text-decoration:underline">Sign out</button>
+</div>
+</aside>
+</sc-if>
+
+<main style="flex:999 1 320px;min-width:0;box-sizing:border-box;padding:24px clamp(16px,4vw,48px) 80px;display:flex;flex-direction:column;gap:22px;max-width:1040px">
+
+<sc-if value="{{ isProducts }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px">
+<div style="display:flex;flex-direction:column;gap:4px"><h2 style="margin:0;font-family:'Instrument Serif',serif;font-weight:400;font-size:38px;line-height:1">Products</h2><div style="font-size:13.5px;color:oklch(0.5 0.02 65)">{{ productSummary }}</div></div>
+<div style="display:flex;gap:10px;flex-wrap:wrap">
+<input value="{{ q }}" onChange="{{ onQ }}" placeholder="Search products…" style="height:44px;width:220px;max-width:100%;box-sizing:border-box;border-radius:999px;border:1px solid oklch(0.9 0.01 70);background:oklch(0.99 0.004 80);padding:0 16px;font:inherit;font-size:14px;outline:none">
+<button onClick="{{ openNew }}" style="height:44px;padding:0 20px;border-radius:999px;border:none;background:oklch(0.3 0.02 60);color:oklch(0.98 0.005 80);font:inherit;font-size:14px;font-weight:600;cursor:pointer">+ Add product</button>
+</div>
+</div>
+<div style="display:flex;flex-direction:column;gap:10px">
+<sc-for list="{{ rows }}" as="r" hint-placeholder-count="5">
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px 14px;padding:10px 14px 10px 10px;border-radius:18px;background:oklch(0.99 0.004 80);box-shadow:0 1px 2px oklch(0.5 0.03 60 / 0.05),0 6px 18px oklch(0.5 0.03 60 / 0.05);opacity:{{ r.opacity }}">
+<div onClick="{{ r.edit }}" style="width:60px;height:60px;flex:none;border-radius:12px;cursor:pointer;position:relative;overflow:hidden;background:repeating-linear-gradient(135deg,{{ r.tint }} 0 6px,oklch(0.95 0.01 75) 6px 12px)">
+<sc-if value="{{ r.thumbUrl }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;inset:0;background-image:{{ r.thumbUrl }};background-size:cover;background-position:center"></div></sc-if>
+</div>
+<div onClick="{{ r.edit }}" style="flex:1 1 160px;min-width:0;display:flex;flex-direction:column;gap:5px;cursor:pointer">
+<div style="font-size:15px;font-weight:500;line-height:1.25">{{ r.name }}</div>
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:12px;color:oklch(0.5 0.02 65)">
+<span>{{ r.cat }}</span><span>·</span><span>{{ r.mediaLabel }}</span>
+<sc-if value="{{ r.shopee }}" hint-placeholder-val="{{ false }}"><span style="font-size:10.5px;font-weight:600;padding:3px 7px;border-radius:999px;background:oklch(0.94 0.04 45);color:oklch(0.45 0.12 40)">Shopee</span></sc-if>
+<sc-if value="{{ r.tiktok }}" hint-placeholder-val="{{ false }}"><span style="font-size:10.5px;font-weight:600;padding:3px 7px;border-radius:999px;background:oklch(0.92 0.008 70);color:oklch(0.28 0.02 60)">TikTok</span></sc-if>
+<sc-if value="{{ r.wa }}" hint-placeholder-val="{{ false }}"><span style="font-size:10.5px;font-weight:600;padding:3px 7px;border-radius:999px;background:oklch(0.93 0.04 150);color:oklch(0.4 0.09 150)">WhatsApp</span></sc-if>
+<sc-if value="{{ r.noLinks }}" hint-placeholder-val="{{ false }}"><span style="font-size:10.5px;font-weight:600;padding:3px 7px;border-radius:999px;background:oklch(0.95 0.03 30);color:oklch(0.45 0.1 30)">No buy link</span></sc-if>
+</div>
+</div>
+<div style="display:flex;align-items:center;gap:6px;flex:none;margin-left:auto">
+<button onClick="{{ r.toggle }}" title="Show on page" style="display:flex;align-items:center;gap:8px;border:none;background:transparent;font:inherit;font-size:12.5px;color:oklch(0.45 0.02 60);cursor:pointer;padding:6px">
+<span style="width:36px;height:22px;border-radius:999px;background:{{ r.swBg }};position:relative;transition:background .2s"><span style="position:absolute;top:3px;left:{{ r.swX }};width:16px;height:16px;border-radius:50%;background:oklch(0.99 0.004 80);transition:left .2s;box-shadow:0 1px 3px oklch(0.3 0.02 60 / 0.2)"></span></span>{{ r.visLabel }}</button>
+<button onClick="{{ r.up }}" disabled="{{ r.isFirst }}" title="Move up" style="width:32px;height:32px;border-radius:10px;border:1px solid oklch(0.91 0.01 70);background:oklch(0.99 0.004 80);cursor:pointer;color:oklch(0.4 0.02 60)">↑</button>
+<button onClick="{{ r.down }}" disabled="{{ r.isLast }}" title="Move down" style="width:32px;height:32px;border-radius:10px;border:1px solid oklch(0.91 0.01 70);background:oklch(0.99 0.004 80);cursor:pointer;color:oklch(0.4 0.02 60)">↓</button>
+<button onClick="{{ r.edit }}" style="height:32px;padding:0 14px;border-radius:10px;border:none;background:oklch(0.94 0.012 75);font:inherit;font-size:13px;font-weight:600;color:oklch(0.32 0.02 60);cursor:pointer">Edit</button>
+</div>
+</div>
+</sc-for>
+<sc-if value="{{ noRows }}" hint-placeholder-val="{{ false }}"><div style="padding:40px;text-align:center;font-size:14px;color:oklch(0.5 0.02 65)">No products match “{{ q }}”.</div></sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{ isCategories }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-direction:column;gap:4px"><h2 style="margin:0;font-family:'Instrument Serif',serif;font-weight:400;font-size:38px;line-height:1">Categories</h2><div style="font-size:13.5px;color:oklch(0.5 0.02 65)">These show as tabs on your page, in this order.</div></div>
+<div style="display:flex;flex-direction:column;gap:8px;max-width:560px">
+<sc-for list="{{ catRows }}" as="c" hint-placeholder-count="4">
+<div style="display:flex;align-items:center;gap:10px;padding:8px 10px 8px 8px;border-radius:16px;background:oklch(0.99 0.004 80);box-shadow:0 1px 2px oklch(0.5 0.03 60 / 0.05)">
+<input value="{{ c.name }}" onChange="{{ c.rename }}" style="flex:1;min-width:0;height:40px;border-radius:10px;border:1px solid transparent;background:transparent;padding:0 10px;font:inherit;font-size:15px;font-weight:500;outline:none" style-focus="border-color:oklch(0.8 0.04 150);background:oklch(0.98 0.006 80)">
+<span style="font-size:12.5px;color:oklch(0.5 0.02 65);white-space:nowrap">{{ c.countLabel }}</span>
+<button onClick="{{ c.up }}" disabled="{{ c.isFirst }}" style="width:32px;height:32px;border-radius:10px;border:1px solid oklch(0.91 0.01 70);background:oklch(0.99 0.004 80);cursor:pointer;color:oklch(0.4 0.02 60)">↑</button>
+<button onClick="{{ c.down }}" disabled="{{ c.isLast }}" style="width:32px;height:32px;border-radius:10px;border:1px solid oklch(0.91 0.01 70);background:oklch(0.99 0.004 80);cursor:pointer;color:oklch(0.4 0.02 60)">↓</button>
+<button onClick="{{ c.remove }}" style="height:32px;padding:0 12px;border-radius:10px;border:none;background:transparent;font:inherit;font-size:13px;color:oklch(0.5 0.1 30);cursor:pointer">Delete</button>
+</div>
+</sc-for>
+<div style="display:flex;gap:8px;margin-top:6px">
+<input value="{{ newCat }}" onChange="{{ onNewCat }}" onKeyDown="{{ newCatKey }}" placeholder="New category, e.g. Bedroom" style="flex:1;min-width:0;height:44px;box-sizing:border-box;border-radius:12px;border:1px solid oklch(0.9 0.01 70);background:oklch(0.99 0.004 80);padding:0 14px;font:inherit;font-size:14.5px;outline:none" style-focus="border-color:oklch(0.7 0.06 150)">
+<button onClick="{{ addCat }}" style="height:44px;padding:0 18px;border-radius:12px;border:none;background:oklch(0.3 0.02 60);color:oklch(0.98 0.005 80);font:inherit;font-size:14px;font-weight:600;cursor:pointer">Add</button>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isProfile }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-direction:column;gap:4px"><h2 style="margin:0;font-family:'Instrument Serif',serif;font-weight:400;font-size:38px;line-height:1">Profile</h2><div style="font-size:13.5px;color:oklch(0.5 0.02 65)">Changes save automatically.</div></div>
+<div style="display:flex;flex-direction:column;gap:18px;max-width:560px">
+<div style="display:flex;align-items:center;gap:16px">
+<div style="width:84px;height:84px;border-radius:50%;flex:none;position:relative;overflow:hidden;background:repeating-linear-gradient(135deg,oklch(0.9 0.02 70) 0 6px,oklch(0.93 0.015 70) 6px 12px)">
+<sc-if value="{{ avatarUrl }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;inset:0;background-image:{{ avatarUrl }};background-size:cover;background-position:center"></div></sc-if>
+</div>
+<label style="height:40px;padding:0 16px;border-radius:999px;border:1px solid oklch(0.88 0.01 70);background:oklch(0.99 0.004 80);font-size:13.5px;font-weight:600;cursor:pointer;display:flex;align-items:center">Upload photo<input type="file" accept="image/*" onChange="{{ onAvatar }}" style="display:none"></label>
+</div>
+<label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12.5px;font-weight:600;color:oklch(0.42 0.02 60)">Page name</span>
+<input value="{{ prof.name }}" onChange="{{ pf.name }}" style="height:44px;box-sizing:border-box;border-radius:12px;border:1px solid oklch(0.9 0.01 70);background:oklch(0.99 0.004 80);padding:0 14px;font:inherit;font-size:14.5px;outline:none" style-focus="border-color:oklch(0.7 0.06 150)"></label>
+<label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12.5px;font-weight:600;color:oklch(0.42 0.02 60)">Handle</span>
+<input value="{{ prof.handle }}" onChange="{{ pf.handle }}" style="height:44px;box-sizing:border-box;border-radius:12px;border:1px solid oklch(0.9 0.01 70);background:oklch(0.99 0.004 80);padding:0 14px;font:inherit;font-size:14.5px;outline:none" style-focus="border-color:oklch(0.7 0.06 150)"></label>
+<label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12.5px;font-weight:600;color:oklch(0.42 0.02 60)">Bio</span>
+<textarea value="{{ prof.bio }}" onChange="{{ pf.bio }}" rows="3" style="box-sizing:border-box;border-radius:12px;border:1px solid oklch(0.9 0.01 70);background:oklch(0.99 0.004 80);padding:12px 14px;font:inherit;font-size:14.5px;line-height:1.5;outline:none;resize:vertical" style-focus="border-color:oklch(0.7 0.06 150)"></textarea></label>
+<label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12.5px;font-weight:600;color:oklch(0.42 0.02 60)">WhatsApp number</span>
+<input value="{{ prof.whatsapp }}" onChange="{{ pf.whatsapp }}" placeholder="60123456789" style="height:44px;box-sizing:border-box;border-radius:12px;border:1px solid oklch(0.9 0.01 70);background:oklch(0.99 0.004 80);padding:0 14px;font:inherit;font-size:14.5px;outline:none" style-focus="border-color:oklch(0.7 0.06 150)">
+<span style="font-size:12px;color:oklch(0.5 0.02 65)">Country code + number, no spaces or +. Used for “Order via WhatsApp” links.</span></label>
+</div>
+</sc-if>
+
+<sc-if value="{{ isAdmins }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-direction:column;gap:4px"><h2 style="margin:0;font-family:'Instrument Serif',serif;font-weight:400;font-size:38px;line-height:1">Admin access</h2><div style="font-size:13.5px;color:oklch(0.5 0.02 65)">Google accounts allowed to sign in and edit this page.</div></div>
+<div style="display:flex;flex-direction:column;gap:8px;max-width:560px">
+<sc-for list="{{ adminRows }}" as="ad" hint-placeholder-count="1">
+<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:16px;background:oklch(0.99 0.004 80);box-shadow:0 1px 2px oklch(0.5 0.03 60 / 0.05)">
+<span style="width:32px;height:32px;flex:none;border-radius:50%;background:oklch(0.9 0.03 150);color:oklch(0.38 0.07 150);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px">{{ ad.initial }}</span>
+<span style="flex:1;min-width:0;font-size:14.5px;overflow:hidden;text-overflow:ellipsis">{{ ad.email }}</span>
+<sc-if value="{{ ad.isMe }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px;color:oklch(0.5 0.02 65)">You</span></sc-if>
+<sc-if value="{{ ad.canRemove }}" hint-placeholder-val="{{ false }}"><button onClick="{{ ad.remove }}" style="border:none;background:transparent;font:inherit;font-size:13px;color:oklch(0.5 0.1 30);cursor:pointer">Remove</button></sc-if>
+</div>
+</sc-for>
+<div style="display:flex;gap:8px;margin-top:6px">
+<input value="{{ newAdmin }}" onChange="{{ onNewAdmin }}" placeholder="name@gmail.com" style="flex:1;min-width:0;height:44px;box-sizing:border-box;border-radius:12px;border:1px solid oklch(0.9 0.01 70);background:oklch(0.99 0.004 80);padding:0 14px;font:inherit;font-size:14.5px;outline:none" style-focus="border-color:oklch(0.7 0.06 150)">
+<button onClick="{{ addAdmin }}" style="height:44px;padding:0 18px;border-radius:12px;border:none;background:oklch(0.3 0.02 60);color:oklch(0.98 0.005 80);font:inherit;font-size:14px;font-weight:600;cursor:pointer">Give access</button>
+</div>
+</div>
+</sc-if>
+</main>
+</div>
+
+<sc-if value="{{ editing }}" hint-placeholder-val="{{ false }}">
+<div onClick="{{ closeEdit }}" style="position:fixed;inset:0;z-index:20;background:oklch(0.3 0.02 60 / 0.3);display:flex;justify-content:flex-end;animation:fadeIn .2s">
+<div onClick="{{ stop }}" style="width:100%;max-width:580px;height:100%;background:oklch(0.98 0.007 78);display:flex;flex-direction:column;animation:drawerIn .3s cubic-bezier(.2,.8,.2,1);box-shadow:-20px 0 60px oklch(0.3 0.02 60 / 0.12)">
+<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:20px 24px;border-bottom:1px solid oklch(0.91 0.01 70)">
+<h3 style="margin:0;font-family:'Instrument Serif',serif;font-weight:400;font-size:28px">{{ editTitle }}</h3>
+<button onClick="{{ closeEdit }}" style="width:38px;height:38px;border-radius:50%;border:none;background:oklch(0.94 0.012 75);font-size:15px;cursor:pointer;color:oklch(0.35 0.02 60)">✕</button>
+</div>
+<div style="flex:1;overflow-y:auto;padding:22px 24px;display:flex;flex-direction:column;gap:20px">
+
+<div style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:12.5px;font-weight:600;color:oklch(0.42 0.02 60)">Photos &amp; videos</span><span style="font-size:12px;color:oklch(0.5 0.02 65)">First photo is the cover</span></div>
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px">
+<sc-for list="{{ dMedia }}" as="md" hint-placeholder-count="3">
+<div style="aspect-ratio:1/1;border-radius:14px;position:relative;overflow:hidden;background:repeating-linear-gradient(135deg,{{ md.tint }} 0 6px,oklch(0.95 0.01 75) 6px 12px);display:flex;align-items:center;justify-content:center">
+<sc-if value="{{ md.thumbUrl }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;inset:0;background-image:{{ md.thumbUrl }};background-size:cover;background-position:center"></div></sc-if>
+<sc-if value="{{ md.placeholder }}" hint-placeholder-val="{{ true }}"><span style="font-family:'DM Mono',monospace;font-size:9.5px;color:oklch(0.45 0.02 65);background:oklch(0.99 0.004 80 / 0.85);padding:2px 6px;border-radius:5px;text-align:center">{{ md.label }}</span></sc-if>
+<sc-if value="{{ md.isVideo }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;bottom:6px;left:6px;font-size:10px;font-weight:600;background:oklch(0.26 0.015 60 / 0.75);color:oklch(0.99 0.004 80);padding:3px 7px;border-radius:999px">▶ Video</span></sc-if>
+<button onClick="{{ md.remove }}" title="Remove" style="position:absolute;top:5px;right:5px;width:26px;height:26px;border-radius:50%;border:none;background:oklch(0.99 0.004 80 / 0.92);font-size:11px;cursor:pointer;color:oklch(0.35 0.02 60)">✕</button>
+<sc-if value="{{ md.canLeft }}" hint-placeholder-val="{{ false }}"><button onClick="{{ md.left }}" title="Move earlier" style="position:absolute;top:5px;left:5px;width:26px;height:26px;border-radius:50%;border:none;background:oklch(0.99 0.004 80 / 0.92);font-size:12px;cursor:pointer;color:oklch(0.35 0.02 60)">←</button></sc-if>
+</div>
+</sc-for>
+<label style="aspect-ratio:1/1;border-radius:14px;border:1.5px dashed oklch(0.82 0.02 70);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;font-size:12.5px;font-weight:600;color:oklch(0.42 0.02 60);text-align:center" style-hover="background:oklch(0.99 0.004 80)"><span style="font-size:20px;font-weight:400">+</span>Add photos<input type="file" accept="image/*" multiple="{{ true }}" onChange="{{ addPhotos }}" style="display:none"></label>
+</div>
+<div style="display:flex;gap:8px">
+<input value="{{ videoUrl }}" onChange="{{ onVideoUrl }}" placeholder="Paste a video link (.mp4)" style="flex:1;min-width:0;height:40px;box-sizing:border-box;border-radius:10px;border:1px solid oklch(0.9 0.01 70);background:oklch(0.99 0.004 80);padding:0 12px;font:inherit;font-size:13.5px;outline:none" style-focus="border-color:oklch(0.7 0.06 150)">
+<button onClick="{{ addVideo }}" style="height:40px;padding:0 14px;border-radius:10px;border:1px solid oklch(0.88 0.01 70);background:oklch(0.99 0.004 80);font:inherit;font-size:13px;font-weight:600;cursor:pointer;color:oklch(0.32 0.02 60)">Add video</button>
+</div>
+</div>
+
+<label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12.5px;font-weight:600;color:oklch(0.42 0.02 60)">Product name</span>
+<input value="{{ d.name }}" onChange="{{ f.name }}" placeholder="e.g. Ribbed Glass Tumbler Set" style="height:44px;box-sizing:border-box;border-radius:12px;border:1px solid oklch(0.9 0.01 70);background:oklch(0.99 0.004 80);padding:0 14px;font:inherit;font-size:14.5px;outline:none" style-focus="border-color:oklch(0.7 0.06 150)"></label>
+
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px">
+<label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12.5px;font-weight:600;color:oklch(0.42 0.02 60)">Category</span>
+<select value="{{ d.cat }}" onChange="{{ f.cat }}" style="height:44px;box-sizing:border-box;border-radius:12px;border:1px solid oklch(0.9 0.01 70);background:oklch(0.99 0.004 80);padding:0 12px;font:inherit;font-size:14.5px;outline:none">
+<sc-for list="{{ catNames }}" as="cn" hint-placeholder-count="4"><option value="{{ cn }}">{{ cn }}</option></sc-for>
+</select></label>
+<label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12.5px;font-weight:600;color:oklch(0.42 0.02 60)">Price <span style="font-weight:400;color:oklch(0.55 0.02 65)">(optional)</span></span>
+<input value="{{ d.price }}" onChange="{{ f.price }}" placeholder="RM 24.90" style="height:44px;box-sizing:border-box;border-radius:12px;border:1px solid oklch(0.9 0.01 70);background:oklch(0.99 0.004 80);padding:0 14px;font:inherit;font-size:14.5px;outline:none" style-focus="border-color:oklch(0.7 0.06 150)"></label>
+</div>
+
+<label style="display:flex;flex-direction:column;gap:6px"><span style="display:flex;justify-content:space-between"><span style="font-size:12.5px;font-weight:600;color:oklch(0.42 0.02 60)">My honest review</span><span style="font-size:12px;color:oklch(0.55 0.02 65)">{{ reviewCount }}</span></span>
+<textarea value="{{ d.review }}" onChange="{{ f.review }}" rows="5" placeholder="What you love, what to watch out for, any tips…" style="box-sizing:border-box;border-radius:12px;border:1px solid oklch(0.9 0.01 70);background:oklch(0.99 0.004 80);padding:12px 14px;font:inherit;font-size:14.5px;line-height:1.55;outline:none;resize:vertical" style-focus="border-color:oklch(0.7 0.06 150)"></textarea></label>
+
+<div style="display:flex;flex-direction:column;gap:10px">
+<span style="font-size:12.5px;font-weight:600;color:oklch(0.42 0.02 60)">Where to buy <span style="font-weight:400;color:oklch(0.55 0.02 65)">— leave blank to hide a button</span></span>
+<div style="display:flex;align-items:center;gap:10px"><span style="width:84px;flex:none;font-size:12px;font-weight:600;padding:5px 0;text-align:center;border-radius:999px;background:oklch(0.94 0.04 45);color:oklch(0.45 0.12 40)">Shopee</span>
+<input value="{{ d.shopee }}" onChange="{{ f.shopee }}" placeholder="https://shopee.com.my/…" style="flex:1;min-width:0;height:42px;box-sizing:border-box;border-radius:12px;border:1px solid oklch(0.9 0.01 70);background:oklch(0.99 0.004 80);padding:0 12px;font:inherit;font-size:14px;outline:none" style-focus="border-color:oklch(0.7 0.06 150)"></div>
+<div style="display:flex;align-items:center;gap:10px"><span style="width:84px;flex:none;font-size:12px;font-weight:600;padding:5px 0;text-align:center;border-radius:999px;background:oklch(0.92 0.008 70);color:oklch(0.28 0.02 60)">TikTok</span>
+<input value="{{ d.tiktok }}" onChange="{{ f.tiktok }}" placeholder="https://www.tiktok.com/…" style="flex:1;min-width:0;height:42px;box-sizing:border-box;border-radius:12px;border:1px solid oklch(0.9 0.01 70);background:oklch(0.99 0.004 80);padding:0 12px;font:inherit;font-size:14px;outline:none" style-focus="border-color:oklch(0.7 0.06 150)"></div>
+<div style="display:flex;align-items:center;gap:10px"><span style="width:84px;flex:none;font-size:12px;font-weight:600;padding:5px 0;text-align:center;border-radius:999px;background:oklch(0.93 0.04 150);color:oklch(0.4 0.09 150)">WhatsApp</span>
+<input value="{{ d.wa }}" onChange="{{ f.wa }}" placeholder="https://wa.me/…" style="flex:1;min-width:0;height:42px;box-sizing:border-box;border-radius:12px;border:1px solid oklch(0.9 0.01 70);background:oklch(0.99 0.004 80);padding:0 12px;font:inherit;font-size:14px;outline:none" style-focus="border-color:oklch(0.7 0.06 150)">
+<button onClick="{{ useMyWa }}" style="height:42px;padding:0 12px;flex:none;border-radius:12px;border:1px solid oklch(0.88 0.01 70);background:oklch(0.99 0.004 80);font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;color:oklch(0.4 0.09 150)">Use my number</button></div>
+</div>
+
+<button onClick="{{ f.hidden }}" style="display:flex;align-items:center;gap:10px;border:none;background:transparent;font:inherit;font-size:14px;color:oklch(0.35 0.02 60);cursor:pointer;padding:0;align-self:flex-start">
+<span style="width:40px;height:24px;border-radius:999px;background:{{ dSwBg }};position:relative;transition:background .2s"><span style="position:absolute;top:3px;left:{{ dSwX }};width:18px;height:18px;border-radius:50%;background:oklch(0.99 0.004 80);transition:left .2s;box-shadow:0 1px 3px oklch(0.3 0.02 60 / 0.2)"></span></span>Show on my page</button>
+
+<sc-if value="{{ hasDraftErr }}" hint-placeholder-val="{{ false }}"><div style="padding:12px 14px;border-radius:12px;background:oklch(0.95 0.03 30);color:oklch(0.42 0.1 30);font-size:13.5px">{{ draftErr }}</div></sc-if>
+</div>
+<div style="display:flex;align-items:center;gap:10px;padding:16px 24px;border-top:1px solid oklch(0.91 0.01 70);background:oklch(0.98 0.007 78)">
+<sc-if value="{{ canDelete }}" hint-placeholder-val="{{ false }}">
+<button onClick="{{ del }}" style="height:44px;padding:0 14px;border-radius:12px;border:none;background:{{ delBg }};font:inherit;font-size:13.5px;font-weight:600;color:{{ delFg }};cursor:pointer">{{ delLabel }}</button>
+</sc-if>
+<span style="flex:1"></span>
+<button onClick="{{ closeEdit }}" style="height:44px;padding:0 18px;border-radius:12px;border:1px solid oklch(0.88 0.01 70);background:oklch(0.99 0.004 80);font:inherit;font-size:14px;font-weight:600;cursor:pointer;color:oklch(0.32 0.02 60)">Cancel</button>
+<button onClick="{{ saveDraft }}" style="height:44px;padding:0 22px;border-radius:12px;border:none;background:oklch(0.3 0.02 60);color:oklch(0.98 0.005 80);font:inherit;font-size:14px;font-weight:600;cursor:pointer">Save</button>
+</div>
+</div>
+</div>
+</sc-if>
+</sc-if>
+
+<sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+<div style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:40;background:oklch(0.3 0.02 60);color:oklch(0.98 0.005 80);padding:12px 20px;border-radius:999px;font-size:14px;font-weight:500;box-shadow:0 10px 30px oklch(0.3 0.02 60 / 0.25);animation:fadeIn .2s">{{ toast }}</div>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const ON = 'oklch(0.55 0.09 150)', OFF = 'oklch(0.86 0.01 70)';
+const url = s => 'url("' + s + '")';
+
+class Component extends DCLogic {
+  state = { narrow: typeof window !== 'undefined' && window.innerWidth < 760, data:null, session:null, chooser:false, authErr:'', tab:'products', draft:null, isNew:false, confirmDel:false, draftErr:'', q:'', toast:'', newCat:'', newAdmin:'', videoUrl:'' };
+  componentDidMount() {
+    import('./homefinds-data.js').then(m => { this.m = m; this.setState({ data: m.load(), session: m.getSession() }); });
+    this._key = e => { if (e.key === 'Escape') this.setState({ draft:null, chooser:false }); };
+    window.addEventListener('keydown', this._key);
+    this._rs = () => this.setState({ narrow: window.innerWidth < 760 });
+    window.addEventListener('resize', this._rs);
+  }
+  componentWillUnmount() { window.removeEventListener('keydown', this._key); window.removeEventListener('resize', this._rs); clearTimeout(this._tt); }
+  flash(t) { clearTimeout(this._tt); this.setState({ toast:t }); this._tt = setTimeout(() => this.setState({ toast:'' }), 2200); }
+  upd(fn, msg) {
+    const d = JSON.parse(JSON.stringify(this.state.data)); fn(d);
+    try { this.m.save(d); } catch (e) { this.flash('Storage is full — try smaller images'); return false; }
+    this.setState({ data:d }); if (msg) this.flash(msg); return true;
+  }
+  setDraft(patch) { this.setState(s => ({ draft: { ...s.draft, ...patch }, draftErr:'' })); }
+  signIn(acc) {
+    if (this.state.data.admins.map(x => x.toLowerCase()).includes(acc.email.toLowerCase())) {
+      const s = { name:acc.name, email:acc.email }; this.m.setSession(s);
+      this.setState({ session:s, chooser:false, authErr:'' });
+    } else this.setState({ chooser:false, authErr: acc.email + ' doesn’t have admin access. Ask the owner to add it under Admin access.' });
+  }
+  move(arr, i, dir) { const j = i + dir; if (j < 0 || j >= arr.length) return; [arr[i], arr[j]] = [arr[j], arr[i]]; }
+  openEdit(p) { this.setState({ draft: JSON.parse(JSON.stringify(p)), isNew:false, confirmDel:false, draftErr:'', videoUrl:'' }); }
+  openNew() {
+    const d = this.state.data;
+    this.setState({ isNew:true, confirmDel:false, draftErr:'', videoUrl:'', draft: { id:'p' + Date.now(), name:'', cat:d.categories[0] || '', price:'', tag:'', hidden:false,
+      tint: this.m.TINTS[Math.floor(Math.random() * this.m.TINTS.length)], shopee:'', tiktok:'', wa:'', review:'', media:[] } });
+  }
+  saveDraft() {
+    const p = this.state.draft;
+    if (!p.name.trim()) return this.setState({ draftErr:'Give your product a name.' });
+    if (!p.shopee.trim() && !p.tiktok.trim() && !p.wa.trim()) return this.setState({ draftErr:'Add at least one Shopee, TikTok or WhatsApp link.' });
+    const ok = this.upd(d => { const i = d.products.findIndex(x => x.id === p.id); if (i < 0) d.products.unshift(p); else d.products[i] = p; }, this.state.isNew ? 'Product added' : 'Changes saved');
+    if (ok) this.setState({ draft:null });
+  }
+  renderVals() {
+    const s = this.state, d = s.data;
+    const stop = e => e.stopPropagation();
+    if (!d) return { signedOut:false, signedIn:false, hasToast:false };
+    const base = { stop, shopName:d.profile.name, toast:s.toast, hasToast:!!s.toast, signedOut:!s.session, signedIn:!!s.session };
+    if (!s.session) {
+      const accs = [{ name:'Shop owner', email:d.admins[0] || 'owner@gmail.com', bg:'oklch(0.62 0.07 150)' }, { name:'Guest User', email:'guest.user@gmail.com', bg:'oklch(0.6 0.07 260)' }];
+      return { ...base, chooser:s.chooser, authErr:s.authErr, hasAuthErr:!!s.authErr,
+        openChooser: () => this.setState({ chooser:true, authErr:'' }), closeChooser: () => this.setState({ chooser:false }),
+        accounts: accs.map(a => ({ ...a, initial:a.name[0], pick: () => this.signIn(a) })) };
+    }
+    const P = d.products, me = s.session;
+    const nav = [['products','Products',P.length], ['categories','Categories',d.categories.length], ['profile','Profile',''], ['admins','Admin access',d.admins.length]].map(([k,label,count]) => ({
+      label, count:String(count), go: () => this.setState({ tab:k }),
+      bg: s.tab === k ? 'oklch(0.92 0.02 75)' : 'transparent', fg: s.tab === k ? 'oklch(0.25 0.02 60)' : 'oklch(0.42 0.02 60)' }));
+    const q = s.q.trim().toLowerCase();
+    const rows = P.map((p, i) => ({ p, i })).filter(({ p }) => !q || (p.name + ' ' + p.cat).toLowerCase().includes(q)).map(({ p, i }) => {
+      const media = p.media || [], ph = media.filter(m => m.type === 'photo').length, vd = media.length - ph;
+      const cover = media.find(m => m.type === 'photo' && m.src);
+      return { name:p.name, cat:p.cat, tint:p.tint, thumbUrl: cover ? url(cover.src) : '',
+        mediaLabel: ph + ' photo' + (ph === 1 ? '' : 's') + (vd ? ' · ' + vd + ' video' : ''),
+        shopee:!!p.shopee, tiktok:!!p.tiktok, wa:!!p.wa, noLinks: !p.shopee && !p.tiktok && !p.wa,
+        opacity: p.hidden ? 0.55 : 1, visLabel: p.hidden ? 'Hidden' : 'Live', swBg: p.hidden ? OFF : ON, swX: p.hidden ? '3px' : '17px',
+        isFirst: i === 0, isLast: i === P.length - 1,
+        toggle: () => this.upd(x => { x.products[i].hidden = !x.products[i].hidden; }, p.hidden ? 'Now live on your page' : 'Hidden from your page'),
+        up: () => this.upd(x => this.move(x.products, i, -1)), down: () => this.upd(x => this.move(x.products, i, 1)),
+        edit: () => this.openEdit(p) };
+    });
+    const live = P.filter(p => !p.hidden).length;
+    const catRows = d.categories.map((c, i) => {
+      const n = P.filter(p => p.cat === c).length;
+      return { name:c, countLabel: n + (n === 1 ? ' product' : ' products'), isFirst: i === 0, isLast: i === d.categories.length - 1,
+        rename: e => { const v = e.target.value; this.upd(x => { x.products.forEach(p => { if (p.cat === c) p.cat = v; }); x.categories[i] = v; }); },
+        up: () => this.upd(x => this.move(x.categories, i, -1)), down: () => this.upd(x => this.move(x.categories, i, 1)),
+        remove: () => n ? this.flash('Move its ' + n + ' product' + (n === 1 ? '' : 's') + ' to another category first') : this.upd(x => { x.categories.splice(i, 1); }, 'Category deleted') };
+    });
+    const addCat = () => { const v = s.newCat.trim(); if (!v) return; if (d.categories.includes(v)) return this.flash('That category already exists');
+      if (this.upd(x => { x.categories.push(v); }, 'Category added')) this.setState({ newCat:'' }); };
+    const pfField = k => e => { const v = e.target.value; this.upd(x => { x.profile[k] = v; }); };
+    const adminRows = d.admins.map((em, i) => ({ email:em, initial:em[0].toUpperCase(), isMe: em === me.email, canRemove: em !== me.email,
+      remove: () => this.upd(x => { x.admins.splice(i, 1); }, 'Access removed') }));
+    const addAdmin = () => { const v = s.newAdmin.trim().toLowerCase(); if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)) return this.flash('Enter a valid Google email');
+      if (d.admins.includes(v)) return this.flash('Already has access');
+      if (this.upd(x => { x.admins.push(v); }, 'Access granted')) this.setState({ newAdmin:'' }); };
+
+    const dr = s.draft;
+    const field = k => e => this.setDraft({ [k]: e.target.value });
+    const dMedia = dr ? dr.media.map((m, i) => ({ ...m, tint:dr.tint, isVideo: m.type === 'video', thumbUrl: m.type === 'photo' && m.src ? url(m.src) : '',
+      placeholder: !(m.type === 'photo' && m.src), label: m.type === 'video' ? (m.src ? 'video' : m.label) : m.label, canLeft: i > 0,
+      remove: () => this.setDraft({ media: dr.media.filter((_, j) => j !== i) }),
+      left: () => { const a = dr.media.slice(); this.move(a, i, -1); this.setDraft({ media:a }); } })) : [];
+    return {
+      ...base, narrow:s.narrow, wide:!s.narrow, me: { ...me, initial: (me.name || me.email)[0].toUpperCase() }, nav,
+      signOut: () => { this.m.setSession(null); this.setState({ session:null, draft:null }); },
+      isProducts: s.tab === 'products', isCategories: s.tab === 'categories', isProfile: s.tab === 'profile', isAdmins: s.tab === 'admins',
+      q:s.q, onQ: e => this.setState({ q:e.target.value }), rows, noRows: rows.length === 0,
+      productSummary: P.length + ' products · ' + live + ' live', openNew: () => this.openNew(),
+      catRows, newCat:s.newCat, onNewCat: e => this.setState({ newCat:e.target.value }), newCatKey: e => { if (e.key === 'Enter') addCat(); }, addCat,
+      prof:d.profile, pf: { name:pfField('name'), handle:pfField('handle'), bio:pfField('bio'), whatsapp:pfField('whatsapp') },
+      avatarUrl: d.profile.avatar ? url(d.profile.avatar) : '',
+      onAvatar: e => { const f = e.target.files[0]; if (!f) return; this.m.resizeImage(f, 400).then(src => this.upd(x => { x.profile.avatar = src; }, 'Photo updated')); },
+      adminRows, newAdmin:s.newAdmin, onNewAdmin: e => this.setState({ newAdmin:e.target.value }), addAdmin,
+      editing: !!dr, editTitle: s.isNew ? 'New product' : 'Edit product', d: dr || {}, closeEdit: () => this.setState({ draft:null }),
+      catNames: d.categories, reviewCount: dr ? dr.review.length + ' characters' : '',
+      f: { name:field('name'), price:field('price'), review:field('review'), shopee:field('shopee'), tiktok:field('tiktok'), wa:field('wa'), cat:field('cat'),
+        hidden: () => this.setDraft({ hidden: !dr.hidden }) },
+      dSwBg: dr && !dr.hidden ? ON : OFF, dSwX: dr && !dr.hidden ? '19px' : '3px',
+      dMedia, videoUrl:s.videoUrl, onVideoUrl: e => this.setState({ videoUrl:e.target.value }),
+      addVideo: () => { const v = s.videoUrl.trim(); if (!/^https?:\/\//.test(v)) return this.flash('Paste a full video link starting with https://');
+        this.setDraft({ media: [...dr.media, { type:'video', src:v, label:'video' }] }); this.setState({ videoUrl:'' }); },
+      addPhotos: e => { const files = Array.from(e.target.files || []); e.target.value = '';
+        Promise.all(files.map(f => this.m.resizeImage(f))).then(srcs => this.setState(st => ({ draft: { ...st.draft, media: [...st.draft.media, ...srcs.map((src, k) => ({ type:'photo', src, label:'photo' }))] } }))); },
+      useMyWa: () => { const n = (d.profile.whatsapp || '').replace(/\D/g, ''); if (!n) return this.flash('Add your WhatsApp number in Profile first');
+        this.setDraft({ wa: 'https://wa.me/' + n + '?text=' + encodeURIComponent('Hi! I’d like to order the ' + (dr.name || 'item')) }); },
+      draftErr:s.draftErr, hasDraftErr:!!s.draftErr, saveDraft: () => this.saveDraft(),
+      canDelete: dr && !s.isNew, delLabel: s.confirmDel ? 'Tap again to delete' : 'Delete',
+      delBg: s.confirmDel ? 'oklch(0.55 0.14 30)' : 'transparent', delFg: s.confirmDel ? 'oklch(0.99 0.004 80)' : 'oklch(0.5 0.1 30)',
+      del: () => { if (!s.confirmDel) return this.setState({ confirmDel:true });
+        if (this.upd(x => { x.products = x.products.filter(p => p.id !== dr.id); }, 'Product deleted')) this.setState({ draft:null, confirmDel:false }); },
+    };
+  }
+}
+</script>
+</body>
+</html>
