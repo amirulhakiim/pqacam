@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminLoginRouteImport } from './routes/admin/login'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
+import { Route as GoProductIdPlatformRouteImport } from './routes/go.$productId.$platform'
 import { Route as ApiAuthGoogleIndexRouteImport } from './routes/api/auth/google/index'
 import { Route as ApiAuthGoogleCallbackRouteImport } from './routes/api/auth/google/callback'
 
@@ -30,6 +31,11 @@ const ApiHealthRoute = ApiHealthRouteImport.update({
   path: '/api/health',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GoProductIdPlatformRoute = GoProductIdPlatformRouteImport.update({
+  id: '/go/$productId/$platform',
+  path: '/go/$productId/$platform',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAuthGoogleIndexRoute = ApiAuthGoogleIndexRouteImport.update({
   id: '/api/auth/google/',
   path: '/api/auth/google/',
@@ -45,6 +51,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin/login': typeof AdminLoginRoute
   '/api/health': typeof ApiHealthRoute
+  '/go/$productId/$platform': typeof GoProductIdPlatformRoute
   '/api/auth/google/callback': typeof ApiAuthGoogleCallbackRoute
   '/api/auth/google/': typeof ApiAuthGoogleIndexRoute
 }
@@ -52,6 +59,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin/login': typeof AdminLoginRoute
   '/api/health': typeof ApiHealthRoute
+  '/go/$productId/$platform': typeof GoProductIdPlatformRoute
   '/api/auth/google/callback': typeof ApiAuthGoogleCallbackRoute
   '/api/auth/google': typeof ApiAuthGoogleIndexRoute
 }
@@ -60,6 +68,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin/login': typeof AdminLoginRoute
   '/api/health': typeof ApiHealthRoute
+  '/go/$productId/$platform': typeof GoProductIdPlatformRoute
   '/api/auth/google/callback': typeof ApiAuthGoogleCallbackRoute
   '/api/auth/google/': typeof ApiAuthGoogleIndexRoute
 }
@@ -69,6 +78,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin/login'
     | '/api/health'
+    | '/go/$productId/$platform'
     | '/api/auth/google/callback'
     | '/api/auth/google/'
   fileRoutesByTo: FileRoutesByTo
@@ -76,6 +86,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin/login'
     | '/api/health'
+    | '/go/$productId/$platform'
     | '/api/auth/google/callback'
     | '/api/auth/google'
   id:
@@ -83,6 +94,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin/login'
     | '/api/health'
+    | '/go/$productId/$platform'
     | '/api/auth/google/callback'
     | '/api/auth/google/'
   fileRoutesById: FileRoutesById
@@ -91,6 +103,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminLoginRoute: typeof AdminLoginRoute
   ApiHealthRoute: typeof ApiHealthRoute
+  GoProductIdPlatformRoute: typeof GoProductIdPlatformRoute
   ApiAuthGoogleCallbackRoute: typeof ApiAuthGoogleCallbackRoute
   ApiAuthGoogleIndexRoute: typeof ApiAuthGoogleIndexRoute
 }
@@ -118,6 +131,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiHealthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/go/$productId/$platform': {
+      id: '/go/$productId/$platform'
+      path: '/go/$productId/$platform'
+      fullPath: '/go/$productId/$platform'
+      preLoaderRoute: typeof GoProductIdPlatformRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/auth/google/': {
       id: '/api/auth/google/'
       path: '/api/auth/google'
@@ -139,6 +159,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminLoginRoute: AdminLoginRoute,
   ApiHealthRoute: ApiHealthRoute,
+  GoProductIdPlatformRoute: GoProductIdPlatformRoute,
   ApiAuthGoogleCallbackRoute: ApiAuthGoogleCallbackRoute,
   ApiAuthGoogleIndexRoute: ApiAuthGoogleIndexRoute,
 }
