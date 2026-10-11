@@ -66,3 +66,9 @@ test('upload rules', () => {
   expect(validateUpload({ kind: 'photo', contentType: 'image/jpeg', size: 0 }).ok).toBe(false)
   expect(validateUpload({ kind: 'exe', contentType: 'image/jpeg', size: 1 }).ok).toBe(false)
 })
+
+test('a link with emoji or a line break is stored in a form that is safe for a Location header', () => {
+  const r = validateProduct({ ...good, whatsappUrl: 'https://wa.me/601?text=Hi 😊\r\nX: y' })
+  expect(r.ok && r.value.whatsappUrl).toMatch(/^https:\/\/wa\.me\/601\?text=[\x21-\x7e]+$/)
+  expect(() => new Headers({ Location: r.ok ? r.value.whatsappUrl : '' })).not.toThrow()
+})

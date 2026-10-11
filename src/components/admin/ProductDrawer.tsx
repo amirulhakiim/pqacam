@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { resizeImage, uploadFile } from '../../lib/upload'
 import { PLATFORM_LABEL } from '../../lib/platforms'
 import type { AdminProduct } from '../../server/catalog'
@@ -30,6 +30,8 @@ export function ProductDrawer({ product, data, act, flash, onClose }: Props) {
   const [uploads, setUploads] = useState(0)
   const [error, setError] = useState('')
   const [confirmDelete, setConfirmDelete] = useState(false)
+  // A ref, not state: a second tap arrives before React renders again.
+  const saving = useRef(false)
   const set = (patch: Partial<Draft>) => {
     setDraft((d) => ({ ...d, ...patch }))
     setError('')
@@ -71,11 +73,19 @@ export function ProductDrawer({ product, data, act, flash, onClose }: Props) {
   }
 
   async function save() {
-    const input = { ...draft, media: draft.media.map(({ type, key }) => ({ type, key })) }
-    const result = await saveProductFn({ data: input })
-    if (!result.ok) return setError(result.error)
-    await act(Promise.resolve(result), product ? 'Changes saved' : 'Product added')
-    onClose()
+    if (saving.current) return
+    saving.current = true
+    try {
+      const input = { ...draft, media: draft.media.map(({ type, key }) => ({ type, key })) }
+      const result = await saveProductFn({ data: input })
+      if (!result.ok) return setError(result.error)
+      await act(Promise.resolve(result), product ? 'Changes saved' : 'Product added')
+      onClose()
+    } catch {
+      setError('Could not save. Check your connection and try again.')
+    } finally {
+      saving.current = false
+    }
   }
 
   async function remove() {

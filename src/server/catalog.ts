@@ -74,6 +74,11 @@ export function getAdminData(db: Db, mediaBase: string) {
 export type AdminData = ReturnType<typeof getAdminData>
 export type AdminProduct = AdminData['products'][number]
 
+// A key can be on more than one row (a double save, or a crafted request). Delete the object only when no row uses it.
+function unused(db: Pick<Db, 'select'>, keys: string[]): string[] {
+  return keys.filter((key) => !db.select().from(media).where(eq(media.r2Key, key)).get())
+}
+
 export function saveProduct(db: Db, input: ProductInput): { id: number; removedKeys: string[] } {
   const { id: inputId, media: items, ...fields } = input
   return db.transaction((tx) => {
@@ -97,15 +102,14 @@ export function saveProduct(db: Db, input: ProductInput): { id: number; removedK
         .values(items.map((m, position) => ({ productId: id, type: m.type, r2Key: m.key, position })))
         .run()
     }
-    const kept = new Set(items.map((m) => m.key))
-    return { id, removedKeys: oldKeys.filter((k) => !kept.has(k)) }
+    return { id, removedKeys: unused(tx, oldKeys) }
   })
 }
 
 export function deleteProduct(db: Db, id: number): string[] {
   const keys = db.select().from(media).where(eq(media.productId, id)).all().map((m) => m.r2Key)
   db.delete(product).where(eq(product.id, id)).run()
-  return keys
+  return unused(db, keys)
 }
 
 export function setHidden(db: Db, id: number, hidden: boolean) {

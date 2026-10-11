@@ -136,3 +136,13 @@ test('profile save returns the avatar key that was replaced', () => {
   expect(c.saveProfile(db, p)).toBeNull()
   expect(c.getPublicPage(db, BASE).profile.avatarUrl).toBe(`${BASE}/avatar/b.jpg`)
 })
+
+test('a media key that a second product still uses is not reported for deletion', () => {
+  const a = c.saveProduct(db, input({ name: 'A' })).id
+  const b = c.saveProduct(db, input({ name: 'B' })).id
+  expect(c.saveProduct(db, input({ id: a, name: 'A', media: [] })).removedKeys).toEqual([])
+  expect(c.deleteProduct(db, b)).toEqual([key(1)])
+  const d = c.saveProduct(db, input({ name: 'D' })).id
+  c.saveProduct(db, input({ name: 'E' }))
+  expect(c.deleteProduct(db, d)).toEqual([])
+})

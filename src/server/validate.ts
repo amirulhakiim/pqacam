@@ -25,12 +25,13 @@ export const AVATAR_KEY = new RegExp(`^avatar/${UUID}\\.jpg$`)
 
 const text = (v: unknown, max: number) => (typeof v === 'string' ? v.trim().slice(0, max) : '')
 
-function isHttps(link: string) {
+// Returns the parsed form. It is percent-encoded, so it is safe in a Location header.
+function httpsLink(link: string): string | null {
   try {
     const url = new URL(link)
-    return url.protocol === 'https:' && url.hostname.includes('.')
+    return url.protocol === 'https:' && url.hostname.includes('.') ? url.href : null
   } catch {
-    return false
+    return null
   }
 }
 
@@ -52,7 +53,12 @@ export function validateProduct(raw: unknown): Result<ProductInput> {
   if (!value.name) return fail('Give your product a name.')
   const links = [value.shopeeUrl, value.tiktokUrl, value.whatsappUrl].filter(Boolean)
   if (!links.length) return fail('Add at least one Shopee, TikTok or WhatsApp link.')
-  if (!links.every(isHttps)) return fail('Links must start with https://')
+  for (const field of ['shopeeUrl', 'tiktokUrl', 'whatsappUrl'] as const) {
+    if (!value[field]) continue
+    const href = httpsLink(value[field])
+    if (!href) return fail('Links must start with https://')
+    value[field] = href
+  }
   for (const m of Array.isArray(r.media) ? r.media.slice(0, 20) : []) {
     const type = m?.type === 'video' ? 'video' : 'photo'
     if (typeof m?.key !== 'string' || !MEDIA_KEY[type].test(m.key)) return fail('Upload the file again.')

@@ -8,11 +8,25 @@ export function ProfileTab({ data, act, flash }: TabProps) {
   const [form, setForm] = useState({ name, handle, bio, whatsapp })
   const edited = useRef(false)
 
+  const pending = useRef<typeof form | null>(null)
+
   useEffect(() => {
     if (!edited.current) return
-    const timer = setTimeout(() => act(saveProfileFn({ data: form })), 600)
+    pending.current = form
+    const timer = setTimeout(() => {
+      pending.current = null
+      act(saveProfileFn({ data: form }))
+    }, 600)
     return () => clearTimeout(timer)
   }, [form, act])
+
+  // Sends an edit that is still in the 600 ms wait when the admin leaves the tab.
+  useEffect(
+    () => () => {
+      if (pending.current) act(saveProfileFn({ data: pending.current }))
+    },
+    [act],
+  )
 
   const field = (key: keyof typeof form) => ({
     className: 'ad-input',

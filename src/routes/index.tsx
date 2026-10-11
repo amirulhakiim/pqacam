@@ -5,6 +5,7 @@ import { Header } from '../components/public/Header'
 import { ProductGrid } from '../components/public/ProductGrid'
 import { ProductSheet } from '../components/public/ProductSheet'
 import { type Filter, filterProducts } from '../lib/filter'
+import { useMediaProtection } from '../lib/protect'
 import { getPublicPageFn } from '../server/fns'
 
 const NO_FILTER: Filter = { q: '', category: 'All', platform: 'all' }
@@ -35,6 +36,8 @@ function Home() {
   const [filter, setFilter] = useState(NO_FILTER)
   const [openId, setOpenId] = useState<number | null>(null)
   const close = useCallback(() => setOpenId(null), [])
+  // Mounted with the page, so grid covers are protected before a sheet opens.
+  const hidden = useMediaProtection()
   const products = filterProducts(page.products, filter)
   const open = page.products.find((p) => p.id === openId)
 
@@ -58,7 +61,7 @@ function Home() {
         )}
         <footer className="pp-footer">Some links are affiliate links. Thank you for supporting my little corner ♡</footer>
       </div>
-      {open && <ProductSheet key={open.id} product={open} handle={page.profile.handle} onClose={close} />}
+      {open && <ProductSheet key={open.id} product={open} handle={page.profile.handle} hidden={hidden} onClose={close} />}
     </div>
   )
 }
