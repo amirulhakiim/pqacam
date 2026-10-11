@@ -20,3 +20,21 @@ body {
   color: var(--ink);
   -webkit-font-smoothing: antialiased;
 }
+.page-glow {
+  background:
+    radial-gradient(60% 40% at 0% 0%, oklch(0.93 0.04 30) 0%, transparent 70%),
+    radial-gradient(55% 45% at 100% 15%, oklch(0.93 0.04 150) 0%, transparent 70%),
+    radial-gradient(70% 50% at 20% 100%, oklch(0.93 0.035 260) 0%, transparent 70%),
+    radial-gradient(50% 40% at 100% 90%, oklch(0.94 0.04 80) 0%, transparent 70%),
+    var(--bg);
+}
+.eyebrow { font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+.error-box { box-sizing: border-box; width: 100%; padding: 12px 14px; border-radius: 12px; background: oklch(0.95 0.03 30); color: oklch(0.42 0.1 30); font-size: 13.5px; line-height: 1.45; text-align: left; }
+.login-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; box-sizing: border-box; }
+.login-card { width: 100%; max-width: 400px; box-sizing: border-box; padding: 40px 32px; border-radius: 28px; background: oklch(0.99 0.004 80 / 0.8); backdrop-filter: blur(16px); box-shadow: 0 20px 60px oklch(0.5 0.03 60 / 0.12); display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; }
+.login-title { margin: 0; font-family: var(--serif); font-weight: 400; font-size: 40px; line-height: 1; }
+.login-lead { margin: 4px 0 18px; font-size: 14.5px; line-height: 1.5; color: oklch(0.45 0.02 60); text-wrap: pretty; }
+.login-google { width: 100%; height: 52px; box-sizing: border-box; border-radius: 14px; border: 1px solid oklch(0.88 0.01 70); background: oklch(0.995 0.002 80); font-size: 15px; font-weight: 600; color: var(--ink); text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 12px; }
+.login-google:hover { background: oklch(0.97 0.006 80); }
+.login-g { width: 24px; height: 24px; border-radius: 50%; border: 1px solid oklch(0.88 0.01 70); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; color: oklch(0.55 0.15 255); }
+.login-note { margin: 14px 0 0; font-size: 12px; color: oklch(0.55 0.02 65); }
