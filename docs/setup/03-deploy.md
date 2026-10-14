@@ -89,7 +89,7 @@ MEDIA_BASE_URL=https://media.pqacam.com
 ```
 
 - `SESSION_SECRET`: a new value from `openssl rand -base64 32`, not the local one.
-- Do not set `DATABASE_PATH`. The image uses `/data/pqacam.db`.
+- Do not set `DATABASE_PATH`, and do not paste your local `.env`. The image uses `/data/pqacam.db` on the volume. A local value such as `./data/dev.db` points at a folder that does not exist in the container, and every page fails.
 - Leave "Build Time Arguments" and "Build-time Secrets" empty. The build needs no secrets.
 
 ## 5. Domain
@@ -175,6 +175,7 @@ No automated test covers these, because they need the real accounts.
 | Log: `Missing environment variable X` | Add `X` in tab "Environment" and deploy again |
 | No certificate | The `A` record does not point at the server, or the Cloudflare proxy was on at the first deploy |
 | Redirect loop | Cloudflare proxy is on and SSL/TLS mode is "Flexible". Set "Full (strict)" |
+| Log: `SQLITE_CANTOPEN` or "Cannot open the database" | `DATABASE_PATH` is set in tab "Environment". Delete the line and deploy again |
 | Products gone after a deploy | The volume is not mounted at `/data` |
 | Sign-in goes to `localhost` | `PUBLIC_URL` is still the local value |
 | Uploads fail only in production | `https://pqacam.com` is not in the bucket CORS policy |
