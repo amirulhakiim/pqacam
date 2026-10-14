@@ -35,9 +35,17 @@ export function Shell({ data, me, tab, onTab, onSignOut, children }: Props) {
           <a className="btn btn-light adm-view" href="/" target="_blank" rel="noopener">
             View page ↗
           </a>
-          <button type="button" className="adm-me" onClick={onSignOut} title="Sign out">
+          <button type="button" className="adm-me" popoverTarget="account-menu" aria-label="Account">
             {initial}
           </button>
+          {/* Native popover: closes on a tap outside or on Escape, with no state to keep. */}
+          <div id="account-menu" popover="auto" className="adm-menu">
+            <span className="adm-menu-name">{me.name}</span>
+            <span className="adm-menu-email">{me.email}</span>
+            <button type="button" className="btn btn-light" onClick={onSignOut}>
+              Sign out
+            </button>
+          </div>
         </div>
         <nav className="adm-pills">
           {nav.map(([key, label]) => (

@@ -14,6 +14,8 @@
   --mono: 'DM Mono', monospace;
 }
 body {
+  /* Long links and long product names break instead of widening the page on a phone. */
+  overflow-wrap: anywhere;
   margin: 0;
   background: var(--bg);
   font-family: var(--sans);
@@ -63,9 +65,9 @@ button { font: inherit; color: inherit; }
 .pp-search input::placeholder { color: oklch(0.6 0.02 70); }
 .pp-clear { width: 38px; height: 38px; border-radius: 50%; border: none; background: oklch(0.94 0.012 75); color: oklch(0.4 0.02 60); font-size: 16px; cursor: pointer; }
 .pp-tabs { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: 0 -18px; padding: 0 18px; }
-.pp-platforms { display: flex; gap: 6px; align-items: center; font-size: 12.5px; color: var(--ink-soft); }
-.pp-platforms > span { margin-right: 4px; }
-.pp-platform { height: 30px; padding: 0 12px; border-radius: 999px; border: none; background: transparent; color: oklch(0.45 0.02 65); font-size: 12.5px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+.pp-platforms { display: flex; gap: 6px; align-items: center; font-size: 12.5px; color: var(--ink-soft); overflow-x: auto; scrollbar-width: none; margin: 0 -18px; padding: 0 18px; }
+.pp-platforms > span { flex: none; margin-right: 4px; white-space: nowrap; }
+.pp-platform { flex: none; height: 30px; padding: 0 12px; border-radius: 999px; border: none; background: transparent; color: oklch(0.45 0.02 65); font-size: 12.5px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; }
 .pp-platform-on { background: oklch(0.9 0.02 70); color: oklch(0.28 0.02 60); }
 .dot { width: 7px; height: 7px; border-radius: 50%; }
 .dot-all { background: oklch(0.7 0.02 70); }
@@ -117,7 +119,7 @@ button { font: inherit; color: inherit; }
 .pp-dot-on { width: 20px; background: var(--surface); }
 .pp-title { display: flex; flex-direction: column; gap: 6px; }
 .pp-category { font-weight: 500; letter-spacing: 0.06em; }
-.pp-title-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.pp-title-row { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 12px; }
 .pp-title-row h2 { margin: 0; font-family: var(--serif); font-weight: 400; font-size: 30px; line-height: 1.05; text-wrap: pretty; }
 .pp-price { font-family: var(--serif); font-size: 24px; white-space: nowrap; }
 .pp-review { background: oklch(0.955 0.014 75); border-radius: 18px; padding: 16px 18px; display: flex; flex-direction: column; gap: 8px; }
@@ -221,7 +223,8 @@ textarea.adm-input { height: auto; padding: 12px 14px; line-height: 1.55; resize
 .adm-tile-button { position: absolute; top: 5px; width: 26px; height: 26px; border-radius: 50%; border: none; background: oklch(0.99 0.004 80 / 0.92); font-size: 11px; cursor: pointer; color: oklch(0.35 0.02 60); }
 .adm-tile-remove { right: 5px; }
 .adm-tile-left { left: 5px; }
-.adm-link-row { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
+.adm-link-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 4px; }
+.adm-link-row .adm-input { flex: 1 1 180px; }
 .adm-link-chip { width: 84px; flex: none; box-sizing: border-box; font-size: 12px; padding: 5px 0; text-align: center; }
 .adm-link-row .btn { height: 42px; padding: 0 12px; font-size: 12.5px; color: oklch(0.4 0.09 150); }
 .adm-toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 40; background: oklch(0.3 0.02 60); color: oklch(0.98 0.005 80); padding: 12px 20px; border-radius: 999px; font-size: 14px; font-weight: 500; box-shadow: 0 10px 30px oklch(0.3 0.02 60 / 0.25); animation: fade-in 0.2s; }
@@ -237,3 +240,13 @@ textarea.adm-input { height: auto; padding: 12px 14px; line-height: 1.55; resize
 .adm-avatar-row .btn { height: 40px; padding: 0 16px; font-size: 13.5px; }
 .adm-initial { width: 32px; height: 32px; flex: none; margin-left: 4px; border-radius: 50%; background: oklch(0.9 0.03 150); color: oklch(0.38 0.07 150); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 13px; }
 .adm-email { flex: 1; min-width: 0; font-size: 14.5px; overflow: hidden; text-overflow: ellipsis; }
+
+.adm-menu { inset: 64px 16px auto auto; margin: 0; box-sizing: border-box; max-width: calc(100vw - 32px); padding: 14px; border: 1px solid oklch(0.91 0.01 70); border-radius: 16px; background: var(--surface); box-shadow: 0 10px 30px oklch(0.3 0.02 60 / 0.15); color: var(--ink); }
+.adm-menu:popover-open { display: flex; flex-direction: column; gap: 4px; }
+.adm-menu-name { font-size: 14px; font-weight: 600; }
+.adm-menu-email { font-size: 12.5px; color: var(--ink-soft); margin-bottom: 8px; }
+
+@media (max-width: 759px) {
+  /* iOS Safari zooms the page into any field with text smaller than 16px, and the page then looks wider than the screen. */
+  .pp-search input, .adm-input { font-size: 16px; }
+}
