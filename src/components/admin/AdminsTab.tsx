@@ -11,19 +11,19 @@ export function AdminsTab({ data, act, me }: TabProps & { me: string }) {
 
   return (
     <>
-      <div className="ad-head">
+      <div className="adm-head">
         <div>
           <h2>Admin access</h2>
-          <div className="ad-sub">Google accounts allowed to sign in and edit this page.</div>
+          <div className="adm-sub">Google accounts allowed to sign in and edit this page.</div>
         </div>
       </div>
-      <div className="ad-list">
+      <div className="adm-list">
         {data.admins.map((address) => (
-          <div className="ad-row ad-row-slim" key={address}>
-            <span className="ad-initial">{address[0].toUpperCase()}</span>
-            <span className="ad-email">{address}</span>
+          <div className="adm-row adm-row-slim" key={address}>
+            <span className="adm-initial">{address[0].toUpperCase()}</span>
+            <span className="adm-email">{address}</span>
             {address === me ? (
-              <span className="ad-sub">You</span>
+              <span className="adm-sub">You</span>
             ) : (
               <button type="button" className="btn btn-danger btn-small" onClick={() => act(removeAdminFn({ data: address }), 'Access removed')}>
                 Remove
@@ -31,9 +31,9 @@ export function AdminsTab({ data, act, me }: TabProps & { me: string }) {
             )}
           </div>
         ))}
-        <div className="ad-add">
+        <div className="adm-add">
           <input
-            className="ad-input"
+            className="adm-input"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}

@@ -19,15 +19,15 @@ export function ProductsTab({ data, act, flash }: TabProps) {
 
   return (
     <>
-      <div className="ad-head">
+      <div className="adm-head">
         <div>
           <h2>Products</h2>
-          <div className="ad-sub">
+          <div className="adm-sub">
             {data.products.length} products · {live} live
           </div>
         </div>
-        <div className="ad-head-actions">
-          <input className="ad-input ad-search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search products…" />
+        <div className="adm-head-actions">
+          <input className="adm-input adm-search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search products…" />
           <button
             type="button"
             className="btn btn-dark btn-round"
@@ -37,7 +37,7 @@ export function ProductsTab({ data, act, flash }: TabProps) {
           </button>
         </div>
       </div>
-      <div className="ad-list ad-list-wide">
+      <div className="adm-list adm-list-wide">
         {rows.map((p) => {
           const index = data.products.indexOf(p)
           const cover = p.media.find((m) => m.type === 'photo')
@@ -45,13 +45,13 @@ export function ProductsTab({ data, act, flash }: TabProps) {
           const videos = p.media.length - photos
           const linked = PLATFORMS.filter((k) => p[URL_FIELD[k]])
           return (
-            <div className={p.hidden ? 'ad-row ad-row-hidden' : 'ad-row'} key={p.id}>
-              <button type="button" className="ad-thumb" onClick={() => setEditing(p)} aria-label={`Edit ${p.name}`}>
+            <div className={p.hidden ? 'adm-row adm-row-hidden' : 'adm-row'} key={p.id}>
+              <button type="button" className="adm-thumb" onClick={() => setEditing(p)} aria-label={`Edit ${p.name}`}>
                 {cover && <img src={cover.url} alt="" />}
               </button>
-              <button type="button" className="ad-row-text" onClick={() => setEditing(p)}>
-                <span className="ad-row-name">{p.name}</span>
-                <span className="ad-row-meta">
+              <button type="button" className="adm-row-text" onClick={() => setEditing(p)}>
+                <span className="adm-row-name">{p.name}</span>
+                <span className="adm-row-meta">
                   <span>{categoryName.get(p.categoryId)}</span>
                   <span>·</span>
                   <span>
@@ -66,7 +66,7 @@ export function ProductsTab({ data, act, flash }: TabProps) {
                   {linked.length === 0 && <span className="chip chip-warn">No buy link</span>}
                 </span>
               </button>
-              <div className="ad-row-actions">
+              <div className="adm-row-actions">
                 <button
                   type="button"
                   className="switch-button"
@@ -103,7 +103,7 @@ export function ProductsTab({ data, act, flash }: TabProps) {
           )
         })}
         {rows.length === 0 && (
-          <div className="ad-none">{needle ? `No products match "${q}".` : 'No products yet. Add your first one.'}</div>
+          <div className="adm-none">{needle ? `No products match "${q}".` : 'No products yet. Add your first one.'}</div>
         )}
       </div>
       {editing && (

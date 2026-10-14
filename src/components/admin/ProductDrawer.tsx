@@ -94,44 +94,44 @@ export function ProductDrawer({ product, data, act, flash, onClose }: Props) {
   }
 
   return (
-    <div className="ad-backdrop" onClick={onClose}>
-      <div className="ad-drawer" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
-        <div className="ad-drawer-head">
+    <div className="adm-backdrop" onClick={onClose}>
+      <div className="adm-drawer" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+        <div className="adm-drawer-head">
           <h3>{product ? 'Edit product' : 'New product'}</h3>
-          <button type="button" className="ad-x" onClick={onClose} aria-label="Close">
+          <button type="button" className="adm-x" onClick={onClose} aria-label="Close">
             ✕
           </button>
         </div>
-        <div className="ad-drawer-body">
-          <div className="ad-field">
-            <span className="ad-label">
+        <div className="adm-drawer-body">
+          <div className="adm-field">
+            <span className="adm-label">
               Photos &amp; videos <em>First photo is the cover</em>
             </span>
-            <div className="ad-media">
+            <div className="adm-media">
               {draft.media.map((m, i) => (
-                <div className="ad-tile" key={m.key}>
+                <div className="adm-tile" key={m.key}>
                   {m.type === 'photo' ? <img src={m.url} alt="" /> : <video src={m.url} muted preload="metadata" />}
-                  {m.type === 'video' && <span className="ad-tile-tag">▶ Video</span>}
+                  {m.type === 'video' && <span className="adm-tile-tag">▶ Video</span>}
                   <button
                     type="button"
-                    className="ad-tile-button ad-tile-remove"
+                    className="adm-tile-button adm-tile-remove"
                     onClick={() => set({ media: draft.media.filter((_, j) => j !== i) })}
                     title="Remove"
                   >
                     ✕
                   </button>
                   {i > 0 && (
-                    <button type="button" className="ad-tile-button ad-tile-left" onClick={() => moveEarlier(i)} title="Move earlier">
+                    <button type="button" className="adm-tile-button adm-tile-left" onClick={() => moveEarlier(i)} title="Move earlier">
                       ←
                     </button>
                   )}
                 </div>
               ))}
-              <label className="ad-tile ad-tile-add">
+              <label className="adm-tile adm-tile-add">
                 <span>+</span>Add photos
                 <input type="file" accept="image/*" multiple hidden onChange={(e) => (addFiles('photo', e.target.files), (e.target.value = ''))} />
               </label>
-              <label className="ad-tile ad-tile-add">
+              <label className="adm-tile adm-tile-add">
                 <span>+</span>Add video
                 <input
                   type="file"
@@ -141,18 +141,18 @@ export function ProductDrawer({ product, data, act, flash, onClose }: Props) {
                 />
               </label>
             </div>
-            {uploads > 0 && <span className="ad-hint">Uploading {uploads}…</span>}
+            {uploads > 0 && <span className="adm-hint">Uploading {uploads}…</span>}
           </div>
 
-          <label className="ad-field">
-            <span className="ad-label">Product name</span>
-            <input className="ad-input" value={draft.name} onChange={(e) => set({ name: e.target.value })} placeholder="e.g. Ribbed Glass Tumbler Set" />
+          <label className="adm-field">
+            <span className="adm-label">Product name</span>
+            <input className="adm-input" value={draft.name} onChange={(e) => set({ name: e.target.value })} placeholder="e.g. Ribbed Glass Tumbler Set" />
           </label>
 
-          <div className="ad-two">
-            <label className="ad-field">
-              <span className="ad-label">Category</span>
-              <select className="ad-input" value={draft.categoryId} onChange={(e) => set({ categoryId: Number(e.target.value) })}>
+          <div className="adm-two">
+            <label className="adm-field">
+              <span className="adm-label">Category</span>
+              <select className="adm-input" value={draft.categoryId} onChange={(e) => set({ categoryId: Number(e.target.value) })}>
                 {data.categories.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name}
@@ -160,20 +160,20 @@ export function ProductDrawer({ product, data, act, flash, onClose }: Props) {
                 ))}
               </select>
             </label>
-            <label className="ad-field">
-              <span className="ad-label">
+            <label className="adm-field">
+              <span className="adm-label">
                 Price <em>(optional)</em>
               </span>
-              <input className="ad-input" value={draft.price} onChange={(e) => set({ price: e.target.value })} placeholder="RM 24.90" />
+              <input className="adm-input" value={draft.price} onChange={(e) => set({ price: e.target.value })} placeholder="RM 24.90" />
             </label>
           </div>
 
-          <label className="ad-field">
-            <span className="ad-label">
+          <label className="adm-field">
+            <span className="adm-label">
               My honest review <em>{draft.review.length} characters</em>
             </span>
             <textarea
-              className="ad-input"
+              className="adm-input"
               rows={5}
               value={draft.review}
               onChange={(e) => set({ review: e.target.value })}
@@ -181,15 +181,15 @@ export function ProductDrawer({ product, data, act, flash, onClose }: Props) {
             />
           </label>
 
-          <div className="ad-field">
-            <span className="ad-label">
+          <div className="adm-field">
+            <span className="adm-label">
               Where to buy <em>Leave blank to hide a button</em>
             </span>
             {PLATFORMS.map((k) => (
-              <div className="ad-link-row" key={k}>
-                <span className={`chip chip-${k} ad-link-chip`}>{PLATFORM_LABEL[k].chip}</span>
+              <div className="adm-link-row" key={k}>
+                <span className={`chip chip-${k} adm-link-chip`}>{PLATFORM_LABEL[k].chip}</span>
                 <input
-                  className="ad-input"
+                  className="adm-input"
                   value={draft[URL_FIELD[k]]}
                   onChange={(e) => set({ [URL_FIELD[k]]: e.target.value })}
                   placeholder={PLACEHOLDER[k]}
@@ -211,13 +211,13 @@ export function ProductDrawer({ product, data, act, flash, onClose }: Props) {
 
           {error && <div className="error-box">{error}</div>}
         </div>
-        <div className="ad-drawer-foot">
+        <div className="adm-drawer-foot">
           {product && (
             <button type="button" className={confirmDelete ? 'btn btn-danger btn-danger-on' : 'btn btn-danger'} onClick={remove}>
               {confirmDelete ? 'Tap again to delete' : 'Delete'}
             </button>
           )}
-          <span className="ad-grow" />
+          <span className="adm-grow" />
           <button type="button" className="btn btn-light" onClick={onClose}>
             Cancel
           </button>

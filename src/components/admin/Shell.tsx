@@ -25,47 +25,47 @@ export function Shell({ data, me, tab, onTab, onSignOut, children }: Props) {
   const initial = (me.name || me.email)[0].toUpperCase()
   const name = data.profile.name || 'pqacam'
   return (
-    <div className="ad">
-      <header className="ad-top">
-        <div className="ad-top-row">
-          <div className="ad-brand">
-            <span className="ad-brand-name">{name}</span>
+    <div className="adm">
+      <header className="adm-top">
+        <div className="adm-top-row">
+          <div className="adm-brand">
+            <span className="adm-brand-name">{name}</span>
             <span className="eyebrow">Admin</span>
           </div>
-          <a className="btn btn-light ad-view" href="/" target="_blank" rel="noopener">
+          <a className="btn btn-light adm-view" href="/" target="_blank" rel="noopener">
             View page ↗
           </a>
-          <button type="button" className="ad-me" onClick={onSignOut} title="Sign out">
+          <button type="button" className="adm-me" onClick={onSignOut} title="Sign out">
             {initial}
           </button>
         </div>
-        <nav className="ad-pills">
+        <nav className="adm-pills">
           {nav.map(([key, label]) => (
-            <button type="button" key={key} className={key === tab ? 'ad-nav ad-nav-on' : 'ad-nav'} onClick={() => onTab(key)}>
+            <button type="button" key={key} className={key === tab ? 'adm-nav adm-nav-on' : 'adm-nav'} onClick={() => onTab(key)}>
               {label}
             </button>
           ))}
         </nav>
       </header>
-      <aside className="ad-side">
-        <div className="ad-brand">
-          <span className="ad-brand-name">{name}</span>
+      <aside className="adm-side">
+        <div className="adm-brand">
+          <span className="adm-brand-name">{name}</span>
           <span className="eyebrow">Admin</span>
         </div>
-        <nav className="ad-side-nav">
+        <nav className="adm-side-nav">
           {nav.map(([key, label, count]) => (
-            <button type="button" key={key} className={key === tab ? 'ad-nav ad-nav-on' : 'ad-nav'} onClick={() => onTab(key)}>
+            <button type="button" key={key} className={key === tab ? 'adm-nav adm-nav-on' : 'adm-nav'} onClick={() => onTab(key)}>
               {label}
               <span>{count}</span>
             </button>
           ))}
         </nav>
-        <a className="ad-side-link" href="/" target="_blank" rel="noopener">
+        <a className="adm-side-link" href="/" target="_blank" rel="noopener">
           View live page ↗
         </a>
-        <div className="ad-account">
-          <span className="ad-me">{initial}</span>
-          <span className="ad-account-text">
+        <div className="adm-account">
+          <span className="adm-me">{initial}</span>
+          <span className="adm-account-text">
             <span>{me.name}</span>
             <span>{me.email}</span>
           </span>
@@ -74,7 +74,7 @@ export function Shell({ data, me, tab, onTab, onSignOut, children }: Props) {
           </button>
         </div>
       </aside>
-      <main className="ad-main">{children}</main>
+      <main className="adm-main">{children}</main>
     </div>
   )
 }

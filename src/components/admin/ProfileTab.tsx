@@ -29,7 +29,7 @@ export function ProfileTab({ data, act, flash }: TabProps) {
   )
 
   const field = (key: keyof typeof form) => ({
-    className: 'ad-input',
+    className: 'adm-input',
     value: form[key],
     onChange: (e: { target: { value: string } }) => {
       edited.current = true
@@ -50,36 +50,36 @@ export function ProfileTab({ data, act, flash }: TabProps) {
 
   return (
     <>
-      <div className="ad-head">
+      <div className="adm-head">
         <div>
           <h2>Profile</h2>
-          <div className="ad-sub">Changes save automatically.</div>
+          <div className="adm-sub">Changes save automatically.</div>
         </div>
       </div>
-      <div className="ad-list ad-form">
-        <div className="ad-avatar-row">
-          <div className="ad-avatar">{avatarUrl && <img src={avatarUrl} alt="" />}</div>
+      <div className="adm-list adm-form">
+        <div className="adm-avatar-row">
+          <div className="adm-avatar">{avatarUrl && <img src={avatarUrl} alt="" />}</div>
           <label className="btn btn-light btn-round">
             Upload photo
             <input type="file" accept="image/*" hidden onChange={(e) => changeAvatar(e.target.files?.[0])} />
           </label>
         </div>
-        <label className="ad-field">
-          <span className="ad-label">Page name</span>
+        <label className="adm-field">
+          <span className="adm-label">Page name</span>
           <input {...field('name')} />
         </label>
-        <label className="ad-field">
-          <span className="ad-label">Handle</span>
+        <label className="adm-field">
+          <span className="adm-label">Handle</span>
           <input {...field('handle')} />
         </label>
-        <label className="ad-field">
-          <span className="ad-label">Bio</span>
+        <label className="adm-field">
+          <span className="adm-label">Bio</span>
           <textarea rows={3} {...field('bio')} />
         </label>
-        <label className="ad-field">
-          <span className="ad-label">WhatsApp number</span>
+        <label className="adm-field">
+          <span className="adm-label">WhatsApp number</span>
           <input {...field('whatsapp')} placeholder="60123456789" inputMode="numeric" />
-          <span className="ad-hint">Country code + number, no spaces or +. Used for "Order via WhatsApp" links.</span>
+          <span className="adm-hint">Country code + number, no spaces or +. Used for "Order via WhatsApp" links.</span>
         </label>
       </div>
     </>

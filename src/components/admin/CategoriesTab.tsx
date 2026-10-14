@@ -12,17 +12,17 @@ export function CategoriesTab({ data, act }: TabProps) {
 
   return (
     <>
-      <div className="ad-head">
+      <div className="adm-head">
         <div>
           <h2>Categories</h2>
-          <div className="ad-sub">These show as tabs on your page, in this order.</div>
+          <div className="adm-sub">These show as tabs on your page, in this order.</div>
         </div>
       </div>
-      <div className="ad-list">
+      <div className="adm-list">
         {data.categories.map((c, i) => (
-          <div className="ad-row ad-row-slim" key={`${c.id}:${c.name}`}>
+          <div className="adm-row adm-row-slim" key={`${c.id}:${c.name}`}>
             <input
-              className="ad-input ad-inline"
+              className="adm-input adm-inline"
               defaultValue={c.name}
               aria-label="Category name"
               onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
@@ -32,7 +32,7 @@ export function CategoriesTab({ data, act }: TabProps) {
                 if (!(await act(renameCategoryFn({ data: { id: c.id, name: input.value } })))) input.value = c.name
               }}
             />
-            <span className="ad-sub">
+            <span className="adm-sub">
               {c.count} product{c.count === 1 ? '' : 's'}
             </span>
             <button type="button" className="btn-icon" disabled={i === 0} onClick={() => act(moveFn({ data: { kind: 'category', id: c.id, dir: -1 } }))} title="Move up">
@@ -46,9 +46,9 @@ export function CategoriesTab({ data, act }: TabProps) {
             </button>
           </div>
         ))}
-        <div className="ad-add">
+        <div className="adm-add">
           <input
-            className="ad-input"
+            className="adm-input"
             value={name}
             onChange={(e) => setName(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && add()}

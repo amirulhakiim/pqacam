@@ -58,7 +58,7 @@ function Admin() {
       {tab === 'categories' && <CategoriesTab {...props} />}
       {tab === 'profile' && <ProfileTab {...props} />}
       {tab === 'admins' && <AdminsTab {...props} me={me.email} />}
-      {toast && <div className="ad-toast">{toast}</div>}
+      {toast && <div className="adm-toast">{toast}</div>}
     </Shell>
   )
 }
