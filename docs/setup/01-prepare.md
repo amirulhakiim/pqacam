@@ -55,7 +55,7 @@ Levels are defined in [02 Run locally](02-local.md).
 | Media domain | `media.pqacam.com` |
 | Owner Google account | The first admin. Later admins are added in the admin |
 | Bucket names | `pqacam-media` for media, `pqacam-backup` for backups |
-| `www` or not | Without `www`. If you choose `www.pqacam.com`, use it in every place that asks for the site domain |
+| Main address | `https://pqacam.com`. `www` and `http` redirect to it ([03 Deploy](03-deploy.md), step 5). If you choose `www.pqacam.com` as the main address, use it in every place that asks for the site domain |
 
 ## 2. Google sign-in
 

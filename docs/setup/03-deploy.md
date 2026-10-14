@@ -51,9 +51,16 @@ flowchart TB
 
 ## 1. DNS record
 
-1. Cloudflare, zone `pqacam.com`, "DNS", "Records", "Add record".
-2. Type `A`, name `@`, IPv4 address: the Dokploy server.
-3. Proxy status: **DNS only** (grey cloud). Let's Encrypt must reach the server directly the first time.
+1. Cloudflare, zone `pqacam.com`, "DNS", "Records", "Add record". Add both records:
+
+| Type | Name | Content | Proxy status |
+|---|---|---|---|
+| `A` | `@` | The Dokploy server IPv4 address | **DNS only** (grey cloud) |
+| `CNAME` | `www` | `pqacam.com` | **DNS only** (grey cloud) |
+
+2. Keep both on "DNS only" for the first deploy. Let's Encrypt must reach the server directly to issue each certificate.
+
+The `www` record only sends visitors to the same server. Step 5 redirects them to `https://pqacam.com`.
 
 After the certificate works, you can turn the proxy on. Then set "SSL/TLS" mode to **Full (strict)**. "Flexible" causes a redirect loop.
 
@@ -94,8 +101,32 @@ MEDIA_BASE_URL=https://media.pqacam.com
 
 ## 5. Domain
 
-1. Tab "Domains", "Add Domain".
-2. Host `pqacam.com`. Path `/`. Container Port `3000`. HTTPS on. Certificate **Let's Encrypt**. Select "Create".
+The site has one main address, `https://pqacam.com`. Every other form of the address redirects to it.
+
+| Visitor types | Result |
+|---|---|
+| `https://pqacam.com` | The site |
+| `http://pqacam.com` | Redirect to `https://pqacam.com` |
+| `https://www.pqacam.com` | Redirect to `https://pqacam.com` |
+| `http://www.pqacam.com` | Redirect to `https://www.pqacam.com`, then to `https://pqacam.com` |
+
+The redirect is necessary, not only tidy. Admin sign-in starts a session cookie on the host the admin is on, and Google returns to the host in `PUBLIC_URL`. If an admin starts on `www`, the cookie is on the other host, and sign-in ends with "Sign-in did not finish". R2 uploads also accept one origin only.
+
+1. Tab "Domains", "Add Domain". Host `pqacam.com`. Path `/`. Container Port `3000`. HTTPS on. Certificate **Let's Encrypt**. Select "Create".
+2. "Add Domain" again. Host `www.pqacam.com`. Same values. Select "Create". This gives `www` its own certificate, so the redirect works over `https` too.
+3. Tab "Advanced", "Redirects". Select the preset "Redirect www to non-www". Select "Save".
+4. After the deploy in step 6, check each row of the table above:
+
+```bash
+curl -sI http://pqacam.com | grep -iE '^(HTTP|location)'
+curl -sI https://www.pqacam.com | grep -iE '^(HTTP|location)'
+```
+
+Expected: status `301`, `302`, `307`, or `308`, and a `location` header with the address from the table.
+
+If `http://pqacam.com` does not redirect, turn the Cloudflare proxy on for both records, set "SSL/TLS" mode to **Full (strict)**, and turn on "SSL/TLS", "Edge Certificates", "Always Use HTTPS".
+
+To use `www.pqacam.com` as the main address, swap the two hosts: preset "Redirect non-www to www", and `https://www.pqacam.com` in `PUBLIC_URL`, the Google redirect URI and Branding, and the R2 CORS policy.
 
 ## 6. Deploy
 
@@ -152,6 +183,7 @@ No automated test covers these, because they need the real accounts.
 | Add a video of more than 50 MB | "Videos can be 50 MB at most." No object in the bucket |
 | Remove a photo and save. Delete a product | Their objects are gone from the bucket |
 | Tap a buy button on `/`, then reload `/admin` | The count on that chip is 1 higher |
+| `http://pqacam.com` and `https://www.pqacam.com` | Both redirect to `https://pqacam.com` (step 5) |
 | Paste the site link in WhatsApp | A preview with the page name, bio, and photo |
 | Redeploy | Products and counts are the same |
 | Open a product on an iPhone | Close button visible, video plays, the page behind does not scroll |
@@ -178,4 +210,6 @@ No automated test covers these, because they need the real accounts.
 | Log: `SQLITE_CANTOPEN` or "Cannot open the database" | `DATABASE_PATH` is set in tab "Environment". Delete the line and deploy again |
 | Products gone after a deploy | The volume is not mounted at `/data` |
 | Sign-in goes to `localhost` | `PUBLIC_URL` is still the local value |
+| "Sign-in did not finish" after Google | The admin started on a different host from `PUBLIC_URL`, for example `www`. Add the redirect in step 5 |
+| No certificate for `www` | The `CNAME` record for `www` is missing, or it was proxied at the first deploy |
 | Uploads fail only in production | `https://pqacam.com` is not in the bucket CORS policy |
