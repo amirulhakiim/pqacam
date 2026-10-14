@@ -85,6 +85,14 @@ button { font: inherit; color: inherit; }
 .pp-empty { text-align: center; padding: 40px 20px; display: flex; flex-direction: column; gap: 6px; align-items: center; font-size: 14px; color: var(--ink-soft); }
 .pp-empty-title { font-family: var(--serif); font-size: 26px; color: var(--ink); }
 .pp-footer { text-align: center; font-size: 12px; color: oklch(0.55 0.02 65); padding-top: 10px; }
+.pp-footer a { color: inherit; }
+.legal { gap: 12px; font-size: 15px; line-height: 1.6; color: oklch(0.33 0.02 60); }
+.legal h1 { margin: 8px 0 0; font-family: var(--serif); font-weight: 400; font-size: 38px; line-height: 1; color: var(--ink); }
+.legal h2 { margin: 14px 0 0; font-family: var(--serif); font-weight: 400; font-size: 24px; color: var(--ink); }
+.legal p, .legal ul { margin: 0; }
+.legal ul { padding-left: 20px; display: flex; flex-direction: column; gap: 8px; }
+.legal-date { font-size: 13px; color: var(--ink-soft); }
+.legal-back { font-size: 13.5px; font-weight: 500; text-decoration: none; color: oklch(0.45 0.05 150); }
 
 @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes sheet-up { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
