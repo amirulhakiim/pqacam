@@ -152,7 +152,9 @@ flowchart TB
 | Profile | Avatar upload (400 px), page name, handle, bio, WhatsApp number. Changes save automatically |
 | Watermark | Settings with a live preview: text (default: the handle), font, position (moving bounce or a fixed corner), size, opacity, speed. "+ Add photos & videos" takes many files. The server watermarks them one at a time. Each batch keeps the settings it was added with, and they become the next defaults |
 | Watermark uploads | One upload at a time, with a progress bar. The queue continues while the admin uses other tabs. The page asks before it closes, and keeps the screen awake. The upload stops if the page closes, because a browser cannot upload from a closed page |
-| Watermark library | Each file shows "Waiting", "Watermarking" with a percentage, "Ready" or "Failed". Ready: "Add to product…", "Copy link", Delete. Failed: "Try again", Delete. The list updates every 3 s while work is running |
+| Watermark library | Each file shows "Waiting", "Watermarking" with a percentage, "Ready" or "Failed". Failed: "Try again", Delete. The list updates every 3 s while work is running |
+| Previewer | Tap a ready file to open it full size: photo, or video with controls. Previous and next by button, arrow key, or swipe, within the open folder. Actions: "Add to product…", move to a folder, "Copy link", Delete. Full screen below 760 px |
+| Folders | Chips filter the library: All, Unfiled, then each folder by name, with counts. "+ New folder", Rename, "Delete folder" (two taps). Uploads go to the open folder. Deleting a folder moves its files to Unfiled and deletes no file. Names are unique, ignoring case. The product editor's library picker has a folder filter |
 | Admin access | List of emails. Add and remove. An admin cannot remove their own email |
 | Layout | Sidebar at 760 px and wider. Below 760 px: header with tab pills that stays at the top |
 | Feedback | A toast confirms each save, as in the design |
@@ -164,8 +166,14 @@ erDiagram
     CATEGORY ||--o{ PRODUCT : has
     PRODUCT ||--o{ MEDIA : has
     PRODUCT ||--o{ LINK : has
+    FOLDER |o--o{ JOB : holds
+    FOLDER {
+        int id PK
+        text name "unique"
+    }
     JOB {
         int id PK
+        int folder_id FK "null means Unfiled"
         text type "photo or video"
         text name "file name from the device"
         text source_key "raw original, empty when done"

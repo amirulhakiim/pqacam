@@ -11,6 +11,8 @@
 | Leave while it works | Admin, Watermark tab | After the uploads finish, close the page. The server keeps going, and the files are ready when you come back |
 | Add to product | Admin, Watermark tab | "Add to product…" puts a ready file at the end of a product's photos and videos. "Copy link" copies its address |
 | From library | Admin, product editor | A new "From library" tile picks watermarked files for the product |
+| Previewer | Admin, Watermark tab | Tap a ready file to see it full size, play videos, and swipe through the rest. Add it to a product, move it, copy its link, or delete it from there |
+| Folders | Admin, Watermark tab | Make folders to sort the library. Uploads go into the folder that is open. Deleting a folder keeps its files in Unfiled |
 
 ### Notes
 
