@@ -15,6 +15,8 @@ import {
   validateJobs,
   validateProduct,
   validateUpload,
+  isPlatform,
+  type Platform,
   toBioSize,
   toRange,
   validateWatermark,
@@ -181,5 +183,14 @@ export const moveJobFn = createServerFn({ method: 'POST' })
   .handler(({ data }) => asAdmin(() => catalog.moveJob(getDb(), int(data?.id), folderOrNone(data?.folderId))))
 
 export const getAnalyticsFn = createServerFn({ method: 'GET' })
-  .inputValidator((data: number) => data)
-  .handler(({ data }) => asAdmin(() => getAnalytics(getDb(), toRange(data))))
+  .inputValidator((data: { days: number; categoryId: number | null; productId: number | null; platform: string | null }) => data)
+  .handler(({ data }) =>
+    asAdmin(() =>
+      getAnalytics(getDb(), {
+        days: toRange(data?.days),
+        categoryId: Number.isInteger(data?.categoryId) ? data.categoryId : null,
+        productId: Number.isInteger(data?.productId) ? data.productId : null,
+        platform: isPlatform(String(data?.platform)) ? (data.platform as Platform) : null,
+      }),
+    ),
+  )
