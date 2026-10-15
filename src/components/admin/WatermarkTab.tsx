@@ -32,7 +32,7 @@ export function WatermarkTab({ data, act, flash, uploads }: TabProps & { uploads
   function pick(files: FileList | null) {
     if (!files?.length) return
     if (!settings.text.trim()) return flash('Add the watermark text first')
-    uploads.add(files, settings, uploadFolder)
+    void uploads.add(files, settings, uploadFolder, flash)
   }
 
   return (

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { resizeImage, uploadFile } from '../../lib/upload'
+import { mediaSizeError } from '../../lib/mediaSelection'
 import { addJobsFn } from '../../server/fns'
 import type { WatermarkSettings } from '../../server/validate'
 
@@ -21,17 +22,16 @@ export function useUploads(onUploaded: () => void) {
   const busy = useRef(false)
   const update = (id: string, patch: Partial<Upload>) => setItems((list) => list.map((i) => (i.id === id ? { ...i, ...patch } : i)))
 
-  const add = useCallback((files: FileList | File[], settings: WatermarkSettings, folderId: number | null) => {
-    const picked = Array.from(files).map((file) => ({
-      id: crypto.randomUUID(),
-      file,
-      type: file.type.startsWith('video/') ? ('video' as const) : ('photo' as const),
-      settings,
-      folderId,
-      progress: 0,
-      error: '',
-    }))
-    setItems((list) => [...list, ...picked])
+  const add = useCallback(async (files: FileList | File[], settings: WatermarkSettings, folderId: number | null, onError: (message: string) => void) => {
+    for (const file of Array.from(files)) {
+      const type = file.type.startsWith('video/') ? 'video' : 'photo'
+      const sizeError = mediaSizeError(file, type)
+      if (sizeError) {
+        onError(sizeError)
+        continue
+      }
+      setItems((list) => [...list, { id: crypto.randomUUID(), file, type, settings, folderId, progress: 0, error: '' }])
+    }
   }, [])
 
   const retry = (id: string) => update(id, { error: '', progress: 0 })

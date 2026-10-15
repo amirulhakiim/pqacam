@@ -73,10 +73,11 @@ export function validateEmail(raw: unknown): Result<string> {
 export type UploadKind = 'photo' | 'video' | 'avatar' | 'raw'
 const MB = 1024 * 1024
 export const VIDEO_MAX_MB = 50
+export const MEDIA_MAX_MB = 100
 export const VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/quicktime']
 const UPLOAD: Record<UploadKind, { max: number; types: Record<string, string> }> = {
   // An original for the watermark worker. Photos arrive already resized to JPEG by the browser.
-  raw: { max: 1024 * MB, types: { 'image/jpeg': 'jpg', 'video/mp4': 'mp4', 'video/webm': 'webm', 'video/quicktime': 'mov' } },
+  raw: { max: MEDIA_MAX_MB * MB, types: { 'image/jpeg': 'jpg', 'video/mp4': 'mp4', 'video/webm': 'webm', 'video/quicktime': 'mov' } },
   photo: { max: 2 * MB, types: { 'image/jpeg': 'jpg' } },
   avatar: { max: 2 * MB, types: { 'image/jpeg': 'jpg' } },
   video: { max: VIDEO_MAX_MB * MB, types: { 'video/mp4': 'mp4', 'video/webm': 'webm', 'video/quicktime': 'mov' } },
@@ -90,8 +91,10 @@ export function validateUpload(raw: unknown): Result<{ kind: UploadKind; content
   if (!ext) return fail(r.kind === 'video' ? 'Use an MP4, WebM or MOV video.' : 'This file type is not supported.')
   const size = r.size as number
   if (!Number.isInteger(size) || size <= 0) return fail('This file is empty.')
-  if (size > rule.max) {
-    return fail(r.kind === 'raw' ? 'Files can be 1 GB at most.' : r.kind === 'video' ? 'Videos can be 50 MB at most.' : 'This photo is too large.')
+  const max = r.kind === 'raw' && String(r.contentType).startsWith('video/') ? VIDEO_MAX_MB * MB : rule.max
+  if (size > max) {
+    return fail(r.kind === 'video' || (r.kind === 'raw' && String(r.contentType).startsWith('video/'))
+      ? 'Videos can be 50 MB at most.' : r.kind === 'raw' ? 'Photos can be 100 MB at most.' : 'This photo is too large.')
   }
   return { ok: true, value: { kind: r.kind as UploadKind, contentType: r.contentType as string, size, ext } }
 }

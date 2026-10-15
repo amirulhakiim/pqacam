@@ -93,7 +93,9 @@ test('a job needs a raw key of the matching type', () => {
   expect(validateJobs([]).ok).toBe(false)
 })
 
-test('a raw upload can be 1 GB', () => {
-  expect(validateUpload({ kind: 'raw', contentType: 'video/quicktime', size: 1024 * 1024 * 1024 }).ok).toBe(true)
-  expect(validateUpload({ kind: 'raw', contentType: 'video/mp4', size: 1024 * 1024 * 1024 + 1 }).ok).toBe(false)
+test('a raw video is limited to 50 MB and a raw photo to 100 MB', () => {
+  expect(validateUpload({ kind: 'raw', contentType: 'video/quicktime', size: 50 * 1024 * 1024 }).ok).toBe(true)
+  expect(validateUpload({ kind: 'raw', contentType: 'video/mp4', size: 50 * 1024 * 1024 + 1 }).ok).toBe(false)
+  expect(validateUpload({ kind: 'raw', contentType: 'image/jpeg', size: 100 * 1024 * 1024 }).ok).toBe(true)
+  expect(validateUpload({ kind: 'raw', contentType: 'image/jpeg', size: 100 * 1024 * 1024 + 1 }).ok).toBe(false)
 })
