@@ -10,6 +10,7 @@ import { useUploads } from '../../components/admin/useUploads'
 import { useProductUploads } from '../../components/admin/useProductUploads'
 import { WatermarkTab } from '../../components/admin/WatermarkTab'
 import { MediaTab } from '../../components/admin/Library'
+import { withTransition } from '../../lib/transition'
 import { getAdminDataFn, signOutFn } from '../../server/fns'
 
 export const Route = createFileRoute('/admin/')({
@@ -55,7 +56,7 @@ function Admin() {
           flash(result.error, true)
           return false
         }
-        await router.invalidate()
+        await withTransition(() => router.invalidate())
         if (done) flash(done)
         return true
       } catch {

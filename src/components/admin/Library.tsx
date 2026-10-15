@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { flushSync } from 'react-dom'
+import { withTransition } from '../../lib/transition'
 import type { AdminJob } from '../../server/catalog'
 import { addFolderFn, deleteFolderFn, deleteJobFn, deleteUnusedJobsFn, renameFolderFn, retryJobFn } from '../../server/fns'
 import { VideoThumb } from '../VideoThumb'
@@ -85,7 +87,7 @@ export function Library({ data, act, flash, filter, onFilter }: Props) {
   const [show, setShow] = useState<Show>('all')
   const inShow = SHOW.find(([key]) => key === show)![2]
   const folderFiles = done.filter((j) => inFolder(j, filter))
-  const ready = folderFiles.filter(inShow)
+  const ready = done.filter((j) => j.id === viewing || (inFolder(j, filter) && inShow(j)))
   const current = data.folders.find((f) => f.id === filter)
   const unfiled = done.filter((j) => j.folderId === null).length
   const unusedCount = done.filter((j) => j.status === 'done' && j.productIds.length === 0).length
@@ -206,7 +208,7 @@ export function Library({ data, act, flash, filter, onFilter }: Props) {
       )}
 
       {ready.map((j) => (
-        <div className="adm-row adm-wm-card" key={j.id}>
+        <div className="adm-row adm-wm-card" key={j.id} style={{ viewTransitionName: `job-${j.id}` }}>
           <button type="button" className="adm-thumb" onClick={() => setViewing(j.id)} aria-label={`Open ${j.name}`}>
             {j.type === 'photo' ? <img src={j.url!} alt="" /> : <VideoThumb url={j.url!} />}
           </button>
@@ -234,7 +236,7 @@ export function Library({ data, act, flash, filter, onFilter }: Props) {
       )}
 
       {viewing !== null && (
-        <MediaViewer jobs={ready} id={viewing} onId={setViewing} onClose={() => setViewing(null)} data={data} act={act} flash={flash} />
+        <MediaViewer jobs={ready} id={viewing} onId={setViewing} onClose={() => void withTransition(() => flushSync(() => setViewing(null)))} data={data} act={act} flash={flash} />
       )}
     </div>
   )

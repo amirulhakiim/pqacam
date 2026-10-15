@@ -462,3 +462,10 @@ textarea.adm-input { height: auto; padding: 12px 14px; line-height: 1.55; resize
   /* iOS Safari zooms the page into any field with text smaller than 16px, and the page then looks wider than the screen. */
   .pp-search input, .adm-input { font-size: 16px; }
 }
+::view-transition-old(root), ::view-transition-new(root) { animation: none; }
+::view-transition-group(*) { animation-duration: 0.28s; animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1); }
+::view-transition-old(*):only-child { animation: vt-leave 0.28s ease both; }
+::view-transition-new(*):only-child { animation: vt-enter 0.28s ease both; }
+@keyframes vt-leave { to { opacity: 0; transform: scale(0.9); } }
+@keyframes vt-enter { from { opacity: 0; transform: scale(0.96); } }
+@media (prefers-reduced-motion: reduce) { ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; } }
