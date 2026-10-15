@@ -101,12 +101,7 @@ export function ProductSheet({ product, hidden, onClose }: Props) {
             {product.price && <div className="pp-price">{product.price}</div>}
           </div>
         </div>
-        {product.review && (
-          <div className="pp-review">
-            <div className="pp-review-title">My honest review</div>
-            <p>{product.review}</p>
-          </div>
-        )}
+        {/* Under the title, not at the end, so the buttons show without scrolling. */}
         <div className="pp-buy">
           {PLATFORMS.map((k) => {
             const links = product.links.filter((l) => l.platform === k)
@@ -141,6 +136,12 @@ export function ProductSheet({ product, hidden, onClose }: Props) {
             )
           })}
         </div>
+        {product.review && (
+          <div className="pp-review">
+            <div className="pp-review-title">My honest review</div>
+            <p>{product.review}</p>
+          </div>
+        )}
       </div>
     </div>
   )

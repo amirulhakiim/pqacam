@@ -24,6 +24,7 @@
 | Change | Where |
 |---|---|
 | "Nothing here yet" uses the same font as the page, in bold | Public page |
+| Buy buttons sit under the product name, above the review, so they show without scrolling. The photo area is at most half the screen height | Public page, product view |
 | The privacy page says that the time of each tap is recorded | Privacy |
 
 ### Notes
