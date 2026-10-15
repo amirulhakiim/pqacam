@@ -1,6 +1,7 @@
 import { createFileRoute, useRouter } from '@tanstack/react-router'
 import { useCallback, useEffect, useState } from 'react'
 import { AdminsTab } from '../../components/admin/AdminsTab'
+import { AnalyticsTab } from '../../components/admin/AnalyticsTab'
 import { CategoriesTab } from '../../components/admin/CategoriesTab'
 import { ProductsTab } from '../../components/admin/ProductsTab'
 import { ProfileTab } from '../../components/admin/ProfileTab'
@@ -67,6 +68,7 @@ function Admin() {
   return (
     <Shell data={data} me={me} tab={tab} onTab={setTab} onSignOut={signOut}>
       {tab === 'products' && <ProductsTab {...props} />}
+      {tab === 'analytics' && <AnalyticsTab {...props} />}
       {tab === 'watermark' && <WatermarkTab {...props} uploads={uploads} />}
       {tab === 'categories' && <CategoriesTab {...props} />}
       {tab === 'profile' && <ProfileTab {...props} />}

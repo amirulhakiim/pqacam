@@ -1,5 +1,5 @@
 import { createServerFn } from '@tanstack/react-start'
-import { getAnalytics, toRange } from './analytics'
+import { getAnalytics } from './analytics'
 import { appSession, requireAdmin } from './auth'
 import * as catalog from './catalog'
 import { getDb } from './db'
@@ -15,6 +15,7 @@ import {
   validateJobs,
   validateProduct,
   validateUpload,
+  toRange,
   validateWatermark,
   type WatermarkSettings,
 } from './validate'

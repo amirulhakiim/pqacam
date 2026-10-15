@@ -1,5 +1,6 @@
 import { expect, test } from 'bun:test'
-import { getAnalytics, toRange } from '../src/server/analytics'
+import { getAnalytics } from '../src/server/analytics'
+import { toRange } from '../src/server/validate'
 import * as c from '../src/server/catalog'
 import { openDb } from '../src/server/db'
 

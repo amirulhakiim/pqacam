@@ -142,3 +142,7 @@ export function validateJobs(raw: unknown): Result<JobInput[]> {
   }
   return jobs.length ? { ok: true, value: jobs } : fail('Choose at least one photo or video.')
 }
+
+export const RANGES = [7, 30, 90] as const
+export type Range = (typeof RANGES)[number]
+export const toRange = (v: unknown): Range => (RANGES.includes(v as Range) ? (v as Range) : 30)

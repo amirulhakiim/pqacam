@@ -12,6 +12,12 @@
   --serif: 'Instrument Serif', serif;
   --sans: 'DM Sans', sans-serif;
   --mono: 'DM Mono', monospace;
+  /* Chart marks, checked with the dataviz palette validator against --surface: every pair stays apart for colour-blind readers.
+     Brand TikTok ink reads as gray in a chart, and brand Shopee and WhatsApp collide for protan vision, so charts use these. */
+  --chart-ink: oklch(0.45 0.04 60);
+  --chart-shopee: #a8441f;
+  --chart-tiktok: #3d6fb5;
+  --chart-whatsapp: #4c9a62;
 }
 body {
   /* Long links and long product names break instead of widening the page on a phone. */
@@ -287,6 +293,38 @@ textarea.adm-input { height: auto; padding: 12px 14px; line-height: 1.55; resize
 .adm-wm-thumb { cursor: default; }
 .adm-wm-actions { flex-wrap: wrap; justify-content: flex-end; }
 .adm-wm-attach { width: auto; max-width: 180px; height: 32px; padding: 0 10px; border-radius: 10px; font-size: 13px; }
+.adm-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.adm-stat, .adm-card { box-sizing: border-box; min-width: 0; padding: 16px 18px; border-radius: 20px; background: var(--surface); box-shadow: 0 1px 2px oklch(0.5 0.03 60 / 0.05), 0 6px 18px oklch(0.5 0.03 60 / 0.05); }
+.adm-stat { display: flex; flex-direction: column; gap: 4px; }
+.adm-stat-label { font-size: 12.5px; font-weight: 600; color: oklch(0.42 0.02 60); }
+.adm-stat-value { font-size: 34px; font-weight: 600; line-height: 1.1; letter-spacing: -0.01em; }
+.adm-stat-delta { font-size: 12.5px; color: var(--ink-soft); }
+.adm-card-title { margin: 0 0 12px; font-size: 14px; font-weight: 600; }
+.adm-card-pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; }
+.adm-insights { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; font-size: 14.5px; line-height: 1.5; }
+.adm-cols { display: grid; grid-template-columns: repeat(var(--cols), minmax(0, 1fr)); gap: 2px; height: 180px; padding-top: 18px; }
+.adm-col { display: flex; flex-direction: column; min-width: 0; outline: none; }
+.adm-col-plot { position: relative; flex: 1; display: flex; align-items: flex-end; justify-content: center; border-bottom: 1px solid var(--line); }
+.adm-col-bar { width: 100%; max-width: 24px; min-height: 0; border-radius: 4px 4px 0 0; background: var(--chart-ink); }
+.adm-col:hover .adm-col-bar, .adm-col:focus-visible .adm-col-bar { background: oklch(0.32 0.03 60); }
+.adm-col-peak { position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); margin-bottom: 2px; font-size: 11.5px; font-weight: 600; white-space: nowrap; }
+.adm-col-axis { height: 18px; padding-top: 4px; font-size: 10.5px; color: var(--ink-soft); white-space: nowrap; overflow: visible; }
+.adm-col-tip { position: absolute; bottom: calc(100% + 4px); left: 50%; transform: translateX(-50%); z-index: 2; display: none; padding: 6px 10px; border-radius: 10px; background: oklch(0.3 0.02 60); color: oklch(0.98 0.005 80); font-size: 12px; white-space: nowrap; pointer-events: none; }
+.adm-col:hover .adm-col-tip, .adm-col:focus-visible .adm-col-tip { display: block; }
+.adm-col:hover .adm-col-peak, .adm-col:focus-visible .adm-col-peak { visibility: hidden; }
+.adm-bars { display: flex; flex-direction: column; gap: 10px; }
+/* A fixed value column, so every bar starts at the same x. */
+.adm-bars-row { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr) 76px; align-items: center; gap: 10px; font-size: 13.5px; }
+.adm-bars-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.adm-bars-track { height: 12px; }
+.adm-bars-fill { display: block; height: 100%; min-width: 2px; border-radius: 0 4px 4px 0; background: var(--chart-ink); }
+.adm-bars-value { font-variant-numeric: tabular-nums; font-weight: 600; text-align: right; }
+.adm-bars-value em { font-style: normal; font-weight: 400; color: var(--ink-soft); margin-left: 4px; }
+.adm-table-toggle { margin-top: 12px; font-size: 13px; }
+.adm-table-toggle summary { cursor: pointer; color: oklch(0.45 0.05 150); }
+.adm-table { width: 100%; margin-top: 8px; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.adm-table th, .adm-table td { padding: 6px 4px; border-bottom: 1px solid var(--line); text-align: left; }
+.adm-table td:last-child, .adm-table th:last-child { text-align: right; }
 .adm-pick-head .adm-wm-attach { margin-right: 4px; }
 .adm-wm-folders { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
 .adm-wm-count { opacity: 0.6; font-weight: 400; margin-left: 2px; }
@@ -307,6 +345,10 @@ textarea.adm-input { height: auto; padding: 12px 14px; line-height: 1.55; resize
   .adm-viewer-stage img, .adm-viewer-stage video { max-height: calc(100dvh - 230px); }
   .adm-viewer-actions { width: 100%; }
   .adm-viewer-actions .adm-wm-attach { flex: 1 1 140px; max-width: none; }
+  .adm-stats { gap: 8px; }
+  .adm-stat { padding: 12px; }
+  .adm-stat-value { font-size: 24px; }
+  .adm-stat-label, .adm-stat-delta { font-size: 11.5px; }
 }
 .adm-pick { width: min(560px, calc(100vw - 32px)); max-height: 80vh; box-sizing: border-box; border: none; border-radius: 22px; padding: 18px; background: var(--surface); color: var(--ink); box-shadow: 0 20px 60px oklch(0.3 0.02 60 / 0.2); }
 .adm-pick::backdrop { background: oklch(0.3 0.02 60 / 0.35); }

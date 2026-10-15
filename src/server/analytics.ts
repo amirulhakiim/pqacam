@@ -1,14 +1,11 @@
 import { and, gte, lt } from 'drizzle-orm'
 import type { Db } from './db'
 import { click, link, product } from './schema'
-import { PLATFORMS } from './validate'
+import { PLATFORMS, type Range } from './validate'
 
 // ponytail: Malaysia time, fixed UTC+8 (Malaysia has no daylight saving). Make it a setting if the shop moves.
 const TZ_OFFSET = 8 * 3600_000
 const DAY = 86_400_000
-export const RANGES = [7, 30, 90] as const
-export type Range = (typeof RANGES)[number]
-export const toRange = (v: unknown): Range => (RANGES.includes(v as Range) ? (v as Range) : 30)
 
 const localDay = (at: number) => Math.floor((at + TZ_OFFSET) / DAY)
 const isoDate = (day: number) => new Date(day * DAY).toISOString().slice(0, 10)
