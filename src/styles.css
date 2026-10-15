@@ -285,6 +285,10 @@ textarea.adm-input { height: auto; padding: 12px 14px; line-height: 1.55; resize
 @font-face { font-family: 'wm-script'; src: url('/fonts/script.ttf') format('truetype'); font-display: swap; }
 @font-face { font-family: 'wm-pacifico'; src: url('/fonts/pacifico.ttf') format('truetype'); font-display: swap; }
 
+.adm-wm-start { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.adm-wm-target { display: inline-flex; align-items: center; gap: 8px; }
+.adm-wm-card { align-items: center; }
+.adm-job-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-left: auto; }
 .adm-wm-add { display: inline-flex; align-items: center; cursor: pointer; }
 .adm-wm-settings { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 22px; align-items: start; padding: 18px; border-radius: 22px; background: var(--surface); box-shadow: 0 1px 2px oklch(0.5 0.03 60 / 0.05), 0 6px 18px oklch(0.5 0.03 60 / 0.05); }
 .adm-wm-fields { display: flex; flex-direction: column; gap: 16px; }
@@ -396,6 +400,8 @@ textarea.adm-input { height: auto; padding: 12px 14px; line-height: 1.55; resize
   .adm-viewer-actions { width: 100%; }
   .adm-viewer-actions .adm-wm-attach { flex: 1 1 140px; max-width: none; }
   .adm-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .adm-job-actions { width: 100%; }
+  .adm-job-actions .adm-wm-attach { flex: 1 1 140px; max-width: none; }
   .adm-an-select { flex: 1 1 140px; max-width: none; }
   .adm-stat { padding: 12px; }
   .adm-stat-value { font-size: 24px; }

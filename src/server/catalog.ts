@@ -73,6 +73,8 @@ export function getAdminData(db: Db, mediaBase: string) {
         error: j.error,
         compressOnly: JSON.parse(j.settings).compressOnly === true,
         folderId: j.folderId,
+        // The products that already show this file, so the library can say where it is used.
+        productIds: j.outputKey ? [...new Set(d.media.filter((m) => m.r2Key === j.outputKey).map((m) => m.productId))] : [],
         key: j.outputKey,
         url: j.outputKey ? `${mediaBase}/${j.outputKey}` : null,
       })),

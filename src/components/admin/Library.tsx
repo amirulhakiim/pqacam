@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { AdminJob } from '../../server/catalog'
 import { addFolderFn, deleteFolderFn, deleteJobFn, renameFolderFn, retryJobFn } from '../../server/fns'
 import { VideoThumb } from '../VideoThumb'
+import { JobActions } from './JobActions'
 import { MediaViewer } from './MediaViewer'
 import type { TabProps } from './Shell'
 
@@ -12,17 +13,56 @@ export const inFolder = (j: AdminJob, filter: FolderFilter) =>
 
 const STATUS: Record<AdminJob['status'], string> = { queued: 'Waiting', processing: 'Watermarking', done: 'Ready', failed: 'Failed' }
 
-type Props = TabProps & { filter: FolderFilter; onFilter: (filter: FolderFilter) => void; uploading: boolean }
+type Props = TabProps & { filter: FolderFilter; onFilter: (filter: FolderFilter) => void }
 
-export function Library({ data, act, flash, filter, onFilter, uploading }: Props) {
+// Files still waiting, processing, or failed. They live in the Watermark section until they are done.
+export function JobQueue({ data, act }: Pick<TabProps, 'data' | 'act'>) {
+  const [confirm, setConfirm] = useState<number | null>(null)
+  const active = data.jobs.filter((j) => j.status !== 'done')
+  if (!active.length) return null
+  return (
+    <div className="adm-list adm-list-wide">
+      <h3 className="adm-card-title">In progress</h3>
+      {active.map((j) => (
+        <div className="adm-row adm-row-slim adm-wm-row" key={j.id}>
+          <span className="adm-wm-name">{j.name}</span>
+          <span className={j.status === 'failed' ? 'chip chip-warn' : 'chip chip-tiktok'}>
+            {j.compressOnly && j.status === 'processing' ? 'Compressing' : STATUS[j.status]}
+            {j.status === 'processing' && j.type === 'video' ? ` ${j.progress}%` : ''}
+          </span>
+          {j.error && <span className="adm-sub">{j.error}</span>}
+          {j.status !== 'processing' && (
+            <div className="adm-row-actions">
+              {j.status === 'failed' && (
+                <button type="button" className="btn btn-soft" onClick={() => act(retryJobFn({ data: j.id }))}>
+                  Try again
+                </button>
+              )}
+              <button
+                type="button"
+                className={confirm === j.id ? 'btn btn-danger btn-danger-on' : 'btn btn-danger'}
+                onClick={() => (confirm === j.id ? act(deleteJobFn({ data: j.id }), 'Deleted') : setConfirm(j.id))}
+              >
+                {confirm === j.id ? 'Tap again' : 'Delete'}
+              </button>
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  )
+}
+
+export function Library({ data, act, flash, filter, onFilter }: Props) {
   const [viewing, setViewing] = useState<number | null>(null)
   const [naming, setNaming] = useState<'new' | number | null>(null)
   const [name, setName] = useState('')
   const [confirm, setConfirm] = useState<string | null>(null)
-  const shown = data.jobs.filter((j) => inFolder(j, filter))
-  const ready = shown.filter((j) => j.status === 'done' && j.url)
+  const done = data.jobs.filter((j) => j.status === 'done' && j.url)
+  const ready = done.filter((j) => inFolder(j, filter))
   const current = data.folders.find((f) => f.id === filter)
-  const unfiled = data.jobs.filter((j) => j.folderId === null).length
+  const unfiled = done.filter((j) => j.folderId === null).length
+  const productName = new Map(data.products.map((p) => [p.id, p.name]))
 
   // Two taps for anything that deletes. The key says which button is armed.
   const armed = (key: string) => {
@@ -65,9 +105,9 @@ export function Library({ data, act, flash, filter, onFilter, uploading }: Props
   return (
     <div className="adm-list adm-list-wide">
       <div className="adm-wm-folders">
-        {pill('all', 'All', data.jobs.length)}
+        {pill('all', 'All', done.length)}
         {pill('none', 'Unfiled', unfiled)}
-        {data.folders.map((f) => pill(f.id, f.name, f.count))}
+        {data.folders.map((f) => pill(f.id, f.name, done.filter((j) => j.folderId === f.id).length))}
         <button type="button" className="pill adm-wm-new" onClick={() => startNaming('new')}>
           + New folder
         </button>
@@ -100,7 +140,6 @@ export function Library({ data, act, flash, filter, onFilter, uploading }: Props
 
       {current && naming === null && (
         <div className="adm-wm-folder-head">
-          <span className="adm-sub">{uploading ? 'Uploads go to' : 'New uploads go to'}</span>
           <strong>{current.name}</strong>
           <span className="adm-grow" />
           <button type="button" className="btn btn-soft" onClick={() => startNaming(current.id)}>
@@ -116,46 +155,32 @@ export function Library({ data, act, flash, filter, onFilter, uploading }: Props
         </div>
       )}
 
-      {shown.map((j) => {
-        const open = j.status === 'done' && j.url ? () => setViewing(j.id) : undefined
-        return (
-          <div className="adm-row" key={j.id}>
-            <button type="button" className="adm-thumb" onClick={open} disabled={!open} aria-label={`Open ${j.name}`}>
-              {j.url && (j.type === 'photo' ? <img src={j.url} alt="" /> : <VideoThumb url={j.url} />)}
-            </button>
-            <button type="button" className="adm-row-text" onClick={open} disabled={!open}>
-              <span className="adm-row-name">{j.name}</span>
-              <span className="adm-row-meta">
-                <span>{j.type === 'photo' ? 'Photo' : 'Video'}</span>
-                <span>·</span>
-                <span className={j.status === 'failed' ? 'chip chip-warn' : j.status === 'done' ? 'chip chip-whatsapp' : 'chip chip-tiktok'}>
-                  {STATUS[j.status]}
-                  {j.status === 'processing' && j.type === 'video' ? ` ${j.progress}%` : ''}
-                </span>
-                {j.error && <span>{j.error}</span>}
-              </span>
-            </button>
-            {(j.status === 'queued' || j.status === 'failed') && (
-              <div className="adm-row-actions">
-                {j.status === 'failed' && (
-                  <button type="button" className="btn btn-soft" onClick={() => act(retryJobFn({ data: j.id }))}>
-                    Try again
-                  </button>
-                )}
-                <button
-                  type="button"
-                  className={confirm === `job-${j.id}` ? 'btn btn-danger btn-danger-on' : 'btn btn-danger'}
-                  onClick={() => armed(`job-${j.id}`) && act(deleteJobFn({ data: j.id }), 'Deleted from the library')}
-                >
-                  {confirm === `job-${j.id}` ? 'Tap again' : 'Delete'}
-                </button>
-              </div>
-            )}
-          </div>
-        )
-      })}
-      {shown.length === 0 && (
-        <div className="adm-none">{data.jobs.length ? 'No files in this folder.' : 'No watermarked files yet. Add photos and videos to start.'}</div>
+      {ready.map((j) => (
+        <div className="adm-row adm-wm-card" key={j.id}>
+          <button type="button" className="adm-thumb" onClick={() => setViewing(j.id)} aria-label={`Open ${j.name}`}>
+            {j.type === 'photo' ? <img src={j.url!} alt="" /> : <VideoThumb url={j.url!} />}
+          </button>
+          <button type="button" className="adm-row-text" onClick={() => setViewing(j.id)}>
+            <span className="adm-row-name">{j.name}</span>
+            <span className="adm-row-meta">
+              <span>{j.type === 'photo' ? 'Photo' : 'Video'}</span>
+              {j.compressOnly && <span className="chip chip-tiktok">No watermark</span>}
+              {j.productIds.length > 0 ? (
+                j.productIds.map((id) => (
+                  <span className="chip chip-whatsapp" key={id}>
+                    On {productName.get(id)}
+                  </span>
+                ))
+              ) : (
+                <span>Not on a product yet</span>
+              )}
+            </span>
+          </button>
+          <JobActions job={j} data={data} act={act} flash={flash} />
+        </div>
+      ))}
+      {ready.length === 0 && (
+        <div className="adm-none">{done.length ? 'No files in this folder.' : 'No finished files yet. Add photos and videos in the Watermark section.'}</div>
       )}
 
       {viewing !== null && (
