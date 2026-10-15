@@ -109,8 +109,8 @@ button { font: inherit; color: inherit; }
 .pp-backdrop { position: fixed; inset: 0; z-index: 20; background: oklch(0.3 0.02 60 / 0.35); display: flex; align-items: flex-end; justify-content: center; animation: fade-in 0.2s ease; }
 .pp-sheet { width: 100%; max-width: 460px; max-height: 92vh; overflow-y: auto; box-sizing: border-box; background: oklch(0.985 0.006 80); border-radius: 28px 28px 0 0; padding: 10px 20px 28px; display: flex; flex-direction: column; gap: 16px; animation: sheet-up 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); }
 .pp-grip { align-self: center; width: 40px; height: 4px; margin: 4px 0; border-radius: 2px; background: oklch(0.85 0.01 70); }
-/* Capped at half the screen, so the buy buttons under the title fit without scrolling on a short phone. */
-.pp-stage { position: relative; flex: none; aspect-ratio: 4 / 5; max-height: 50vh; border-radius: 20px; overflow: hidden; touch-action: pan-y; background: repeating-linear-gradient(135deg, oklch(0.9 0.03 70) 0 8px, oklch(0.95 0.01 75) 8px 16px); }
+/* Square and capped at 40% of the screen, so the title and buy buttons show without scrolling. */
+.pp-stage { position: relative; flex: none; aspect-ratio: 1 / 1; max-height: 40vh; border-radius: 20px; overflow: hidden; touch-action: pan-y; background: repeating-linear-gradient(135deg, oklch(0.9 0.03 70) 0 8px, oklch(0.95 0.01 75) 8px 16px); }
 .pp-track { display: flex; height: 100%; transition: transform 0.55s cubic-bezier(0.2, 0.8, 0.2, 1); }
 .pp-slide { position: relative; flex: 0 0 100%; height: 100%; }
 .pp-slide video { pointer-events: none; }

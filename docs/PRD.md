@@ -99,7 +99,7 @@ Source: [`design/Home Finds Links.dc.html`](../design/Home%20Finds%20Links.dc.ht
 | Category tabs | "All", then the categories in admin order |
 | Platform filter | Any, Shopee, TikTok, WhatsApp |
 | Grid | 2 columns. Each card shows the cover photo, media count, name, price if set, and a chip for each platform that has a link |
-| Product sheet | Opens from the bottom. Shows, in order: the media carousel (at most half the screen height), category, name, price if set, the buy buttons, then "My honest review". The buttons come before the review so they show without scrolling, down to an iPhone SE screen |
+| Product sheet | Opens from the bottom. Shows, in order: the media carousel (square, at most 40% of the screen height), category, name, price if set, the buy buttons, then "My honest review". The buttons come before the review so they show without scrolling, down to an iPhone SE screen |
 | Carousel | Swipe, arrows, dots, and a counter. Advances automatically: 3.5 s for a photo, 7 s for a video. Stops advancing after the visitor moves it. Videos play muted in a loop |
 | Buy buttons | One per shop. A shop with one link opens it directly; with a label it shows "Shopee · <label>". A shop with several links shows "Buy on Shopee · N options", which opens a list of the links by label. Each link opens `/go/$linkId` in a new tab |
 | Empty result | "Nothing here yet" with a link that clears search and filters |
