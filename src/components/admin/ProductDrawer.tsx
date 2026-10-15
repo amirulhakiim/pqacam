@@ -41,7 +41,6 @@ function EditorVideoThumb({ url }: { url: string }) {
 export function ProductDrawer({ product, data, act, flash, onClose, onQueue }: Props) {
   const [draft, setDraft] = useState<Draft>(() => {
     const links: DraftLink[] = (product?.links ?? []).map(({ clicks, ...l }) => ({ ...l, k: String(l.id) }))
-    for (const k of PLATFORMS) if (!links.some((l) => l.platform === k)) links.push(emptyLink(k))
     return {
       ...(product ?? { name: '', categoryId: data.categories[0].id, price: '', review: '', hidden: false, media: [] }),
       links,
@@ -371,7 +370,7 @@ export function ProductDrawer({ product, data, act, flash, onClose, onQueue }: P
 
           <div className="adm-field">
             <span className="adm-label">
-              Where to buy <em>Leave blank to hide a button</em>
+              Where to buy <em>Add at least one link</em>
             </span>
             {PLATFORMS.map((platform) => (
               <div className="adm-link-group" key={platform}>
