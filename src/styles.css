@@ -137,6 +137,10 @@ button { font: inherit; color: inherit; }
 .pp-lightbox::backdrop { background: oklch(0.15 0.01 60); }
 .pp-lightbox-stage { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; touch-action: pan-y; }
 .pp-lightbox-stage img, .pp-lightbox-stage video { max-width: 100%; max-height: 100%; object-fit: contain; display: block; }
+.pp-lightbox-stage:has(.pp-lightbox-track) { touch-action: auto; }
+.pp-lightbox-track { display: flex; width: 100%; height: 100%; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; overscroll-behavior-x: contain; }
+.pp-lightbox-track::-webkit-scrollbar { display: none; }
+.pp-lightbox-slide { flex: 0 0 100%; height: 100%; display: flex; align-items: center; justify-content: center; scroll-snap-align: center; scroll-snap-stop: always; }
 .pp-lightbox-close { top: calc(12px + env(safe-area-inset-top)); right: 12px; font-size: 16px; }
 .pp-lightbox-counter { top: calc(18px + env(safe-area-inset-top)); }
 .pp-sound svg { width: 20px; height: 20px; fill: currentColor; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
