@@ -60,12 +60,10 @@ function Home() {
           </div>
         )}
         <footer className="pp-footer">
-          Some links are affiliate links. Thank you for supporting my little corner ♡
-          <br />
           <a href="/privacy">Privacy</a>
         </footer>
       </div>
-      {open && <ProductSheet key={open.id} product={open} handle={page.profile.handle} hidden={hidden} onClose={close} />}
+      {open && <ProductSheet key={open.id} product={open} hidden={hidden} onClose={close} />}
     </div>
   )
 }

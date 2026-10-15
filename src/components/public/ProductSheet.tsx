@@ -3,9 +3,9 @@ import { wrap } from '../../lib/filter'
 import { PLATFORM_LABEL } from '../../lib/platforms'
 import type { PublicProduct } from '../../server/catalog'
 
-type Props = { product: PublicProduct; handle: string; hidden: boolean; onClose: () => void }
+type Props = { product: PublicProduct; hidden: boolean; onClose: () => void }
 
-export function ProductSheet({ product, handle, hidden, onClose }: Props) {
+export function ProductSheet({ product, hidden, onClose }: Props) {
   const { media } = product
   const [index, setIndex] = useState(0)
   const [paused, setPaused] = useState(false)
@@ -63,9 +63,6 @@ export function ProductSheet({ product, handle, hidden, onClose }: Props) {
                 {m.type === 'video' && <span className="pp-video-tag">▶ Video</span>}
               </div>
             ))}
-          </div>
-          <div className="pp-watermark">
-            <span>{handle}</span>
           </div>
           {hidden && <div className="pp-protected">Content protected</div>}
           <button type="button" className="pp-round pp-close" onClick={onClose} aria-label="Close">

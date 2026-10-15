@@ -101,13 +101,12 @@ Source: [`design/Home Finds Links.dc.html`](../design/Home%20Finds%20Links.dc.ht
 | Empty result | "Nothing here yet" with a link that clears search and filters |
 | Hidden products | The server does not send them to the browser |
 | Share preview | SSR `title`, `description` from the bio, and Open Graph image from the avatar |
-| Footer | Affiliate disclosure line |
+| Footer | Privacy link |
 
 ### Media protection
 
 | Measure | Behavior |
 |---|---|
-| Watermark | The handle shows across the media in the sheet |
 | Context menu and drag | Blocked on media |
 | Focus loss | Sheet media changes to "Content protected" while the window is not in focus |
 | Print | The page prints blank |
@@ -284,4 +283,3 @@ Setup outside the repository: a Google Cloud OAuth client with the callback URL,
 | Interface language | English, as in the design |
 | Do visits from bots count as clicks | Yes. Version 1 has no bot filter |
 | Video size limit | 50 MB |
-| Footer text | The affiliate line from the design, not editable in admin |
