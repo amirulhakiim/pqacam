@@ -1,6 +1,5 @@
 import { createFileRoute, useRouter } from '@tanstack/react-router'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { ChatButton } from '../components/public/ChatButton'
 import { Filters } from '../components/public/Filters'
 import { Header } from '../components/public/Header'
 import { ProductGrid } from '../components/public/ProductGrid'
@@ -120,7 +119,6 @@ function Home() {
           <a href="/privacy">Privacy</a>
         </footer>
       </div>
-      {page.profile.whatsapp && <ChatButton number={page.profile.whatsapp} name={page.profile.name} />}
       {open && <ProductSheet key={open.id} product={open} hidden={hidden} onClose={close} />}
     </div>
   )

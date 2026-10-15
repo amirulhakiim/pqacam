@@ -102,7 +102,7 @@ Source: [`design/Home Finds Links.dc.html`](../design/Home%20Finds%20Links.dc.ht
 | Product sheet | Opens from the bottom, and puts `?p=<id>` in the address so the back button closes it and the link can be shared. Shows, in order: the media carousel (square, at most 40% of the screen height, with Close, and a sound button on videos), category with a Share button beside it, name in the body font at 22 px semibold, price if set, the buy buttons, then the review text with no heading. The buttons come before the review so they show without scrolling, down to an iPhone SE screen |
 | Carousel | Tap opens the media full screen, contained, with arrows, swipe, and Escape. Swipe, arrows, dots, and a counter. Advances automatically: 3.5 s for a photo, 7 s for a video. Stops advancing after the visitor moves it. Videos play muted in a loop |
 | Buy buttons | One per shop. A shop with one link opens it directly; with a label it shows "Shopee · <label>". A shop with several links shows "Buy on Shopee · N options", which opens a list of the links by label. Each link opens `/go/$linkId` in a new tab |
-| WhatsApp button | Round button at the bottom left, shown when the profile has a WhatsApp number. Opens a chat with that number |
+| WhatsApp button | First icon in the social row under the bio, shown when the profile has a WhatsApp number. Opens a chat with that number |
 | Empty result | "Nothing here yet" with a link that clears search and filters |
 | Hidden products | The server does not send them to the browser |
 | Share preview | SSR `title`, `description` from the bio, and Open Graph image from the avatar. A `?p=<id>` link previews that product: its name, review, and first photo |
