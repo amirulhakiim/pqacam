@@ -14,11 +14,27 @@ export async function resizeImage(file: Blob, max: number): Promise<Blob> {
   )
 }
 
-export async function uploadFile(kind: UploadKind, blob: Blob): Promise<Result<{ key: string; url: string }>> {
+// XMLHttpRequest, not fetch: fetch reports no upload progress, and a large video needs a progress bar.
+function put(url: string, blob: Blob, onProgress?: (fraction: number) => void): Promise<boolean> {
+  return new Promise((resolve) => {
+    const xhr = new XMLHttpRequest()
+    xhr.open('PUT', url)
+    xhr.setRequestHeader('content-type', blob.type)
+    if (onProgress) xhr.upload.onprogress = (e) => e.lengthComputable && onProgress(e.loaded / e.total)
+    xhr.onload = () => resolve(xhr.status >= 200 && xhr.status < 300)
+    xhr.onerror = () => resolve(false)
+    xhr.send(blob)
+  })
+}
+
+export async function uploadFile(
+  kind: UploadKind,
+  blob: Blob,
+  onProgress?: (fraction: number) => void,
+): Promise<Result<{ key: string; url: string }>> {
   const ticket = await createUploadFn({ data: { kind, contentType: blob.type, size: blob.size } })
   if (!ticket.ok) return ticket
   // The browser sets Content-Length from the blob. It must match the size that the server signed.
-  const put = await fetch(ticket.value.uploadUrl, { method: 'PUT', headers: { 'content-type': blob.type }, body: blob })
-  if (!put.ok) return { ok: false, error: 'Upload failed. Try again.' }
+  if (!(await put(ticket.value.uploadUrl, blob, onProgress))) return { ok: false, error: 'Upload failed. Try again.' }
   return { ok: true, value: { key: ticket.value.key, url: ticket.value.publicUrl } }
 }

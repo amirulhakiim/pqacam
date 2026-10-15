@@ -247,6 +247,51 @@ textarea.adm-input { height: auto; padding: 12px 14px; line-height: 1.55; resize
 .adm-initial { width: 32px; height: 32px; flex: none; margin-left: 4px; border-radius: 50%; background: oklch(0.9 0.03 150); color: oklch(0.38 0.07 150); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 13px; }
 .adm-email { flex: 1; min-width: 0; font-size: 14.5px; overflow: hidden; text-overflow: ellipsis; }
 
+@font-face { font-family: 'wm-sans'; src: url('/fonts/sans.ttf') format('truetype'); font-display: swap; }
+@font-face { font-family: 'wm-serif'; src: url('/fonts/serif.ttf') format('truetype'); font-display: swap; }
+@font-face { font-family: 'wm-mono'; src: url('/fonts/mono.ttf') format('truetype'); font-display: swap; }
+@font-face { font-family: 'wm-comic'; src: url('/fonts/comic.ttf') format('truetype'); font-display: swap; }
+@font-face { font-family: 'wm-script'; src: url('/fonts/script.ttf') format('truetype'); font-display: swap; }
+@font-face { font-family: 'wm-pacifico'; src: url('/fonts/pacifico.ttf') format('truetype'); font-display: swap; }
+
+.adm-wm-add { display: inline-flex; align-items: center; cursor: pointer; }
+.adm-wm-settings { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 22px; align-items: start; padding: 18px; border-radius: 22px; background: var(--surface); box-shadow: 0 1px 2px oklch(0.5 0.03 60 / 0.05), 0 6px 18px oklch(0.5 0.03 60 / 0.05); }
+.adm-wm-fields { display: flex; flex-direction: column; gap: 16px; }
+.adm-range { width: 100%; margin: 6px 0 0; accent-color: oklch(0.5 0.08 150); }
+.adm-wm-stage { position: relative; aspect-ratio: 16 / 9; container-type: inline-size; overflow: hidden; border-radius: 16px; background: linear-gradient(135deg, oklch(0.5 0.04 60), oklch(0.33 0.02 60)); }
+.adm-wm-stage img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.adm-wm-mark { white-space: nowrap; line-height: 1.15; font-size: calc(var(--size) * 1cqw); }
+.adm-wm-at { position: absolute; }
+.adm-wm-tl { top: 2cqw; left: 2cqw; }
+.adm-wm-tr { top: 2cqw; right: 2cqw; }
+.adm-wm-bl { bottom: 2cqw; left: 2cqw; }
+.adm-wm-br { bottom: 2cqw; right: 2cqw; }
+.adm-wm-c { top: 50%; left: 50%; transform: translate(-50%, -50%); }
+/* The same path as the server: x and y bounce on their own clocks. left plus a translate of the own size keeps the text inside the frame. */
+.adm-wm-y { position: absolute; left: 0; right: 0; top: 0; animation: wm-y var(--dy) linear infinite alternate; }
+.adm-wm-y .adm-wm-mark { position: relative; display: inline-block; animation: wm-x var(--dx) linear infinite alternate; }
+@keyframes wm-x { from { left: 0; transform: none; } to { left: 100%; transform: translateX(-100%); } }
+@keyframes wm-y { from { top: 0; transform: none; } to { top: 100%; transform: translateY(-100%); } }
+.adm-wm-note { font-size: 13px; color: oklch(0.42 0.08 60); background: oklch(0.95 0.03 80); padding: 10px 14px; border-radius: 12px; }
+.adm-wm-row { align-items: center; }
+.adm-wm-name { flex: 0 1 40%; min-width: 0; font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.adm-bar { flex: 1; height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.adm-bar span { display: block; height: 100%; background: oklch(0.55 0.09 150); transition: width 0.3s; }
+.adm-thumb video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.adm-wm-thumb { cursor: default; }
+.adm-wm-actions { flex-wrap: wrap; justify-content: flex-end; }
+.adm-wm-attach { width: auto; max-width: 180px; height: 32px; padding: 0 10px; border-radius: 10px; font-size: 13px; }
+.adm-pick { width: min(560px, calc(100vw - 32px)); max-height: 80vh; box-sizing: border-box; border: none; border-radius: 22px; padding: 18px; background: var(--surface); color: var(--ink); box-shadow: 0 20px 60px oklch(0.3 0.02 60 / 0.2); }
+.adm-pick::backdrop { background: oklch(0.3 0.02 60 / 0.35); }
+.adm-pick-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+.adm-pick-head h3 { margin: 0; font-family: var(--serif); font-weight: 400; font-size: 26px; }
+.adm-tile-pick { border: none; padding: 0; cursor: pointer; }
+.adm-tile-pick:disabled { opacity: 0.35; cursor: default; }
+@media (max-width: 759px) {
+  .adm-wm-settings { grid-template-columns: minmax(0, 1fr); padding: 14px; }
+  .adm-wm-attach { height: 40px; font-size: 16px; }
+}
+
 .adm-menu { inset: 64px 16px auto auto; margin: 0; box-sizing: border-box; max-width: calc(100vw - 32px); padding: 14px; border: 1px solid oklch(0.91 0.01 70); border-radius: 16px; background: var(--surface); box-shadow: 0 10px 30px oklch(0.3 0.02 60 / 0.15); color: var(--ink); }
 .adm-menu:popover-open { display: flex; flex-direction: column; gap: 4px; }
 .adm-menu-name { font-size: 14px; font-weight: 600; }

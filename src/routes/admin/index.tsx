@@ -5,6 +5,8 @@ import { CategoriesTab } from '../../components/admin/CategoriesTab'
 import { ProductsTab } from '../../components/admin/ProductsTab'
 import { ProfileTab } from '../../components/admin/ProfileTab'
 import { type Act, Shell, type Tab } from '../../components/admin/Shell'
+import { useUploads } from '../../components/admin/useUploads'
+import { WatermarkTab } from '../../components/admin/WatermarkTab'
 import { getAdminDataFn, signOutFn } from '../../server/fns'
 
 export const Route = createFileRoute('/admin/')({
@@ -18,6 +20,16 @@ function Admin() {
   const router = useRouter()
   const [tab, setTab] = useState<Tab>('products')
   const [toast, setToast] = useState('')
+  const refresh = useCallback(() => void router.invalidate(), [router])
+  const uploads = useUploads(refresh)
+  const working = data.jobs.some((j) => j.status === 'queued' || j.status === 'processing')
+
+  // The server watermarks in the background. Polling shows progress and finished files without a reload.
+  useEffect(() => {
+    if (!working) return
+    const timer = setInterval(refresh, 3000)
+    return () => clearInterval(timer)
+  }, [working, refresh])
 
   useEffect(() => {
     if (!toast) return
@@ -55,6 +67,7 @@ function Admin() {
   return (
     <Shell data={data} me={me} tab={tab} onTab={setTab} onSignOut={signOut}>
       {tab === 'products' && <ProductsTab {...props} />}
+      {tab === 'watermark' && <WatermarkTab {...props} uploads={uploads} />}
       {tab === 'categories' && <CategoriesTab {...props} />}
       {tab === 'profile' && <ProfileTab {...props} />}
       {tab === 'admins' && <AdminsTab {...props} me={me.email} />}

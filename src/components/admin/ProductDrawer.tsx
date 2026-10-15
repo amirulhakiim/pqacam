@@ -4,6 +4,7 @@ import { PLATFORM_LABEL } from '../../lib/platforms'
 import type { AdminProduct } from '../../server/catalog'
 import { deleteProductFn, saveProductFn } from '../../server/fns'
 import { PLATFORMS, type Platform } from '../../server/validate'
+import { LibraryPicker } from './LibraryPicker'
 import type { TabProps } from './Shell'
 
 type Props = TabProps & { product: AdminProduct | null; onClose: () => void }
@@ -24,6 +25,7 @@ export function ProductDrawer({ product, data, act, flash, onClose }: Props) {
     }
   })
   const [bigReview, setBigReview] = useState(false)
+  const [picking, setPicking] = useState(false)
   // The ref is read on each pointer move, before React renders again. The state only styles the tile.
   const dragFrom = useRef<number | null>(null)
   const [dragKey, setDragKey] = useState<string | null>(null)
@@ -167,6 +169,9 @@ export function ProductDrawer({ product, data, act, flash, onClose }: Props) {
                 <span>+</span>Add photos
                 <input type="file" accept="image/*" multiple hidden onChange={(e) => (addFiles('photo', e.target.files), (e.target.value = ''))} />
               </label>
+              <button type="button" className="adm-tile adm-tile-add" onClick={() => setPicking(true)}>
+                <span>+</span>From library
+              </button>
               <label className="adm-tile adm-tile-add">
                 <span>+</span>Add video
                 <input
@@ -178,6 +183,14 @@ export function ProductDrawer({ product, data, act, flash, onClose }: Props) {
               </label>
             </div>
             {uploads > 0 && <span className="adm-hint">Uploading {uploads}…</span>}
+            {picking && (
+              <LibraryPicker
+                jobs={data.jobs}
+                taken={draft.media.map((m) => m.key)}
+                onPick={(j) => set({ media: [...draft.media, { type: j.type, key: j.key, url: j.url! }] })}
+                onClose={() => setPicking(false)}
+              />
+            )}
           </div>
 
           <label className="adm-field">
