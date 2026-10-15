@@ -11,8 +11,10 @@ const PATH: Record<Social, string> = {
 
 export function SocialIcon({ platform }: { platform: Social }) {
   return (
-    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-      <path d={PATH[platform]} />
-    </svg>
+    <span className={`social-app social-app-${platform}`} aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <path d={PATH[platform]} />
+      </svg>
+    </span>
   )
 }

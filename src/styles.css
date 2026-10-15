@@ -68,9 +68,14 @@ button { font: inherit; color: inherit; }
 .pp-bio { margin: 2px 0 0; font-size: 14.5px; line-height: 1.5; max-width: 320px; text-wrap: pretty; white-space: pre-line; color: oklch(0.4 0.02 60); }
 .pp-bio-small { font-size: 13px; }
 .pp-bio-large { font-size: 17px; max-width: 360px; }
-.pp-socials { display: flex; gap: 10px; margin-top: 2px; }
-.pp-social { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--surface); color: oklch(0.35 0.02 60); border: 1px solid oklch(0.91 0.01 70); }
-.pp-social svg { width: 18px; height: 18px; }
+.pp-socials { display: flex; gap: 12px; margin-top: 4px; }
+.pp-social { display: flex; width: 42px; height: 42px; border-radius: 23%; }
+.social-app { box-sizing: border-box; width: 100%; height: 100%; border-radius: 23%; display: flex; align-items: center; justify-content: center; color: #fff; background: #000; box-shadow: 0 2px 6px rgb(0 0 0 / 0.18), inset 0 0 0 0.5px rgb(0 0 0 / 0.12); }
+.social-app svg { width: 56%; height: 56%; }
+.social-app-instagram { background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285aeb 90%); }
+.social-app-facebook { background: #0866ff; }
+.social-app-youtube { background: #fff; color: #ff0000; }
+.social-app-youtube svg { width: 66%; height: 66%; }
 
 .pp-filters { position: sticky; top: 0; z-index: 5; margin: 0 -18px; padding: 8px 18px; background: oklch(0.98 0.008 75 / 0.55); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); display: flex; flex-direction: column; gap: 12px; }
 .pp-search { display: flex; align-items: center; gap: 10px; height: 50px; padding: 0 6px 0 18px; border-radius: 999px; background: var(--surface); color: var(--ink-soft); box-shadow: 0 1px 2px oklch(0.5 0.03 60 / 0.06), 0 6px 20px oklch(0.5 0.03 60 / 0.06); }
@@ -398,8 +403,7 @@ textarea.adm-input { height: auto; padding: 12px 14px; line-height: 1.55; resize
 .adm-pick-head .adm-wm-attach { margin-right: 4px; }
 .adm-wm-folders { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
 .adm-social-row { display: flex; align-items: center; gap: 10px; }
-.adm-social-icon { flex: none; width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: oklch(0.94 0.012 75); color: oklch(0.35 0.02 60); }
-.adm-social-icon svg { width: 18px; height: 18px; }
+.adm-social-icon { flex: none; display: flex; width: 40px; height: 40px; }
 .adm-filter-label { flex: none; align-self: center; min-width: 46px; font-size: 12px; font-weight: 600; color: var(--ink-soft); }
 .adm-job-actions .btn-icon { display: inline-flex; align-items: center; justify-content: center; padding: 0; height: 40px; width: 40px; }
 .btn-icon svg { width: 17px; height: 17px; }
