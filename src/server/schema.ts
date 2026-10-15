@@ -1,4 +1,4 @@
-import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core'
+import { index, integer, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 
 export const profile = sqliteTable('profile', {
   id: integer('id').primaryKey(),
@@ -50,6 +50,20 @@ export const link = sqliteTable('link', {
   position: integer('position').notNull(),
   clicks: integer('clicks').notNull().default(0),
 })
+
+// One row per tap on a buy button, for the analytics tab. No foreign keys: the history stays when a product or link is deleted.
+// Nothing about the visitor is stored.
+export const click = sqliteTable(
+  'click',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    linkId: integer('link_id').notNull(),
+    productId: integer('product_id').notNull(),
+    platform: text('platform', { enum: ['shopee', 'tiktok', 'whatsapp'] }).notNull(),
+    at: integer('at').notNull(),
+  },
+  (t) => [index('click_at').on(t.at)],
+)
 
 export const folder = sqliteTable('folder', {
   id: integer('id').primaryKey({ autoIncrement: true }),

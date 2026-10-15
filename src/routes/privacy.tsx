@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { getPublicPageFn } from '../server/fns'
 
-const UPDATED = '14 October 2026'
+const UPDATED = '15 October 2026'
 
 export const Route = createFileRoute('/privacy')({
   loader: async () => (await getPublicPageFn()).profile.name || 'pqacam',
@@ -27,8 +27,8 @@ function Privacy() {
           <li>This site does not ask for your name, email, or any account.</li>
           <li>This site sets no cookies for visitors and uses no analytics or advertising trackers.</li>
           <li>
-            When you tap a buy button, the site adds 1 to a counter for that product and that shop. The counter is a number only. It
-            does not record who you are, your IP address, or your device.
+            When you tap a buy button, the site records the time of the tap and which product and shop it was for. This shows the
+            owner when people shop. It does not record who you are, your IP address, or your device.
           </li>
           <li>
             Photos and videos load from Cloudflare. The server that hosts this site and Cloudflare can keep standard access logs, such

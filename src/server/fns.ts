@@ -1,4 +1,5 @@
 import { createServerFn } from '@tanstack/react-start'
+import { getAnalytics, toRange } from './analytics'
 import { appSession, requireAdmin } from './auth'
 import * as catalog from './catalog'
 import { getDb } from './db'
@@ -175,3 +176,7 @@ export const deleteFolderFn = createServerFn({ method: 'POST' })
 export const moveJobFn = createServerFn({ method: 'POST' })
   .inputValidator((data: { id: number; folderId: number | null }) => data)
   .handler(({ data }) => asAdmin(() => catalog.moveJob(getDb(), int(data?.id), folderOrNone(data?.folderId))))
+
+export const getAnalyticsFn = createServerFn({ method: 'GET' })
+  .inputValidator((data: number) => data)
+  .handler(({ data }) => asAdmin(() => getAnalytics(getDb(), toRange(data))))

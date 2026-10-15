@@ -1,6 +1,6 @@
 import { and, asc, desc, eq, notInArray, sql } from 'drizzle-orm'
 import type { Db } from './db'
-import { admin, category, folder, job, link, media, product, profile } from './schema'
+import { admin, category, click, folder, job, link, media, product, profile } from './schema'
 import { DEFAULT_WATERMARK, type JobInput, PLATFORMS, type ProductInput, validateWatermark, type WatermarkSettings } from './validate'
 
 export class UserError extends Error {}
@@ -223,15 +223,18 @@ export function removeAdmin(db: Db, email: string, self: string) {
   db.delete(admin).where(eq(admin.email, email)).run()
 }
 
-export function recordClick(db: Db, linkId: number): string | null {
+export function recordClick(db: Db, linkId: number, at = Date.now()): string | null {
   const row = db
-    .select({ url: link.url })
+    .select({ url: link.url, productId: link.productId, platform: link.platform })
     .from(link)
     .innerJoin(product, eq(product.id, link.productId))
     .where(and(eq(link.id, linkId), eq(product.hidden, false)))
     .get()
   if (!row) return null
-  db.update(link).set({ clicks: sql`${link.clicks} + 1` }).where(eq(link.id, linkId)).run()
+  db.transaction((tx) => {
+    tx.update(link).set({ clicks: sql`${link.clicks} + 1` }).where(eq(link.id, linkId)).run()
+    tx.insert(click).values({ linkId, productId: row.productId, platform: row.platform, at }).run()
+  })
   return row.url
 }
 
