@@ -1,0 +1,1 @@
+ALTER TABLE `job` ADD `output_bytes` integer DEFAULT 0 NOT NULL;

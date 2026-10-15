@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { resizeImage, uploadFile } from '../../lib/upload'
 import { PLATFORM_LABEL } from '../../lib/platforms'
 import type { AdminProduct } from '../../server/catalog'
-import { deleteProductFn, saveProductFn } from '../../server/fns'
+import { compressVideoFn, deleteProductFn, saveProductFn, takeJobFn } from '../../server/fns'
 import { PLATFORMS, type Platform, VIDEO_MAX_MB, VIDEO_TYPES } from '../../server/validate'
 import { LibraryPicker } from './LibraryPicker'
 import type { TabProps } from './Shell'
@@ -33,6 +33,16 @@ export function ProductDrawer({ product, data, act, flash, onClose }: Props) {
   const [error, setError] = useState('')
   const [mediaError, setMediaError] = useState('')
   const [progress, setProgress] = useState<number | null>(null)
+  const [stage, setStage] = useState('')
+  const [notice, setNotice] = useState('')
+  // Polling for a compressed video stops when the drawer closes. The video then stays in the Watermark library.
+  const open = useRef(true)
+  useEffect(
+    () => () => {
+      open.current = false
+    },
+    [],
+  )
   const [confirmDelete, setConfirmDelete] = useState(false)
   // A ref, not state: a second tap arrives before React renders again.
   const saving = useRef(false)
@@ -54,21 +64,57 @@ export function ProductDrawer({ product, data, act, flash, onClose }: Props) {
     flash(message)
   }
 
+  const mb = (bytes: number) => `${Math.max(1, Math.round(bytes / 1024 / 1024))} MB`
+
+  // A video over the limit, or a MOV (usually HEVC from an iPhone, which Android and Windows cannot play), goes to the server.
+  // The server makes an MP4 under the limit, and the drawer waits for it.
+  async function compress(file: File) {
+    setStage(`Uploading ${file.name}`)
+    const uploaded = await uploadFile('raw', file, setProgress)
+    if (!uploaded.ok) return fail(`${file.name}: ${uploaded.error}`)
+    const started = await compressVideoFn({ data: { type: 'video', key: uploaded.value.key, name: file.name } })
+    if (!started.ok) return fail(`${file.name}: ${started.error}`)
+    setStage(`Compressing ${file.name}`)
+    setProgress(0)
+    while (open.current) {
+      await new Promise((r) => setTimeout(r, 2000))
+      const r = await takeJobFn({ data: started.value })
+      if (!r.ok) return fail(`${file.name}: ${r.error}`)
+      const job = r.value
+      if (job.status === 'failed') return fail(`${file.name}: ${job.error}`)
+      if (job.status !== 'done' || !('key' in job)) {
+        setProgress(job.progress / 100)
+        continue
+      }
+      setDraft((d) => ({ ...d, media: [...d.media, { type: 'video', key: job.key!, url: job.url! }] }))
+      if (file.size > VIDEO_MAX_MB * 1024 * 1024) {
+        const text = `${file.name} was ${mb(file.size)}, so it was compressed to ${mb(job.bytes ?? 0)} to fit the ${VIDEO_MAX_MB} MB limit.`
+        setNotice(text)
+        flash(text)
+      }
+      return
+    }
+  }
+
   async function addFiles(type: 'photo' | 'video', files: FileList | null) {
     setMediaError('')
+    setNotice('')
     for (const file of Array.from(files ?? [])) {
-      // Checked here as well as on the server, so a phone video over the limit fails at once, with its name, before any upload.
       if (type === 'video' && !VIDEO_TYPES.includes(file.type)) {
         fail(`${file.name} is not an MP4, WebM or MOV video.`)
         continue
       }
-      if (type === 'video' && file.size > VIDEO_MAX_MB * 1024 * 1024) {
-        const mb = Math.round(file.size / 1024 / 1024)
-        fail(`${file.name} is ${mb} MB. Videos here can be ${VIDEO_MAX_MB} MB at most. The Watermark tab takes videos up to 1 GB and makes them smaller.`)
+      if (type === 'video' && file.size > 1024 * 1024 * 1024) {
+        fail(`${file.name} is ${mb(file.size)}. Videos can be 1 GB at most.`)
         continue
       }
       setUploads((n) => n + 1)
       try {
+        if (type === 'video' && (file.size > VIDEO_MAX_MB * 1024 * 1024 || file.type === 'video/quicktime')) {
+          await compress(file)
+          continue
+        }
+        setStage(`Uploading ${file.name}`)
         const blob = type === 'photo' ? await resizeImage(file, 1000) : file
         const result = await uploadFile(type, blob, type === 'video' ? setProgress : undefined)
         if (result.ok) setDraft((d) => ({ ...d, media: [...d.media, { type, ...result.value }] }))
@@ -78,6 +124,7 @@ export function ProductDrawer({ product, data, act, flash, onClose }: Props) {
       } finally {
         setUploads((n) => n - 1)
         setProgress(null)
+        setStage('')
       }
     }
   }
@@ -205,10 +252,11 @@ export function ProductDrawer({ product, data, act, flash, onClose }: Props) {
             </div>
             {uploads > 0 && (
               <span className="adm-hint">
-                Uploading {uploads}…{progress !== null && ` ${Math.round(progress * 100)}%`}
+                {stage || `Uploading ${uploads}`}…{progress !== null && ` ${Math.round(progress * 100)}%`}
               </span>
             )}
             {mediaError && <div className="error-box">{mediaError}</div>}
+            {notice && <div className="notice-box">{notice}</div>}
             {picking && (
               <LibraryPicker
                 jobs={data.jobs}

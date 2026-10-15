@@ -116,7 +116,7 @@ test.skipIf(!hasFfmpeg)('the worker watermarks a file, stores the result, and de
 test('a job whose original is missing fails with a message and keeps the original key', async () => {
   add(photo(7))
   await runJob(db, c.claimJob(db)!)
-  expect(jobs()[0]).toMatchObject({ status: 'failed', error: expect.stringContaining('Could not watermark') })
+  expect(jobs()[0]).toMatchObject({ status: 'failed', error: expect.stringContaining('Could not process') })
   expect(deleted).toEqual([])
 })
 
@@ -135,4 +135,20 @@ test('folder rules: unique names, upload into a folder, move, and delete keeps t
   expect(c.getAdminData(db, BASE).folders).toEqual([])
   expect(jobs().map((j) => j.folderId)).toEqual([null, null, null])
   expect(() => c.moveJob(db, ids[0], trips)).toThrow(c.UserError)
+})
+
+test('a product video compresses without a watermark, and the editor takes the result out of the library', async () => {
+  const raw = 'raw/00000000-0000-4000-8000-00000000000c.mp4'
+  await Bun.spawn(['ffmpeg', '-v', 'error', '-f', 'lavfi', '-i', 'testsrc=size=640x360:duration=1', '-f', 'lavfi', '-i', 'sine=duration=1',
+    '-shortest', '-c:v', 'libx264', '-c:a', 'aac', at(raw)]).exited
+  const id = c.addCompressJob(db, { type: 'video', key: raw, name: 'IMG_1.MOV' })
+  expect(c.takeJob(db, id, BASE)).toMatchObject({ status: 'queued' })
+  expect(jobs()[0]).toMatchObject({ compressOnly: true, status: 'queued' })
+  await runJob(db, c.claimJob(db)!)
+  const taken = c.takeJob(db, id, BASE)
+  expect(taken.status).toBe('done')
+  expect(taken.key).toMatch(/^video\/.+\.mp4$/)
+  expect(taken.bytes).toBeGreaterThan(0)
+  expect(jobs()).toEqual([])
+  expect(() => c.takeJob(db, id, BASE)).toThrow(c.UserError)
 })

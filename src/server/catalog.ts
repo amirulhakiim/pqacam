@@ -71,6 +71,7 @@ export function getAdminData(db: Db, mediaBase: string) {
         status: j.status,
         progress: j.progress,
         error: j.error,
+        compressOnly: JSON.parse(j.settings).compressOnly === true,
         folderId: j.folderId,
         key: j.outputKey,
         url: j.outputKey ? `${mediaBase}/${j.outputKey}` : null,
@@ -289,8 +290,27 @@ export function setJobProgress(db: Db, id: number, progress: number) {
   db.update(job).set({ progress }).where(eq(job.id, id)).run()
 }
 
-export function finishJob(db: Db, id: number, outputKey: string) {
-  db.update(job).set({ status: 'done', progress: 100, outputKey, sourceKey: '' }).where(eq(job.id, id)).run()
+export function finishJob(db: Db, id: number, outputKey: string, outputBytes = 0) {
+  db.update(job).set({ status: 'done', progress: 100, outputKey, outputBytes, sourceKey: '' }).where(eq(job.id, id)).run()
+}
+
+// A product video that the editor sends to the server to compress. It goes through the same queue as watermarks.
+export function addCompressJob(db: Db, input: JobInput): number {
+  return db
+    .insert(job)
+    .values({ type: 'video', name: input.name, sourceKey: input.key, settings: JSON.stringify({ compressOnly: true }), createdAt: Date.now() })
+    .returning({ id: job.id })
+    .get().id
+}
+
+// The editor polls this. When the video is done, the job leaves the library and the editor takes the file.
+// If the editor was closed first, the job stays in the library, so the video is not lost.
+export function takeJob(db: Db, id: number, mediaBase: string) {
+  const row = db.select().from(job).where(eq(job.id, id)).get()
+  if (!row) throw new UserError('This video is no longer in the library.')
+  if (row.status !== 'done') return { status: row.status, progress: row.progress, error: row.error }
+  db.delete(job).where(eq(job.id, id)).run()
+  return { status: row.status, progress: 100, error: '', key: row.outputKey, url: `${mediaBase}/${row.outputKey}`, bytes: row.outputBytes }
 }
 
 export function failJob(db: Db, id: number, error: string) {

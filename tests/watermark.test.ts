@@ -3,7 +3,7 @@ import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { DEFAULT_WATERMARK, type WatermarkSettings } from '../src/server/validate'
-import { outputSize, parseProbe, photoArgs, probe, videoArgs, watermarkFile } from '../src/server/watermark'
+import { outputSize, parseProbe, photoArgs, probe, sizeCap, TooLargeError, videoArgs, watermarkFile } from '../src/server/watermark'
 
 const s: WatermarkSettings = { ...DEFAULT_WATERMARK, text: "@me: it's 100%" }
 const vf = (args: string[]) => args[args.indexOf('-vf') + 1]
@@ -82,3 +82,37 @@ test.skipIf(!hasFfmpeg)('an HLG clip is tone mapped to SDR', async () => {
   await watermarkFile('video', hlg, out, join(dir, 't.txt'), s, () => {})
   expect((await probe(out)).hdr).toBe(false)
 }, 60_000)
+
+test('compress only: no drawtext, and the size cap pass is 720p at a fitted bitrate', () => {
+  const p = { width: 3840, height: 2160, hdr: false as const, duration: 120 }
+  const plain = vf(videoArgs('in', 'out', 't.txt', null, p))
+  expect(plain).toBe('scale=1920:1080')
+  const cap = sizeCap(120)
+  // 50 MB, less 10%, over 120 s, less 96 kb/s for audio.
+  expect(cap.videoBitrate).toBe(Math.floor((50 * 1024 * 1024 * 0.9 * 8) / 120) - 96_000)
+  const capped = videoArgs('in', 'out', 't.txt', null, p, cap)
+  expect(vf(capped)).toBe('scale=1280:720')
+  expect(capped).toContain(String(cap.videoBitrate))
+  expect(capped).not.toContain('-crf')
+})
+
+test.skipIf(!hasFfmpeg)('a video over the limit is compressed again until it fits, keeping its sound', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'wm-'))
+  const big = join(dir, 'big.mp4')
+  // Noise does not compress, so the first pass is far over a 300 KB limit.
+  await Bun.spawn(['ffmpeg', '-v', 'error', '-f', 'lavfi', '-i', 'testsrc2=size=1920x1080:rate=30:duration=4,noise=alls=60:allf=t',
+    '-f', 'lavfi', '-i', 'sine=duration=4', '-shortest', '-c:v', 'libx264', '-crf', '18', '-c:a', 'aac', big]).exited
+  const out = join(dir, 'out.mp4')
+  const seen: number[] = []
+  const bytes = await watermarkFile('video', big, out, join(dir, 't.txt'), null, (n) => seen.push(n), 300_000)
+  expect(bytes).toBeLessThanOrEqual(300_000)
+  expect(bytes).toBe(Bun.file(out).size)
+  expect(Math.max(...seen)).toBeGreaterThanOrEqual(50)
+  const streams = await new Response(
+    Bun.spawn(['ffprobe', '-v', 'error', '-show_entries', 'stream=codec_name,width', '-of', 'csv=p=0', out]).stdout,
+  ).text()
+  expect(streams).toContain('aac')
+  expect(streams).toContain('h264,1280')
+  // A limit no video can meet is an error the admin can act on, not a silent oversize file.
+  await expect(watermarkFile('video', big, out, join(dir, 't.txt'), null, () => {}, 10_000)).rejects.toBeInstanceOf(TooLargeError)
+}, 120_000)

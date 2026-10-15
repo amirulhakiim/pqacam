@@ -194,3 +194,18 @@ export const getAnalyticsFn = createServerFn({ method: 'GET' })
       }),
     ),
   )
+
+export const compressVideoFn = createServerFn({ method: 'POST' })
+  .inputValidator((data: JobInput) => data)
+  .handler(({ data }) =>
+    asAdmin(() => {
+      const [input] = need(validateJobs([{ ...data, type: 'video' }]))
+      const id = catalog.addCompressJob(getDb(), input)
+      kick()
+      return id
+    }),
+  )
+
+export const takeJobFn = createServerFn({ method: 'POST' })
+  .inputValidator((data: number) => data)
+  .handler(({ data }) => asAdmin(() => catalog.takeJob(getDb(), int(data), mediaBase())))

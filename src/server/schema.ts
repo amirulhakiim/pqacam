@@ -93,6 +93,7 @@ export const job = sqliteTable('job', {
   // Empty after the worker deletes the original.
   sourceKey: text('source_key').notNull(),
   outputKey: text('output_key').notNull().default(''),
+  outputBytes: integer('output_bytes').notNull().default(0),
   settings: text('settings').notNull(),
   status: text('status', { enum: ['queued', 'processing', 'done', 'failed'] }).notNull().default('queued'),
   progress: integer('progress').notNull().default(0),

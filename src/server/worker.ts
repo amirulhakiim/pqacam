@@ -5,7 +5,7 @@ import * as catalog from './catalog'
 import { type Db, getDb } from './db'
 import { deleteObjects, getToFile, newKey, putFile } from './r2'
 import { validateWatermark } from './validate'
-import { watermarkFile } from './watermark'
+import { TooLargeError, watermarkFile } from './watermark'
 
 let running = false
 let started = false
@@ -37,22 +37,30 @@ export async function runJob(db: Db, row: Row) {
   const output = join(dir, `out.${ext}`)
   let lastWrite = 0
   try {
-    const settings = validateWatermark(JSON.parse(row.settings))
+    // A job for a product video compresses only. Its settings hold { compressOnly: true } instead of a watermark.
+    const saved = JSON.parse(row.settings)
+    const settings = saved.compressOnly ? ({ ok: true, value: null } as const) : validateWatermark(saved)
     if (!settings.ok) throw new Error(settings.error)
     await mkdir(dir, { recursive: true })
     await getToFile(row.sourceKey, input)
-    await watermarkFile(row.type, input, output, join(dir, 'text.txt'), settings.value, (percent) => {
+    const bytes = await watermarkFile(row.type, input, output, join(dir, 'text.txt'), settings.value, (percent) => {
       if (Date.now() - lastWrite < 2000) return
       lastWrite = Date.now()
       catalog.setJobProgress(db, row.id, percent)
     })
     const key = newKey(row.type, ext)
     await putFile(key, output, row.type === 'video' ? 'video/mp4' : 'image/jpeg')
-    catalog.finishJob(db, row.id, key)
+    catalog.finishJob(db, row.id, key, bytes)
     await deleteObjects([row.sourceKey])
   } catch (error) {
     console.error(`Watermark job ${row.id} failed`, error)
-    catalog.failJob(db, row.id, 'Could not watermark this file. Try again, or upload it again.')
+    catalog.failJob(
+      db,
+      row.id,
+      error instanceof TooLargeError
+        ? 'This video is too long to fit 50 MB, even compressed. Trim it and upload it again.'
+        : 'Could not process this file. Try again, or upload it again.',
+    )
   } finally {
     await rm(dir, { recursive: true, force: true })
   }
