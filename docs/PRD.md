@@ -334,7 +334,7 @@ Setup outside the repository: a Google Cloud OAuth client with the callback URL,
 | Themes, colors, fonts, custom blocks | The owner asks for a different look |
 | Cart, payments, orders | Sales move away from Shopee, TikTok, and WhatsApp |
 | Click charts by date | A total for each product is not sufficient |
-| Video compression on the server | 50 MB videos load too slowly for visitors |
+| Resized AVIF or WebP photos for each screen, see [future: image delivery](future/image-delivery.md) | Photos load too slowly on mobile data, or the app becomes a SaaS |
 | A URL for each product with its own share preview | The owner frequently shares one product at a time |
 | Platforms other than Shopee, TikTok, WhatsApp | The owner sells on a fourth platform |
 

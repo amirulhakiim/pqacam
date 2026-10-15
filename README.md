@@ -109,6 +109,7 @@ flowchart LR
 |---|---|
 | [`docs/PRD.md`](docs/PRD.md) | Requirements and decisions |
 | [`docs/setup/`](docs/setup/01-prepare.md) | The three setup guides |
+| [`docs/future/`](docs/future/image-delivery.md) | Ideas to consider later, with cost and effort |
 | [`docs/superpowers/plans/2026-10-12-pqacam/`](docs/superpowers/plans/2026-10-12-pqacam/README.md) | The implementation plan |
 
 Personal notes with real values go in a file that ends in `.local.md`. Git ignores those files.
