@@ -4,6 +4,7 @@ import { PLATFORM_LABEL } from '../../lib/platforms'
 import type { AdminProduct } from '../../server/catalog'
 import { compressVideoFn, deleteProductFn, saveProductFn, takeJobFn } from '../../server/fns'
 import { PLATFORMS, type Platform, VIDEO_MAX_MB, VIDEO_TYPES } from '../../server/validate'
+import { VideoThumb } from '../VideoThumb'
 import { LibraryPicker } from './LibraryPicker'
 import type { TabProps } from './Shell'
 
@@ -216,7 +217,7 @@ export function ProductDrawer({ product, data, act, flash, onClose }: Props) {
                   onPointerUp={endDrag}
                   onPointerCancel={endDrag}
                 >
-                  {m.type === 'photo' ? <img src={m.url} alt="" draggable={false} /> : <video src={m.url} muted preload="metadata" />}
+                  {m.type === 'photo' ? <img src={m.url} alt="" draggable={false} /> : <VideoThumb url={m.url} />}
                   {m.type === 'video' && <span className="adm-tile-tag">▶ Video</span>}
                   <button
                     type="button"

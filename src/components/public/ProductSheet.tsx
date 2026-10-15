@@ -68,7 +68,8 @@ export function ProductSheet({ product, hidden, onClose }: Props) {
                 {m.type === 'photo' && <img src={m.url} alt="" draggable={false} />}
                 {m.type === 'video' && i === current && (
                   <video
-                    src={m.url}
+                    src={`${m.url}#t=0.1`}
+                    preload="metadata"
                     autoPlay
                     muted={!sound}
                     // React sets muted only on the first render, so a change is applied to the element here.

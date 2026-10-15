@@ -3,6 +3,7 @@ import { PLATFORM_LABEL } from '../../lib/platforms'
 import type { AdminProduct } from '../../server/catalog'
 import { reorderProductsFn, setHiddenFn } from '../../server/fns'
 import { PLATFORMS } from '../../server/validate'
+import { VideoThumb } from '../VideoThumb'
 import { ProductDrawer } from './ProductDrawer'
 import type { TabProps } from './Shell'
 
@@ -73,6 +74,7 @@ export function ProductsTab({ data, act, flash }: TabProps) {
         {rows.map((p) => {
           const index = sorted.indexOf(p)
           const cover = p.media.find((m) => m.type === 'photo')
+          const firstVideo = cover ? undefined : p.media.find((m) => m.type === 'video')
           const photos = p.media.filter((m) => m.type === 'photo').length
           const videos = p.media.length - photos
           const linked = PLATFORMS.filter((k) => p.links.some((l) => l.platform === k))
@@ -108,6 +110,7 @@ export function ProductsTab({ data, act, flash }: TabProps) {
               )}
               <button type="button" className="adm-thumb" onClick={() => setEditing(p)} aria-label={`Edit ${p.name}`}>
                 {cover && <img src={cover.url} alt="" />}
+                {firstVideo && <VideoThumb url={firstVideo.url} />}
               </button>
               <button type="button" className="adm-row-text" onClick={() => setEditing(p)}>
                 <span className="adm-row-name">{p.name}</span>

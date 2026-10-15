@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { AdminData, AdminJob } from '../../server/catalog'
+import { VideoThumb } from '../VideoThumb'
 import { type FolderFilter, inFolder } from './Library'
 
 type Props = { jobs: AdminJob[]; folders: AdminData['folders']; taken: string[]; onPick: (job: AdminJob) => void; onClose: () => void }
@@ -56,7 +57,7 @@ export function LibraryPicker({ jobs, folders, taken, onPick, onClose }: Props) 
             }}
             title={j.name}
           >
-            {j.type === 'photo' ? <img src={j.url!} alt="" /> : <video src={`${j.url}#t=0.1`} muted preload="metadata" />}
+            {j.type === 'photo' ? <img src={j.url!} alt="" /> : <VideoThumb url={j.url!} />}
             {j.type === 'video' && <span className="adm-tile-tag">▶ Video</span>}
           </button>
         ))}

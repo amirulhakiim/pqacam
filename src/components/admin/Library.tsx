@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { AdminJob } from '../../server/catalog'
 import { addFolderFn, deleteFolderFn, deleteJobFn, renameFolderFn, retryJobFn } from '../../server/fns'
+import { VideoThumb } from '../VideoThumb'
 import { MediaViewer } from './MediaViewer'
 import type { TabProps } from './Shell'
 
@@ -120,7 +121,7 @@ export function Library({ data, act, flash, filter, onFilter, uploading }: Props
         return (
           <div className="adm-row" key={j.id}>
             <button type="button" className="adm-thumb" onClick={open} disabled={!open} aria-label={`Open ${j.name}`}>
-              {j.url && (j.type === 'photo' ? <img src={j.url} alt="" /> : <video src={`${j.url}#t=0.1`} muted preload="metadata" />)}
+              {j.url && (j.type === 'photo' ? <img src={j.url} alt="" /> : <VideoThumb url={j.url} />)}
             </button>
             <button type="button" className="adm-row-text" onClick={open} disabled={!open}>
               <span className="adm-row-name">{j.name}</span>

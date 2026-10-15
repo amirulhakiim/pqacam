@@ -62,7 +62,7 @@ button { font: inherit; color: inherit; }
 .pp-column { width: 100%; max-width: 460px; padding: 36px 18px 96px; box-sizing: border-box; display: flex; flex-direction: column; gap: 22px; }
 .pp-header { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; }
 .pp-avatar { width: 88px; height: 88px; border-radius: 50%; border: 3px solid var(--surface); overflow: hidden; background: repeating-linear-gradient(135deg, oklch(0.9 0.02 70) 0 6px, oklch(0.93 0.015 70) 6px 12px); }
-.pp-avatar img, .pp-cover img, .pp-slide img, .pp-slide video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pp-avatar img, .pp-cover img, .pp-cover video, .pp-slide img, .pp-slide video { width: 100%; height: 100%; object-fit: cover; display: block; }
 .pp-name { margin: 4px 0 0; font-family: var(--serif); font-weight: 400; font-size: 38px; line-height: 1; letter-spacing: -0.01em; }
 .pp-handle { font-size: 13px; color: var(--ink-soft); }
 .pp-bio { margin: 2px 0 0; font-size: 14.5px; line-height: 1.5; max-width: 320px; text-wrap: pretty; white-space: pre-line; color: oklch(0.4 0.02 60); }
@@ -115,7 +115,7 @@ button { font: inherit; color: inherit; }
 .pp-stage { position: relative; flex: none; aspect-ratio: 1 / 1; max-height: 40vh; border-radius: 20px; overflow: hidden; touch-action: pan-y; background: repeating-linear-gradient(135deg, oklch(0.9 0.03 70) 0 8px, oklch(0.95 0.01 75) 8px 16px); }
 .pp-track { display: flex; height: 100%; transition: transform 0.55s cubic-bezier(0.2, 0.8, 0.2, 1); }
 .pp-slide { position: relative; flex: 0 0 100%; height: 100%; }
-.pp-slide video { pointer-events: none; }
+.pp-slide video, .pp-cover video { pointer-events: none; }
 .pp-video-tag { position: absolute; top: 14px; left: 14px; font-size: 11.5px; font-weight: 600; background: oklch(0.26 0.015 60 / 0.75); color: var(--surface); padding: 5px 10px; border-radius: 999px; }
 .pp-protected { position: absolute; inset: 0; z-index: 4; background: oklch(0.93 0.015 75); display: flex; align-items: center; justify-content: center; font-size: 13px; color: oklch(0.45 0.02 65); }
 .pp-counter { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 3; font-size: 11.5px; font-weight: 600; background: oklch(0.99 0.004 80 / 0.85); color: oklch(0.35 0.02 60); padding: 4px 10px; border-radius: 999px; }
@@ -223,7 +223,7 @@ textarea.adm-input { height: auto; padding: 12px 14px; line-height: 1.55; resize
 .adm-row-dragging { outline: 2px solid oklch(0.7 0.06 150); box-shadow: 0 10px 30px oklch(0.3 0.02 60 / 0.15); }
 .adm-row-dragging .adm-handle { cursor: grabbing; }
 .adm-thumb { width: 60px; height: 60px; flex: none; padding: 0; border: none; border-radius: 12px; overflow: hidden; cursor: pointer; background: repeating-linear-gradient(135deg, oklch(0.9 0.03 70) 0 6px, oklch(0.95 0.01 75) 6px 12px); }
-.adm-thumb img, .adm-tile img, .adm-tile video, .adm-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.adm-thumb img, .adm-thumb video, .adm-tile img, .adm-tile video, .adm-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .adm-row-text { flex: 1 1 160px; min-width: 0; border: none; background: none; padding: 0; text-align: left; cursor: pointer; display: flex; flex-direction: column; gap: 5px; }
 .adm-row-name { font-size: 15px; font-weight: 500; line-height: 1.25; }
 .adm-row-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-soft); }
@@ -307,7 +307,6 @@ textarea.adm-input { height: auto; padding: 12px 14px; line-height: 1.55; resize
 .adm-wm-name { flex: 0 1 40%; min-width: 0; font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .adm-bar { flex: 1; height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
 .adm-bar span { display: block; height: 100%; background: oklch(0.55 0.09 150); transition: width 0.3s; }
-.adm-thumb video { width: 100%; height: 100%; object-fit: cover; display: block; }
 .adm-wm-thumb { cursor: default; }
 .adm-wm-actions { flex-wrap: wrap; justify-content: flex-end; }
 .adm-wm-attach { width: auto; max-width: 180px; height: 32px; padding: 0 10px; border-radius: 10px; font-size: 13px; }
