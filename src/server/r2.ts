@@ -1,4 +1,6 @@
 import { AwsClient } from 'aws4fetch'
+import { createWriteStream } from 'node:fs'
+import { pipeline } from 'node:stream/promises'
 import { env } from './env'
 import type { UploadKind } from './validate'
 
@@ -40,9 +42,15 @@ export async function deleteObjects(keys: string[]): Promise<void> {
 }
 
 export async function getToFile(key: string, path: string): Promise<void> {
-  const response = await client().fetch(objectUrl(key))
+  const signal = AbortSignal.timeout(10 * 60_000)
+  const response = await client().fetch(objectUrl(key), { signal })
   if (!response.ok) throw new Error(`R2 get failed for ${key}: ${response.status}`)
-  await Bun.write(path, response)
+  if (!response.body) throw new Error(`R2 get failed for ${key}: empty response`)
+  await streamToFile(response.body, path, signal)
+}
+
+export async function streamToFile(body: ReadableStream<Uint8Array>, path: string, signal?: AbortSignal): Promise<void> {
+  await pipeline(body, createWriteStream(path), { signal })
 }
 
 export async function putFile(key: string, path: string, contentType: string): Promise<void> {

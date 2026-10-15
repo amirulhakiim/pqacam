@@ -208,4 +208,9 @@ export const compressVideoFn = createServerFn({ method: 'POST' })
 
 export const takeJobFn = createServerFn({ method: 'POST' })
   .inputValidator((data: number) => data)
-  .handler(({ data }) => asAdmin(() => catalog.takeJob(getDb(), int(data), mediaBase())))
+  .handler(({ data }) =>
+    asAdmin(() => {
+      kick()
+      return catalog.takeJob(getDb(), int(data), mediaBase())
+    }),
+  )

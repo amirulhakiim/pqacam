@@ -1,5 +1,8 @@
 import { expect, test } from 'bun:test'
-import { newKey, presignPut } from '../src/server/r2'
+import { mkdtempSync, rmSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { newKey, presignPut, streamToFile } from '../src/server/r2'
 import { validateProduct } from '../src/server/validate'
 
 Object.assign(process.env, {
@@ -21,4 +24,25 @@ test('the presigned URL signs the type and the size and expires in 5 minutes', a
   expect(url.searchParams.get('X-Amz-SignedHeaders')).toBe('content-length;content-type;host')
   expect(url.searchParams.get('X-Amz-Expires')).toBe('300')
   expect(url.searchParams.get('X-Amz-Signature')).toMatch(/^[0-9a-f]{64}$/)
+})
+
+test('a large R2 response streams completely to disk', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'pqacam-r2-'))
+  const path = join(dir, 'video.mov')
+  const chunk = new Uint8Array(1024 * 1024)
+  let sent = 0
+  const body = new ReadableStream<Uint8Array>({
+    pull(controller) {
+      if (sent === 24) return controller.close()
+      chunk[0] = sent++
+      controller.enqueue(chunk.slice())
+    },
+  })
+  try {
+    await streamToFile(body, path)
+    expect(Bun.file(path).size).toBe(24 * 1024 * 1024)
+    expect(new Uint8Array(await Bun.file(path).slice(23 * 1024 * 1024, 23 * 1024 * 1024 + 1).arrayBuffer())[0]).toBe(23)
+  } finally {
+    rmSync(dir, { recursive: true, force: true })
+  }
 })
