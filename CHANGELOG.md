@@ -19,11 +19,18 @@
 | Bio paragraphs | Profile, public page | Press Enter in the bio to start a new paragraph |
 | Bio text size | Profile, public page | Choose Small, Medium or Large for the bio. Medium is the size it had before |
 
+| Analytics dashboard | Admin, Analytics tab | Filter by category, product and shop. Tiles for visits, product views, buy taps, taps per visit and WhatsApp chats. Overview diagrams replace the sentences. Sections for visits, taps, products, shops and searches |
+| Visits, views and searches | Public page | The page records visits, which products are opened, and what visitors search for, with how many finds each search showed |
+| WhatsApp button | Public page | A round WhatsApp button at the bottom left opens a chat with the number in Profile |
+| Drag to reorder products | Admin, Products | Drag the handle on a row to move a product. The up and down buttons are gone |
+
 ### Changed
 
 | Change | Where |
 |---|---|
 | "Nothing here yet" uses the same font as the page, in bold | Public page |
+| The product photo is square and at most 40% of the screen height | Public page, product view |
+| A product video over 50 MB, or not a video, now fails at once with the file name, under the media tiles | Admin, product editor |
 | Buy buttons sit under the product name, above the review, so they show without scrolling. The photo area is at most half the screen height | Public page, product view |
 | The privacy page says that the time of each tap is recorded | Privacy |
 

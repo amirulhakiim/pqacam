@@ -102,6 +102,7 @@ Source: [`design/Home Finds Links.dc.html`](../design/Home%20Finds%20Links.dc.ht
 | Product sheet | Opens from the bottom. Shows, in order: the media carousel (square, at most 40% of the screen height), category, name, price if set, the buy buttons, then "My honest review". The buttons come before the review so they show without scrolling, down to an iPhone SE screen |
 | Carousel | Swipe, arrows, dots, and a counter. Advances automatically: 3.5 s for a photo, 7 s for a video. Stops advancing after the visitor moves it. Videos play muted in a loop |
 | Buy buttons | One per shop. A shop with one link opens it directly; with a label it shows "Shopee · <label>". A shop with several links shows "Buy on Shopee · N options", which opens a list of the links by label. Each link opens `/go/$linkId` in a new tab |
+| WhatsApp button | Round button at the bottom left, shown when the profile has a WhatsApp number. Opens a chat with that number |
 | Empty result | "Nothing here yet" with a link that clears search and filters |
 | Hidden products | The server does not send them to the browser |
 | Share preview | SSR `title`, `description` from the bio, and Open Graph image from the avatar |
@@ -141,9 +142,9 @@ flowchart TB
 |---|---|
 | Sign-in | One "Continue with Google" button. An email that is not in the allowlist gets the error text from the design |
 | Session | The server checks the allowlist on each admin request. A removed email loses access on its next request |
-| Products | List with search, thumbnail, category, media count, platform chips, "No buy link" chip, Live/Hidden toggle, up and down buttons, Edit |
+| Products | List with search, thumbnail, category, media count, platform chips, "No buy link" chip, Live/Hidden toggle, Edit. Drag the handle to reorder, or focus it and use the arrow keys. Reordering is off while a search is active |
 | Click counts | Each product row shows the count for each platform, summed over its links. This is an addition to the design |
-| Analytics | Range 7, 30 or 90 days, in Malaysia time (UTC+8). Taps in the range against the previous period, daily average, all-time taps. Insights in sentences: trend, peak hour, busiest weekday and date, leading shop, top product and option, live products with no taps. Columns by day (with a table view), by hour of day, by day of week. Bar lists by shop, top products, top buy links. Taps are recorded from the release that added this tab |
+| Analytics | Filters: range (7, 30 or 90 days, Malaysia time), category, product, shop. The filters apply to product views and buy taps; visits, searches and chats count the whole page. Tiles: visits, product views, buy taps, taps per visit, WhatsApp chats, each against the previous period. Sections: Overview (busiest hour and weekday as small charts, taps by shop as one stacked bar, visit-to-tap funnel, top product, searches, live products with no taps, taps by day), Visits (by day, hour, weekday), Taps (by day, hour, weekday), Products (views and taps per product), Shops (by shop, top buy links), Searches (most searched, searches that found nothing) |
 | Product drawer | Photos and videos, name, category, price (optional text), review with character count and an Expand button that opens a full-screen editor, Shopee / TikTok / WhatsApp links (several per platform, each with an optional label), "Show on my page" toggle |
 | Drawer media | Add photos (several at one time), add a video, add from the watermark library, remove, drag to reorder, move earlier. The first photo is the cover |
 | "Use my number" | Fills that WhatsApp link from the profile number, with an order message that includes the product name |
@@ -173,6 +174,14 @@ erDiagram
         int link_id "no foreign key, history survives deletes"
         int product_id
         text platform
+        int at "epoch ms, indexed"
+    }
+    EVENT {
+        int id PK
+        text type "visit, view, search or chat"
+        int product_id "a view only"
+        text term "a search only"
+        int results "a search only"
         int at "epoch ms, indexed"
     }
     FOLDER {
@@ -250,6 +259,7 @@ erDiagram
 | `/` | Public | The page, SSR |
 | `/go/$linkId` | Public | Add 1 to the link's click count, then redirect (302) to its URL |
 | `/admin` | Allowlist | Admin with 6 tabs |
+| `/api/event` | Public | Record a visit, product view, search or WhatsApp chat (POST, always 204) |
 | `/admin/login` | Public | Sign-in screen |
 | `/api/auth/google` | Public | Start the Google OAuth flow |
 | `/api/auth/google/callback` | Public | Finish the flow, check the allowlist, set the session cookie |
@@ -278,7 +288,7 @@ sequenceDiagram
 | Rule | Value |
 |---|---|
 | Photo | JPEG, 1000 px longest side, quality 0.82. Avatar: 400 px |
-| Video | `mp4`, `webm`, or `mov`. 50 MB maximum |
+| Video | `mp4`, `webm`, or `mov`. 50 MB maximum. The editor checks size and type before upload and names the file in the error, under the media tiles |
 | Size and type check | The presigned URL signs `Content-Type` and `Content-Length`, so R2 rejects a different file |
 | Object key | Random ID from the server. The file name from the device is not used |
 | Public URL | `MEDIA_BASE_URL` + object key, served through the Cloudflare CDN |
