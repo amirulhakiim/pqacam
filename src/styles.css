@@ -221,6 +221,11 @@ textarea.adm-input { height: auto; padding: 12px 14px; line-height: 1.55; resize
 .adm-tile-button { position: absolute; top: 5px; width: 26px; height: 26px; border-radius: 50%; border: none; background: oklch(0.99 0.004 80 / 0.92); font-size: 11px; cursor: pointer; color: oklch(0.35 0.02 60); }
 .adm-tile-remove { right: 5px; }
 .adm-tile-left { left: 5px; }
+.adm-tile-drag { touch-action: none; cursor: grab; -webkit-user-select: none; user-select: none; }
+.adm-tile-dragging { opacity: 0.55; cursor: grabbing; outline: 2px solid oklch(0.7 0.06 150); }
+.adm-field-full { position: fixed; inset: 0; z-index: 30; padding: 16px; background: var(--surface); }
+.adm-field-full textarea.adm-input { flex: 1; resize: none; font-size: 16px; }
+.adm-label .btn-small { height: 28px; }
 .adm-link-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 4px; }
 .adm-link-row .adm-input { flex: 1 1 180px; }
 .adm-link-chip { width: 84px; flex: none; box-sizing: border-box; font-size: 12px; padding: 5px 0; text-align: center; }

@@ -27,6 +27,10 @@ export function ProductDrawer({ product, data, act, flash, onClose }: Props) {
         media: [],
       },
   )
+  const [bigReview, setBigReview] = useState(false)
+  // The ref is read on each pointer move, before React renders again. The state only styles the tile.
+  const dragFrom = useRef<number | null>(null)
+  const [dragKey, setDragKey] = useState<string | null>(null)
   const [uploads, setUploads] = useState(0)
   const [error, setError] = useState('')
   const [confirmDelete, setConfirmDelete] = useState(false)
@@ -38,10 +42,10 @@ export function ProductDrawer({ product, data, act, flash, onClose }: Props) {
   }
 
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && (bigReview ? setBigReview(false) : onClose())
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [onClose])
+  }, [onClose, bigReview])
 
   // ponytail: a cancelled draft leaves its uploads in R2. Add a sweep of keys with no media row if storage grows.
   async function addFiles(type: 'photo' | 'video', files: FileList | null) {
@@ -59,10 +63,27 @@ export function ProductDrawer({ product, data, act, flash, onClose }: Props) {
     }
   }
 
-  function moveEarlier(i: number) {
-    const media = draft.media.slice()
-    ;[media[i - 1], media[i]] = [media[i], media[i - 1]]
-    set({ media })
+  function moveMedia(from: number, to: number) {
+    setDraft((d) => {
+      const media = d.media.slice()
+      media.splice(to, 0, ...media.splice(from, 1))
+      return { ...d, media }
+    })
+  }
+
+  const endDrag = () => {
+    dragFrom.current = null
+    setDragKey(null)
+  }
+
+  // Pointer events, not HTML drag and drop: those do not fire for touch on most phones.
+  function dragOver(e: React.PointerEvent) {
+    if (dragFrom.current === null) return
+    const tile = document.elementFromPoint(e.clientX, e.clientY)?.closest<HTMLElement>('[data-index]')
+    const to = Number(tile?.dataset.index)
+    if (!tile || to === dragFrom.current) return
+    moveMedia(dragFrom.current, to)
+    dragFrom.current = to
   }
 
   function useMyNumber() {
@@ -105,12 +126,25 @@ export function ProductDrawer({ product, data, act, flash, onClose }: Props) {
         <div className="adm-drawer-body">
           <div className="adm-field">
             <span className="adm-label">
-              Photos &amp; videos <em>First photo is the cover</em>
+              Photos &amp; videos <em>Drag to reorder. First photo is the cover</em>
             </span>
             <div className="adm-media">
               {draft.media.map((m, i) => (
-                <div className="adm-tile" key={m.key}>
-                  {m.type === 'photo' ? <img src={m.url} alt="" /> : <video src={m.url} muted preload="metadata" />}
+                <div
+                  className={dragKey === m.key ? 'adm-tile adm-tile-drag adm-tile-dragging' : 'adm-tile adm-tile-drag'}
+                  key={m.key}
+                  data-index={i}
+                  onPointerDown={(e) => {
+                    if ((e.target as HTMLElement).closest('button')) return
+                    dragFrom.current = i
+                    setDragKey(m.key)
+                    e.currentTarget.setPointerCapture(e.pointerId)
+                  }}
+                  onPointerMove={dragOver}
+                  onPointerUp={endDrag}
+                  onPointerCancel={endDrag}
+                >
+                  {m.type === 'photo' ? <img src={m.url} alt="" draggable={false} /> : <video src={m.url} muted preload="metadata" />}
                   {m.type === 'video' && <span className="adm-tile-tag">▶ Video</span>}
                   <button
                     type="button"
@@ -121,7 +155,7 @@ export function ProductDrawer({ product, data, act, flash, onClose }: Props) {
                     ✕
                   </button>
                   {i > 0 && (
-                    <button type="button" className="adm-tile-button adm-tile-left" onClick={() => moveEarlier(i)} title="Move earlier">
+                    <button type="button" className="adm-tile-button adm-tile-left" onClick={() => moveMedia(i, i - 1)} title="Move earlier">
                       ←
                     </button>
                   )}
@@ -168,9 +202,14 @@ export function ProductDrawer({ product, data, act, flash, onClose }: Props) {
             </label>
           </div>
 
-          <label className="adm-field">
+          <div className={bigReview ? 'adm-field adm-field-full' : 'adm-field'}>
             <span className="adm-label">
-              My honest review <em>{draft.review.length} characters</em>
+              My honest review
+              <span className="adm-grow" />
+              <em>{draft.review.length} characters</em>
+              <button type="button" className="btn btn-light btn-small" onClick={() => setBigReview(!bigReview)}>
+                {bigReview ? 'Done' : 'Expand'}
+              </button>
             </span>
             <textarea
               className="adm-input"
@@ -178,8 +217,11 @@ export function ProductDrawer({ product, data, act, flash, onClose }: Props) {
               value={draft.review}
               onChange={(e) => set({ review: e.target.value })}
               placeholder="What you love, what to watch out for, any tips…"
+              aria-label="My honest review"
+              autoFocus={bigReview}
+              key={String(bigReview)}
             />
-          </label>
+          </div>
 
           <div className="adm-field">
             <span className="adm-label">

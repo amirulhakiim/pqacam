@@ -134,8 +134,8 @@ flowchart TB
 | Session | The server checks the allowlist on each admin request. A removed email loses access on its next request |
 | Products | List with search, thumbnail, category, media count, platform chips, "No buy link" chip, Live/Hidden toggle, up and down buttons, Edit |
 | Click counts | Each product row shows the count for each platform. This is an addition to the design |
-| Product drawer | Photos and videos, name, category, price (optional text), review with character count, Shopee / TikTok / WhatsApp links, "Show on my page" toggle |
-| Drawer media | Add photos (several at one time), add a video, remove, move earlier. The first photo is the cover |
+| Product drawer | Photos and videos, name, category, price (optional text), review with character count and an Expand button that opens a full-screen editor, Shopee / TikTok / WhatsApp links, "Show on my page" toggle |
+| Drawer media | Add photos (several at one time), add a video, remove, drag to reorder, move earlier. The first photo is the cover |
 | "Use my number" | Fills the WhatsApp link from the profile number, with an order message that includes the product name |
 | Delete product | Two taps: "Delete", then "Tap again to delete". Also deletes the product's media from R2 |
 | Validation | Name is required. At least one buy link is required. Each link must start with `https://`. The server applies the same rules |
