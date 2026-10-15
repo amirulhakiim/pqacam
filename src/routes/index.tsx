@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useRouter } from '@tanstack/react-router'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ChatButton } from '../components/public/ChatButton'
 import { Filters } from '../components/public/Filters'
@@ -12,13 +12,23 @@ import { getPublicPageFn } from '../server/fns'
 
 const NO_FILTER: Filter = { q: '', category: 'All', platform: 'all' }
 
+// ?p=<id> opens that product, so a product can be shared as a link.
+type Search = { p?: number }
+
 export const Route = createFileRoute('/')({
+  validateSearch: (raw: Record<string, unknown>): Search => {
+    const p = Number(raw.p)
+    return Number.isInteger(p) && p > 0 ? { p } : {}
+  },
   loader: () => getPublicPageFn(),
-  head: ({ loaderData }) => {
-    const title = loaderData?.profile.name || 'pqacam'
-    // A share preview shows one line, so the bio's paragraphs are joined.
-    const description = (loaderData?.profile.bio ?? '').replace(/\s+/g, ' ').trim()
-    const image = loaderData?.profile.avatarUrl
+  head: ({ loaderData, match }) => {
+    const name = loaderData?.profile.name || 'pqacam'
+    // A shared product link previews that product: its name, review and first photo.
+    const shared = loaderData?.products.find((p) => p.id === match.search.p)
+    const title = shared ? `${shared.name} · ${name}` : name
+    // A share preview shows one line, so paragraphs are joined.
+    const description = ((shared ? shared.review : loaderData?.profile.bio) ?? '').replace(/\s+/g, ' ').trim().slice(0, 200)
+    const image = (shared && shared.media.find((m) => m.type === 'photo')?.url) || loaderData?.profile.avatarUrl
     return {
       meta: [
         { title },
@@ -37,8 +47,24 @@ export const Route = createFileRoute('/')({
 function Home() {
   const page = Route.useLoaderData()
   const [filter, setFilter] = useState(NO_FILTER)
-  const [openId, setOpenId] = useState<number | null>(null)
-  const close = useCallback(() => setOpenId(null), [])
+  const router = useRouter()
+  const navigate = Route.useNavigate()
+  const openId = Route.useSearch().p ?? null
+  // True when this page opened the product, so closing can go back one step instead of adding a history entry.
+  const openedHere = useRef(false)
+  const setOpenId = useCallback(
+    (id: number) => {
+      openedHere.current = true
+      navigate({ search: { p: id }, resetScroll: false })
+    },
+    [navigate],
+  )
+  const close = useCallback(() => {
+    if (openedHere.current) {
+      openedHere.current = false
+      router.history.back()
+    } else navigate({ search: {}, replace: true, resetScroll: false })
+  }, [navigate, router])
   // Mounted with the page, so grid covers are protected before a sheet opens.
   const hidden = useMediaProtection()
   const products = filterProducts(page.products, filter)

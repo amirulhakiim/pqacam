@@ -12,6 +12,20 @@ export function ProductSheet({ product, hidden, onClose }: Props) {
   const [paused, setPaused] = useState(false)
   // Autoplay needs a muted video, so sound starts off and the visitor turns it on.
   const [sound, setSound] = useState(false)
+  const [copied, setCopied] = useState(false)
+
+  // The phone's share sheet where there is one, otherwise the link is copied.
+  async function share() {
+    const url = `${location.origin}/?p=${product.id}`
+    try {
+      if (navigator.share) return await navigator.share({ title: product.name, url })
+      await navigator.clipboard.writeText(url)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // The visitor closed the share sheet, or the browser refused: nothing to do.
+    }
+  }
   const swipeStart = useRef<number | null>(null)
   const current = media.length ? wrap(index, media.length) : 0
 
@@ -94,6 +108,12 @@ export function ProductSheet({ product, hidden, onClose }: Props) {
               </svg>
             </button>
           )}
+          <button type="button" className="pp-round pp-share" onClick={share} aria-label="Share this product">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 15V4M8 8l4-4 4 4M5 12v7a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-7" />
+            </svg>
+          </button>
+          {copied && <div className="pp-copied">Link copied</div>}
           <button type="button" className="pp-round pp-close" onClick={onClose} aria-label="Close">
             ✕
           </button>
