@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { mediaSizeError } from '../../lib/mediaSelection'
 import { PLATFORM_LABEL } from '../../lib/platforms'
+import { resizeImage } from '../../lib/upload'
 import type { AdminProduct } from '../../server/catalog'
 import { deleteProductFn, saveProductFn } from '../../server/fns'
 import { PLATFORMS, type Platform, type ProductInput, validateProduct, VIDEO_TYPES } from '../../server/validate'
-import { VideoThumb } from '../VideoThumb'
 import { LibraryPicker } from './LibraryPicker'
 import type { TabProps } from './Shell'
 import type { ProductUploadRequest } from './useProductUploads'
@@ -20,6 +20,23 @@ const pending = (media: DraftMedia): media is PendingMedia => 'file' in media
 
 const emptyLink = (platform: Platform): DraftLink => ({ k: crypto.randomUUID(), platform, label: '', url: '' })
 const PLACEHOLDER = { shopee: 'https://shopee.com.my/…', tiktok: 'https://www.tiktok.com/…', whatsapp: 'https://wa.me/…' }
+
+function EditorVideoThumb({ url }: { url: string }) {
+  return <video
+    src={url}
+    muted
+    autoPlay
+    playsInline
+    preload="auto"
+    onLoadedMetadata={(event) => {
+      if (event.currentTarget.duration > 0.2) event.currentTarget.currentTime = 0.1
+    }}
+    onSeeked={(event) => event.currentTarget.pause()}
+    onTimeUpdate={(event) => {
+      if (event.currentTarget.currentTime >= 0.1) event.currentTarget.pause()
+    }}
+  />
+}
 
 export function ProductDrawer({ product, data, act, flash, onClose, onQueue }: Props) {
   const [draft, setDraft] = useState<Draft>(() => {
@@ -39,10 +56,12 @@ export function ProductDrawer({ product, data, act, flash, onClose, onQueue }: P
   const [error, setError] = useState('')
   const [mediaError, setMediaError] = useState('')
   const objectUrls = useRef(new Set<string>())
+  const previewQueue = useRef(Promise.resolve())
   useEffect(
     () => {
       return () => {
         for (const url of objectUrls.current) URL.revokeObjectURL(url)
+        objectUrls.current.clear()
       }
     },
     [],
@@ -80,8 +99,28 @@ export function ProductDrawer({ product, data, act, flash, onClose, onQueue }: P
         const sizeError = mediaSizeError(file, type)
         if (sizeError) throw new Error(sizeError)
         const url = URL.createObjectURL(file)
+        const key = `pending:${crypto.randomUUID()}`
         objectUrls.current.add(url)
-        setDraft((d) => ({ ...d, media: [...d.media, { type, key: `pending:${crypto.randomUUID()}`, url, file }] }))
+        setDraft((d) => ({ ...d, media: [...d.media, { type, key, url, file }] }))
+        if (type === 'photo') {
+          previewQueue.current = previewQueue.current.then(async () => {
+            if (!objectUrls.current.has(url)) return
+            try {
+              const thumbnail = await resizeImage(file, 320)
+              const previewUrl = URL.createObjectURL(thumbnail)
+              if (!objectUrls.current.has(url)) return URL.revokeObjectURL(previewUrl)
+              objectUrls.current.add(previewUrl)
+              objectUrls.current.delete(url)
+              URL.revokeObjectURL(url)
+              setDraft((d) => ({ ...d, media: d.media.map((item) => item.key === key ? { ...item, url: previewUrl } : item) }))
+            } catch {
+              if (!objectUrls.current.delete(url)) return
+              URL.revokeObjectURL(url)
+              setDraft((d) => ({ ...d, media: d.media.filter((item) => item.key !== key) }))
+              fail(`Could not read ${file.name}. Choose a supported photo.`)
+            }
+          })
+        }
       } catch (error) {
         fail(error instanceof Error ? error.message : `Could not read ${file.name}.`)
       }
@@ -207,9 +246,9 @@ export function ProductDrawer({ product, data, act, flash, onClose, onQueue }: P
                   onPointerUp={endDrag}
                   onPointerCancel={endDrag}
                 >
-                  {m.type === 'photo' ? <img src={m.url} alt="" draggable={false} /> : <VideoThumb url={m.url} />}
+                  {m.type === 'photo' ? <img src={m.url} alt="" draggable={false} /> : <EditorVideoThumb url={m.url} />}
                   {m.type === 'video' && !pending(m) && <span className="adm-tile-tag">▶ Video</span>}
-                  {pending(m) && <span className="adm-tile-tag">Selected</span>}
+                  {pending(m) && <span className="adm-tile-tag" title={m.file.name}>{m.type === 'video' ? '▶ ' : ''}{m.file.name}</span>}
                   <button
                     type="button"
                     className="adm-tile-button adm-tile-remove"

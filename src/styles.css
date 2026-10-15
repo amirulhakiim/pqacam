@@ -260,7 +260,7 @@ textarea.adm-input { height: auto; padding: 12px 14px; line-height: 1.55; resize
 .adm-tile-add { box-sizing: border-box; border: 1.5px dashed oklch(0.82 0.02 70); background: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer; font-size: 12.5px; font-weight: 600; color: oklch(0.42 0.02 60); }
 .adm-tile-add:hover { background: var(--surface); }
 .adm-tile-add svg { width: 26px; height: 26px; }
-.adm-tile-tag { position: absolute; bottom: 6px; left: 6px; font-size: 10px; font-weight: 600; background: oklch(0.26 0.015 60 / 0.75); color: var(--surface); padding: 3px 7px; border-radius: 999px; }
+.adm-tile-tag { position: absolute; bottom: 6px; left: 6px; max-width: calc(100% - 12px); box-sizing: border-box; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 10px; font-weight: 600; background: oklch(0.26 0.015 60 / 0.75); color: var(--surface); padding: 3px 7px; border-radius: 999px; }
 .adm-tile-button { position: absolute; top: 5px; width: 26px; height: 26px; border-radius: 50%; border: none; background: oklch(0.99 0.004 80 / 0.92); font-size: 11px; cursor: pointer; color: oklch(0.35 0.02 60); }
 .adm-tile-remove { right: 5px; }
 .adm-tile-left { left: 5px; }
