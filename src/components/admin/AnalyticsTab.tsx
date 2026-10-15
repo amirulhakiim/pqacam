@@ -22,8 +22,8 @@ export function AnalyticsTab({ data, flash }: TabProps) {
   useEffect(() => {
     let current = true
     getAnalyticsFn({ data: filter })
-      .then((r) => current && (r.ok ? setReport(r.value) : flash(r.error)))
-      .catch(() => current && flash('Could not load analytics. Try again.'))
+      .then((r) => current && (r.ok ? setReport(r.value) : flash(r.error, true)))
+      .catch(() => current && flash('Could not load analytics. Try again.', true))
     return () => {
       current = false
     }

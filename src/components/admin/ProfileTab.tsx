@@ -42,10 +42,10 @@ export function ProfileTab({ data, act, flash }: TabProps) {
     if (!file) return
     try {
       const result = await uploadFile('avatar', await resizeImage(file, 400))
-      if (!result.ok) return flash(result.error)
+      if (!result.ok) return flash(result.error, true)
       await act(saveProfileFn({ data: { ...form, avatarKey: result.value.key } }), 'Photo updated')
     } catch {
-      flash('Could not read this file.')
+      flash('Could not read this file.', true)
     }
   }
 

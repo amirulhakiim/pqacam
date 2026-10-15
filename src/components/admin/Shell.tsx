@@ -4,7 +4,7 @@ import type { Result } from '../../server/validate'
 
 export type Tab = 'products' | 'analytics' | 'watermark' | 'categories' | 'profile' | 'admins'
 export type Act = (work: Promise<Result<unknown>>, done?: string) => Promise<boolean>
-export type TabProps = { data: AdminData; act: Act; flash: (text: string) => void }
+export type TabProps = { data: AdminData; act: Act; flash: (text: string, error?: boolean) => void }
 
 type Props = {
   data: AdminData

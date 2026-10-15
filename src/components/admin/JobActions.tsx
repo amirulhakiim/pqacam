@@ -15,7 +15,7 @@ export function JobActions({ job, data, act, flash, onDeleted }: Props) {
       await navigator.clipboard.writeText(job.url!)
       flash('Link copied')
     } catch {
-      flash('Could not copy. Open the file and hold its link to copy it.')
+      flash('Could not copy. Open the file and hold its link to copy it.', true)
     }
   }
 

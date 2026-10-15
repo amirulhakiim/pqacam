@@ -21,7 +21,8 @@ function Admin() {
   const { me, ...data } = Route.useLoaderData()
   const router = useRouter()
   const [tab, setTab] = useState<Tab>('products')
-  const [toast, setToast] = useState('')
+  const [toast, setToast] = useState<{ text: string; error: boolean } | null>(null)
+  const flash = useCallback((text: string, error = false) => setToast({ text, error }), [])
   const refresh = useCallback(() => void router.invalidate(), [router])
   const uploads = useUploads(refresh)
   const productUploads = useProductUploads(refresh)
@@ -37,7 +38,7 @@ function Admin() {
 
   useEffect(() => {
     if (!toast) return
-    const timer = setTimeout(() => setToast(''), 2200)
+    const timer = setTimeout(() => setToast(null), toast.error ? 6000 : 2200)
     return () => clearTimeout(timer)
   }, [toast])
 
@@ -46,20 +47,20 @@ function Admin() {
       try {
         const result = await work
         if (!result.ok) {
-          setToast(result.error)
+          flash(result.error, true)
           return false
         }
         await router.invalidate()
-        if (done) setToast(done)
+        if (done) flash(done)
         return true
       } catch {
         // A lost session makes the server function throw. The reload sends the admin to the sign-in page.
         await router.invalidate()
-        setToast('Something went wrong. Try again.')
+        flash('Something went wrong. Try again.', true)
         return false
       }
     },
-    [router],
+    [router, flash],
   )
 
   const signOut = async () => {
@@ -67,7 +68,7 @@ function Admin() {
     await router.navigate({ to: '/admin/login' })
   }
 
-  const props = { data, act, flash: setToast }
+  const props = { data, act, flash }
   return (
     <Shell data={data} me={me} tab={tab} onTab={setTab} onSignOut={signOut}>
       {(productUploads.active || failedUploads) && (
@@ -82,7 +83,11 @@ function Admin() {
       {tab === 'categories' && <CategoriesTab {...props} />}
       {tab === 'profile' && <ProfileTab {...props} />}
       {tab === 'admins' && <AdminsTab {...props} me={me.email} />}
-      {toast && <div className="adm-toast">{toast}</div>}
+      {toast && (
+        <div className={toast.error ? 'adm-toast adm-toast-error' : 'adm-toast'} role={toast.error ? 'alert' : 'status'} onClick={() => setToast(null)}>
+          {toast.text}
+        </div>
+      )}
     </Shell>
   )
 }

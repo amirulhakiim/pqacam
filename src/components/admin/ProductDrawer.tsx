@@ -51,8 +51,6 @@ export function ProductDrawer({ product, data, act, flash, onClose, onQueue }: P
   const drag = useRef<{ from: number; x: number; y: number; key: string; moving: boolean } | null>(null)
   const [dragKey, setDragKey] = useState<string | null>(null)
   const [savingState, setSavingState] = useState(false)
-  const [error, setError] = useState('')
-  const [mediaError, setMediaError] = useState('')
   const objectUrls = useRef(new Set<string>())
   const previewQueue = useRef(Promise.resolve())
   useEffect(
@@ -70,7 +68,6 @@ export function ProductDrawer({ product, data, act, flash, onClose, onQueue }: P
   const set = (patch: Partial<Draft>) => {
     if (saving.current) return
     setDraft((d) => ({ ...d, ...patch }))
-    setError('')
   }
   const close = () => {
     if (!saving.current) onClose()
@@ -82,14 +79,9 @@ export function ProductDrawer({ product, data, act, flash, onClose, onQueue }: P
     return () => window.removeEventListener('keydown', onKey)
   }, [onClose, bigReview])
 
-  // Shown under the tiles and as a toast: the error box at the end of the drawer is out of sight while adding media.
-  function fail(message: string) {
-    setMediaError(message)
-    flash(message)
-  }
+  const fail = (message: string) => flash(message, true)
 
   function addFiles(type: 'photo' | 'video', files: FileList | null) {
-    setMediaError('')
     for (const file of Array.from(files ?? [])) {
       try {
         if (saving.current) throw new Error('Wait until the product finishes saving.')
@@ -161,7 +153,7 @@ export function ProductDrawer({ product, data, act, flash, onClose, onQueue }: P
 
   function useMyNumber(k: string) {
     const number = data.profile.whatsapp
-    if (!number) return flash('Add your WhatsApp number in Profile first')
+    if (!number) return fail('Add your WhatsApp number in Profile first')
     const message = encodeURIComponent(`Hi! I'd like to order the ${draft.name || 'item'}`)
     setLink(k, { url: `https://wa.me/${number}?text=${message}` })
   }
@@ -170,8 +162,6 @@ export function ProductDrawer({ product, data, act, flash, onClose, onQueue }: P
     if (saving.current) return
     saving.current = true
     setSavingState(true)
-    setError('')
-    setMediaError('')
     try {
       const fields: ProductInput = {
         id: draft.id,
@@ -186,16 +176,16 @@ export function ProductDrawer({ product, data, act, flash, onClose, onQueue }: P
       const ready = (items: DraftMedia[]) => items.filter((m): m is ReadyMedia => !pending(m)).map(({ type, key }) => ({ type, key }))
       const selected = draft.media.filter(pending)
       const finalInput = { ...fields, media: ready(draft.media) }
-      if (draft.media.length > 20) return setError('A product can have at most 20 photos and videos.')
+      if (draft.media.length > 20) return fail('A product can have at most 20 photos and videos.')
       const valid = validateProduct(finalInput)
-      if (!valid.ok) return setError(valid.error)
+      if (!valid.ok) return fail(valid.error)
       if (selected.length) {
         const first = await saveProductFn({ data: {
           ...fields,
           hidden: product ? draft.hidden : true,
           media: product ? product.media.map(({ type, key }) => ({ type, key })) : [],
         } })
-        if (!first.ok) return setError(first.error)
+        if (!first.ok) return fail(first.error)
         onQueue({
           productId: first.value,
           name: draft.name,
@@ -207,10 +197,10 @@ export function ProductDrawer({ product, data, act, flash, onClose, onQueue }: P
         return
       }
       const result = await saveProductFn({ data: finalInput })
-      if (!result.ok) return setError(result.error)
+      if (!result.ok) return fail(result.error)
       if (await act(Promise.resolve(result), product ? 'Changes saved' : 'Product added')) onClose()
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Could not save. Check your connection and try again.')
+      fail(error instanceof Error ? error.message : 'Could not save. Check your connection and try again.')
     } finally {
       saving.current = false
       setSavingState(false)
@@ -311,7 +301,6 @@ export function ProductDrawer({ product, data, act, flash, onClose, onQueue }: P
               </button>
             </div>
             {draft.media.some(pending) && !savingState && <span className="adm-hint">Selected files upload when you save this product.</span>}
-            {mediaError && <div className="error-box">{mediaError}</div>}
             {picking && (
               <LibraryPicker
                 jobs={data.jobs}
@@ -420,7 +409,6 @@ export function ProductDrawer({ product, data, act, flash, onClose, onQueue }: P
             Show on my page
           </button>
 
-          {error && <div className="error-box">{error}</div>}
         </div>
         <div className="adm-drawer-foot">
           {product && (
