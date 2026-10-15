@@ -1,5 +1,7 @@
 # Agent rules
 
+Do not put any comments in the code
+
 ## Commits
 
 Commit each feature or fix when it is done and the checks pass. Do not leave finished work uncommitted.
