@@ -1,6 +1,6 @@
 import { and, asc, desc, eq, notInArray, sql } from 'drizzle-orm'
 import type { Db } from './db'
-import { admin, category, job, link, media, product, profile } from './schema'
+import { admin, category, folder, job, link, media, product, profile } from './schema'
 import { DEFAULT_WATERMARK, type JobInput, PLATFORMS, type ProductInput, validateWatermark, type WatermarkSettings } from './validate'
 
 export class UserError extends Error {}
@@ -52,21 +52,24 @@ function watermarkSettings(p: typeof profile.$inferSelect): WatermarkSettings {
 export function getAdminData(db: Db, mediaBase: string) {
   const d = load(db)
   const { watermark: _, ...p } = d.profile
+  const jobs = db.select().from(job).orderBy(desc(job.id)).all()
   return {
     profile: { ...p, avatarUrl: p.avatarKey ? `${mediaBase}/${p.avatarKey}` : null },
     watermark: watermarkSettings(d.profile),
-    jobs: db
+    folders: db
       .select()
-      .from(job)
-      .orderBy(desc(job.id))
+      .from(folder)
+      .orderBy(sql`${folder.name} collate nocase`)
       .all()
-      .map((j) => ({
+      .map((f) => ({ ...f, count: jobs.filter((j) => j.folderId === f.id).length })),
+    jobs: jobs.map((j) => ({
         id: j.id,
         type: j.type,
         name: j.name,
         status: j.status,
         progress: j.progress,
         error: j.error,
+        folderId: j.folderId,
         key: j.outputKey,
         url: j.outputKey ? `${mediaBase}/${j.outputKey}` : null,
       })),
@@ -164,22 +167,23 @@ function move(db: Db, table: typeof product | typeof category, id: number, dir: 
 export const moveProduct = (db: Db, id: number, dir: -1 | 1) => move(db, product, id, dir)
 export const moveCategory = (db: Db, id: number, dir: -1 | 1) => move(db, category, id, dir)
 
-function freeCategoryName(db: Db, raw: string, exceptId?: number) {
+function freeName(db: Db, table: typeof category | typeof folder, raw: string, exceptId?: number) {
+  const noun = table === category ? 'category' : 'folder'
   const name = raw.trim().slice(0, 60)
-  if (!name) throw new UserError('Give the category a name.')
-  const taken = db.select().from(category).all().find((c) => c.name.toLowerCase() === name.toLowerCase() && c.id !== exceptId)
-  if (taken) throw new UserError('That category already exists')
+  if (!name) throw new UserError(`Give the ${noun} a name.`)
+  const taken = db.select().from(table).all().find((c) => c.name.toLowerCase() === name.toLowerCase() && c.id !== exceptId)
+  if (taken) throw new UserError(`That ${noun} already exists`)
   return name
 }
 
 export function addCategory(db: Db, raw: string) {
-  const name = freeCategoryName(db, raw)
+  const name = freeName(db, category, raw)
   const last = db.select({ v: sql<number>`coalesce(max(${category.position}), 0)` }).from(category).get()!.v
   db.insert(category).values({ name, position: last + 1 }).run()
 }
 
 export function renameCategory(db: Db, id: number, raw: string) {
-  db.update(category).set({ name: freeCategoryName(db, raw, id) }).where(eq(category.id, id)).run()
+  db.update(category).set({ name: freeName(db, category, raw, id) }).where(eq(category.id, id)).run()
 }
 
 export function deleteCategory(db: Db, id: number) {
@@ -234,13 +238,16 @@ export function recordClick(db: Db, linkId: number): string | null {
 export type AdminJob = AdminData['jobs'][number]
 
 // The settings used for a batch also become the defaults for the next one.
-export function addJobs(db: Db, jobs: JobInput[], settings: WatermarkSettings) {
+export function addJobs(db: Db, jobs: JobInput[], settings: WatermarkSettings, folderId: number | null = null) {
   const json = JSON.stringify(settings)
   db.transaction((tx) => {
+    if (folderId !== null && !tx.select().from(folder).where(eq(folder.id, folderId)).get()) {
+      throw new UserError('That folder no longer exists.')
+    }
     tx.update(profile).set({ watermark: json }).where(eq(profile.id, 1)).run()
     const createdAt = Date.now()
     tx.insert(job)
-      .values(jobs.map((j) => ({ type: j.type, name: j.name, sourceKey: j.key, settings: json, createdAt })))
+      .values(jobs.map((j) => ({ type: j.type, name: j.name, sourceKey: j.key, settings: json, createdAt, folderId })))
       .run()
   })
 }
@@ -302,4 +309,24 @@ export function attachMedia(db: Db, productId: number, jobId: number) {
     .where(eq(media.productId, productId))
     .get()!.v
   db.insert(media).values({ productId, type: row.type, r2Key: row.outputKey, position: last + 1 }).run()
+}
+
+export function addFolder(db: Db, raw: string): number {
+  return db.insert(folder).values({ name: freeName(db, folder, raw) }).returning({ id: folder.id }).get().id
+}
+
+export function renameFolder(db: Db, id: number, raw: string) {
+  db.update(folder).set({ name: freeName(db, folder, raw, id) }).where(eq(folder.id, id)).run()
+}
+
+// The foreign key sets folder_id to null, so the files stay in the library with no folder.
+export function deleteFolder(db: Db, id: number) {
+  db.delete(folder).where(eq(folder.id, id)).run()
+}
+
+export function moveJob(db: Db, id: number, folderId: number | null) {
+  if (folderId !== null && !db.select().from(folder).where(eq(folder.id, folderId)).get()) {
+    throw new UserError('That folder no longer exists.')
+  }
+  db.update(job).set({ folderId }).where(eq(job.id, id)).run()
 }

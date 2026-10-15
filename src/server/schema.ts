@@ -51,6 +51,11 @@ export const link = sqliteTable('link', {
   clicks: integer('clicks').notNull().default(0),
 })
 
+export const folder = sqliteTable('folder', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  name: text('name').notNull().unique(),
+})
+
 export const job = sqliteTable('job', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   type: text('type', { enum: ['photo', 'video'] }).notNull(),
@@ -63,6 +68,8 @@ export const job = sqliteTable('job', {
   progress: integer('progress').notNull().default(0),
   error: text('error').notNull().default(''),
   createdAt: integer('created_at').notNull(),
+  // Deleting a folder keeps its files: they go back to no folder.
+  folderId: integer('folder_id').references(() => folder.id, { onDelete: 'set null' }),
 })
 
 export const admin = sqliteTable('admin', {

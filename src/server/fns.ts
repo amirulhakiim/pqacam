@@ -43,6 +43,7 @@ function int(value: unknown): number {
 }
 
 const dir = (value: unknown): -1 | 1 => (value === -1 ? -1 : 1)
+const folderOrNone = (value: unknown): number | null => (value === null || value === undefined ? null : int(value))
 
 export const getPublicPageFn = createServerFn({ method: 'GET' }).handler(() => catalog.getPublicPage(getDb(), mediaBase()))
 
@@ -134,10 +135,10 @@ export const signOutFn = createServerFn({ method: 'POST' }).handler(async () => 
 })
 
 export const addJobsFn = createServerFn({ method: 'POST' })
-  .inputValidator((data: { jobs: JobInput[]; settings: WatermarkSettings }) => data)
+  .inputValidator((data: { jobs: JobInput[]; settings: WatermarkSettings; folderId?: number | null }) => data)
   .handler(({ data }) =>
     asAdmin(() => {
-      catalog.addJobs(getDb(), need(validateJobs(data?.jobs)), need(validateWatermark(data?.settings)))
+      catalog.addJobs(getDb(), need(validateJobs(data?.jobs)), need(validateWatermark(data?.settings)), folderOrNone(data?.folderId))
       kick()
     }),
   )
@@ -158,3 +159,19 @@ export const deleteJobFn = createServerFn({ method: 'POST' })
 export const attachMediaFn = createServerFn({ method: 'POST' })
   .inputValidator((data: { productId: number; jobId: number }) => data)
   .handler(({ data }) => asAdmin(() => catalog.attachMedia(getDb(), int(data?.productId), int(data?.jobId))))
+
+export const addFolderFn = createServerFn({ method: 'POST' })
+  .inputValidator((data: string) => data)
+  .handler(({ data }) => asAdmin(() => catalog.addFolder(getDb(), String(data ?? ''))))
+
+export const renameFolderFn = createServerFn({ method: 'POST' })
+  .inputValidator((data: { id: number; name: string }) => data)
+  .handler(({ data }) => asAdmin(() => catalog.renameFolder(getDb(), int(data?.id), String(data.name ?? ''))))
+
+export const deleteFolderFn = createServerFn({ method: 'POST' })
+  .inputValidator((data: number) => data)
+  .handler(({ data }) => asAdmin(() => catalog.deleteFolder(getDb(), int(data))))
+
+export const moveJobFn = createServerFn({ method: 'POST' })
+  .inputValidator((data: { id: number; folderId: number | null }) => data)
+  .handler(({ data }) => asAdmin(() => catalog.moveJob(getDb(), int(data?.id), folderOrNone(data?.folderId))))
