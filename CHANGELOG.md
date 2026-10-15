@@ -17,6 +17,7 @@
 | Analytics tab | Admin | Taps by day, by hour of day and by day of week, taps per shop, top products and top buy links, with insights in plain sentences. Choose 7, 30 or 90 days. Times are Malaysia time |
 | One button per shop | Public page, product view | A shop with several links shows one button, "Buy on Shopee · 2 options", that opens the list of options |
 | Bio paragraphs | Profile, public page | Press Enter in the bio to start a new paragraph |
+| Bio text size | Profile, public page | Choose Small, Medium or Large for the bio. Medium is the size it had before |
 
 ### Changed
 

@@ -150,7 +150,7 @@ flowchart TB
 | Delete product | Two taps: "Delete", then "Tap again to delete". Also deletes the product's media from R2 |
 | Validation | Name is required. At least one buy link is required. Each link must start with `https://`. The server applies the same rules |
 | Categories | Add, rename, move up and down, delete. Delete is blocked while the category has products. Names are unique |
-| Profile | Avatar upload (400 px), page name, handle, bio (Enter starts a new paragraph), WhatsApp number. Changes save automatically |
+| Profile | Avatar upload (400 px), page name, handle, bio (Enter starts a new paragraph) with a text size of Small, Medium or Large, WhatsApp number. Changes save automatically |
 | Watermark | Settings with a live preview: text (default: the handle), font, position (moving bounce or a fixed corner), size, opacity, speed. "+ Add photos & videos" takes many files. The server watermarks them one at a time. Each batch keeps the settings it was added with, and they become the next defaults |
 | Watermark uploads | One upload at a time, with a progress bar. The queue continues while the admin uses other tabs. The page asks before it closes, and keeps the screen awake. The upload stops if the page closes, because a browser cannot upload from a closed page |
 | Watermark library | Each file shows "Waiting", "Watermarking" with a percentage, "Ready" or "Failed". Failed: "Try again", Delete. The list updates every 3 s while work is running |
@@ -197,6 +197,7 @@ erDiagram
         text name
         text handle
         text bio
+        text bio_size "small, medium or large"
         text avatar_key
         text whatsapp
         text watermark "JSON, default settings"
