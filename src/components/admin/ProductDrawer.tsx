@@ -235,21 +235,37 @@ export function ProductDrawer({ product, data, act, flash, onClose }: Props) {
                 </div>
               ))}
               <label className="adm-tile adm-tile-add">
-                <span>+</span>Add photos
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <rect x="3" y="4" width="18" height="16" rx="2" />
+                  <circle cx="8.5" cy="9" r="1.5" />
+                  <path d="m4 17 5-5 4 4 3-3 4 4" />
+                </svg>
+                Add photos
                 <input type="file" accept="image/*" multiple hidden onChange={(e) => (addFiles('photo', e.target.files), (e.target.value = ''))} />
               </label>
-              <button type="button" className="adm-tile adm-tile-add" onClick={() => setPicking(true)}>
-                <span>+</span>From library
-              </button>
               <label className="adm-tile adm-tile-add">
-                <span>+</span>Add video
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <rect x="3" y="4" width="18" height="16" rx="2" />
+                  <path d="M7 4v16M17 4v16M3 9h4m-4 6h4m10-6h4m-4 6h4" />
+                  <path d="m10 9 4 3-4 3z" />
+                </svg>
+                Add videos
                 <input
                   type="file"
                   accept="video/mp4,video/webm,video/quicktime"
+                  multiple
                   hidden
                   onChange={(e) => (addFiles('video', e.target.files), (e.target.value = ''))}
                 />
               </label>
+              <button type="button" className="adm-tile adm-tile-add" onClick={() => setPicking(true)}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <rect x="3" y="7" width="15" height="14" rx="2" />
+                  <path d="M6 7V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2h-1" />
+                  <path d="m5 17 4-4 3 3 2-2 3 3" />
+                </svg>
+                From library
+              </button>
             </div>
             {uploads > 0 && (
               <span className="adm-hint">
