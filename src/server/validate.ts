@@ -6,15 +6,15 @@ export type Result<T> = { ok: true; value: T } | { ok: false; error: string }
 const fail = (error: string) => ({ ok: false, error }) as const
 
 export type MediaInput = { type: 'photo' | 'video'; key: string }
+// id is set for a link that already exists, so its click count is kept.
+export type LinkInput = { id?: number; platform: Platform; label: string; url: string }
 export type ProductInput = {
   id?: number
   name: string
   categoryId: number
   price: string
   review: string
-  shopeeUrl: string
-  tiktokUrl: string
-  whatsappUrl: string
+  links: LinkInput[]
   hidden: boolean
   media: MediaInput[]
 }
@@ -44,21 +44,19 @@ export function validateProduct(raw: unknown): Result<ProductInput> {
     categoryId: Number.isInteger(r.categoryId) ? (r.categoryId as number) : 0,
     price: text(r.price, 40),
     review: text(r.review, 5000),
-    shopeeUrl: text(r.shopeeUrl, 2000),
-    tiktokUrl: text(r.tiktokUrl, 2000),
-    whatsappUrl: text(r.whatsappUrl, 2000),
+    links: [],
     hidden: r.hidden === true,
     media: [],
   }
   if (!value.name) return fail('Give your product a name.')
-  const links = [value.shopeeUrl, value.tiktokUrl, value.whatsappUrl].filter(Boolean)
-  if (!links.length) return fail('Add at least one Shopee, TikTok or WhatsApp link.')
-  for (const field of ['shopeeUrl', 'tiktokUrl', 'whatsappUrl'] as const) {
-    if (!value[field]) continue
-    const href = httpsLink(value[field])
+  for (const l of Array.isArray(r.links) ? r.links.slice(0, 30) : []) {
+    const url = text(l?.url, 2000)
+    if (!url || !isPlatform(String(l?.platform))) continue
+    const href = httpsLink(url)
     if (!href) return fail('Links must start with https://')
-    value[field] = href
+    value.links.push({ id: Number.isInteger(l.id) ? l.id : undefined, platform: l.platform, label: text(l.label, 60), url: href })
   }
+  if (!value.links.length) return fail('Add at least one Shopee, TikTok or WhatsApp link.')
   for (const m of Array.isArray(r.media) ? r.media.slice(0, 20) : []) {
     const type = m?.type === 'video' ? 'video' : 'photo'
     if (typeof m?.key !== 'string' || !MEDIA_KEY[type].test(m.key)) return fail('Upload the file again.')

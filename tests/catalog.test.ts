@@ -13,9 +13,7 @@ const input = (over: Partial<ProductInput> = {}): ProductInput => ({
   categoryId: kitchen,
   price: 'RM 24.90',
   review: 'Nice',
-  shopeeUrl: 'https://shopee.com.my/x',
-  tiktokUrl: '',
-  whatsappUrl: '',
+  links: [{ platform: 'shopee', label: '', url: 'https://shopee.com.my/x' }],
   hidden: false,
   media: [{ type: 'photo', key: key(1) }],
   ...over,
@@ -42,6 +40,7 @@ test('the public page has no hidden product and no buy link', () => {
     price: 'RM 24.90',
     review: 'Nice',
     platforms: ['shopee'],
+    links: [{ id: expect.any(Number), platform: 'shopee', label: '' }],
     media: [{ type: 'photo', url: `${BASE}/${key(1)}` }],
   })
   expect(JSON.stringify(page)).not.toContain('shopee.com.my')
@@ -113,20 +112,49 @@ test('admin rules', () => {
   expect(c.getAdminData(db, BASE).admins).toEqual(['owner@example.com'])
 })
 
+const links = () => c.getAdminData(db, BASE).products[0].links
+
 test('a click is counted and the link is returned', () => {
-  const { id } = c.saveProduct(db, input())
-  expect(c.recordClick(db, id, 'shopee')).toBe('https://shopee.com.my/x')
-  c.recordClick(db, id, 'shopee')
-  expect(c.getAdminData(db, BASE).products[0].clicks).toEqual({ shopee: 2, tiktok: 0, whatsapp: 0 })
+  c.saveProduct(db, input())
+  const [l] = links()
+  expect(c.recordClick(db, l.id)).toBe('https://shopee.com.my/x')
+  c.recordClick(db, l.id)
+  expect(links()[0].clicks).toBe(2)
 })
 
-test('no click is counted for a missing link, a hidden product, or an unknown product', () => {
+test('no click is counted for a hidden product or an unknown link', () => {
   const { id } = c.saveProduct(db, input())
-  expect(c.recordClick(db, id, 'tiktok')).toBeNull()
-  expect(c.recordClick(db, 999, 'shopee')).toBeNull()
+  const [l] = links()
+  expect(c.recordClick(db, 999)).toBeNull()
   c.setHidden(db, id, true)
-  expect(c.recordClick(db, id, 'shopee')).toBeNull()
-  expect(c.getAdminData(db, BASE).products[0].clicks.shopee).toBe(0)
+  expect(c.recordClick(db, l.id)).toBeNull()
+  expect(links()[0].clicks).toBe(0)
+})
+
+test('an edit keeps the clicks of a kept link, and saves labels and order', () => {
+  const { id } = c.saveProduct(db, input())
+  const [old] = links()
+  c.recordClick(db, old.id)
+  c.saveProduct(db, input({
+    id,
+    links: [
+      { platform: 'shopee', label: 'Size L', url: 'https://shopee.com.my/l' },
+      { id: old.id, platform: 'shopee', label: 'Size M', url: 'https://shopee.com.my/x' },
+    ],
+  }))
+  expect(links().map(({ label, clicks }) => [label, clicks])).toEqual([['Size L', 0], ['Size M', 1]])
+  c.saveProduct(db, input({ id, links: [{ platform: 'tiktok', label: '', url: 'https://www.tiktok.com/t' }] }))
+  expect(links().map((l) => l.platform)).toEqual(['tiktok'])
+  expect(c.recordClick(db, old.id)).toBeNull()
+})
+
+test('a link id from another product is not moved to this one', () => {
+  c.saveProduct(db, input({ name: 'A' }))
+  const a = links()[0]
+  const b = c.saveProduct(db, input({ name: 'B' })).id
+  c.saveProduct(db, input({ id: b, name: 'B', links: [{ id: a.id, platform: 'shopee', label: '', url: 'https://shopee.com.my/b' }] }))
+  const byName = Object.fromEntries(c.getAdminData(db, BASE).products.map((p) => [p.name, p.links.map((l) => l.url)]))
+  expect(byName).toEqual({ A: ['https://shopee.com.my/x'], B: ['https://shopee.com.my/b'] })
 })
 
 test('profile save returns the avatar key that was replaced', () => {

@@ -1,12 +1,9 @@
-import { asc, eq, sql } from 'drizzle-orm'
+import { and, asc, eq, notInArray, sql } from 'drizzle-orm'
 import type { Db } from './db'
-import { admin, category, media, product, profile } from './schema'
-import { PLATFORMS, type Platform, type ProductInput } from './validate'
+import { admin, category, link, media, product, profile } from './schema'
+import { PLATFORMS, type ProductInput } from './validate'
 
 export class UserError extends Error {}
-
-const URL_FIELD = { shopee: 'shopeeUrl', tiktok: 'tiktokUrl', whatsapp: 'whatsappUrl' } as const
-const CLICK_FIELD = { shopee: 'shopeeClicks', tiktok: 'tiktokClicks', whatsapp: 'whatsappClicks' } as const
 
 function load(db: Db) {
   return {
@@ -14,6 +11,7 @@ function load(db: Db) {
     categories: db.select().from(category).orderBy(asc(category.position)).all(),
     products: db.select().from(product).orderBy(asc(product.position)).all(),
     media: db.select().from(media).orderBy(asc(media.position)).all(),
+    links: db.select().from(link).orderBy(asc(link.position)).all(),
   }
 }
 
@@ -36,7 +34,8 @@ export function getPublicPage(db: Db, mediaBase: string) {
         category: categoryName.get(p.categoryId) ?? '',
         price: p.price,
         review: p.review,
-        platforms: PLATFORMS.filter((k) => p[URL_FIELD[k]]),
+        platforms: PLATFORMS.filter((k) => d.links.some((l) => l.productId === p.id && l.platform === k)),
+        links: d.links.filter((l) => l.productId === p.id).map((l) => ({ id: l.id, platform: l.platform, label: l.label })),
         media: d.media.filter((m) => m.productId === p.id).map((m) => ({ type: m.type, url: `${mediaBase}/${m.r2Key}` })),
       })),
   }
@@ -59,11 +58,10 @@ export function getAdminData(db: Db, mediaBase: string) {
       categoryId: p.categoryId,
       price: p.price,
       review: p.review,
-      shopeeUrl: p.shopeeUrl,
-      tiktokUrl: p.tiktokUrl,
-      whatsappUrl: p.whatsappUrl,
       hidden: p.hidden,
-      clicks: { shopee: p.shopeeClicks, tiktok: p.tiktokClicks, whatsapp: p.whatsappClicks },
+      links: d.links
+        .filter((l) => l.productId === p.id)
+        .map((l) => ({ id: l.id, platform: l.platform, label: l.label, url: l.url, clicks: l.clicks })),
       media: d.media
         .filter((m) => m.productId === p.id)
         .map((m) => ({ type: m.type, key: m.r2Key, url: `${mediaBase}/${m.r2Key}` })),
@@ -80,7 +78,7 @@ function unused(db: Pick<Db, 'select'>, keys: string[]): string[] {
 }
 
 export function saveProduct(db: Db, input: ProductInput): { id: number; removedKeys: string[] } {
-  const { id: inputId, media: items, ...fields } = input
+  const { id: inputId, media: items, links, ...fields } = input
   return db.transaction((tx) => {
     if (!tx.select().from(category).where(eq(category.id, fields.categoryId)).get()) {
       throw new UserError('Choose a category.')
@@ -102,6 +100,16 @@ export function saveProduct(db: Db, input: ProductInput): { id: number; removedK
         .values(items.map((m, position) => ({ productId: id, type: m.type, r2Key: m.key, position })))
         .run()
     }
+    // Update a link in place, so its click count stays with it.
+    const kept = links.flatMap((l) => (l.id === undefined ? [] : [l.id]))
+    tx.delete(link).where(and(eq(link.productId, id), notInArray(link.id, kept))).run()
+    links.forEach(({ id: linkId, ...l }, position) => {
+      const row = { ...l, position }
+      const updated =
+        linkId !== undefined &&
+        tx.update(link).set(row).where(and(eq(link.id, linkId), eq(link.productId, id))).returning({ id: link.id }).get()
+      if (!updated) tx.insert(link).values({ ...row, productId: id }).run()
+    })
     return { id, removedKeys: unused(tx, oldKeys) }
   })
 }
@@ -184,14 +192,14 @@ export function removeAdmin(db: Db, email: string, self: string) {
   db.delete(admin).where(eq(admin.email, email)).run()
 }
 
-export function recordClick(db: Db, productId: number, platform: Platform): string | null {
-  const row = db.select().from(product).where(eq(product.id, productId)).get()
-  const url = row && !row.hidden ? row[URL_FIELD[platform]] : ''
-  if (!url) return null
-  const column = product[CLICK_FIELD[platform]]
-  db.update(product)
-    .set({ [CLICK_FIELD[platform]]: sql`${column} + 1` })
-    .where(eq(product.id, productId))
-    .run()
-  return url
+export function recordClick(db: Db, linkId: number): string | null {
+  const row = db
+    .select({ url: link.url })
+    .from(link)
+    .innerJoin(product, eq(product.id, link.productId))
+    .where(and(eq(link.id, linkId), eq(product.hidden, false)))
+    .get()
+  if (!row) return null
+  db.update(link).set({ clicks: sql`${link.clicks} + 1` }).where(eq(link.id, linkId)).run()
+  return row.url
 }

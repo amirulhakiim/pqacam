@@ -97,7 +97,7 @@ Source: [`design/Home Finds Links.dc.html`](../design/Home%20Finds%20Links.dc.ht
 | Grid | 2 columns. Each card shows the cover photo, media count, name, price if set, and a chip for each platform that has a link |
 | Product sheet | Opens from the bottom. Shows the media carousel, category, name, price if set, "My honest review", and one buy button for each link that is set |
 | Carousel | Swipe, arrows, dots, and a counter. Advances automatically: 3.5 s for a photo, 7 s for a video. Stops advancing after the visitor moves it. Videos play muted in a loop |
-| Buy buttons | "Buy on Shopee", "Buy on TikTok Shop", "Order via WhatsApp". Each opens `/go/$productId/$platform` in a new tab |
+| Buy buttons | One per link. A link with a label shows "Shopee · <label>". A link without one shows "Buy on Shopee", "Buy on TikTok Shop" or "Order via WhatsApp". Each opens `/go/$linkId` in a new tab |
 | Empty result | "Nothing here yet" with a link that clears search and filters |
 | Hidden products | The server does not send them to the browser |
 | Share preview | SSR `title`, `description` from the bio, and Open Graph image from the avatar |
@@ -133,10 +133,10 @@ flowchart TB
 | Sign-in | One "Continue with Google" button. An email that is not in the allowlist gets the error text from the design |
 | Session | The server checks the allowlist on each admin request. A removed email loses access on its next request |
 | Products | List with search, thumbnail, category, media count, platform chips, "No buy link" chip, Live/Hidden toggle, up and down buttons, Edit |
-| Click counts | Each product row shows the count for each platform. This is an addition to the design |
-| Product drawer | Photos and videos, name, category, price (optional text), review with character count and an Expand button that opens a full-screen editor, Shopee / TikTok / WhatsApp links, "Show on my page" toggle |
+| Click counts | Each product row shows the count for each platform, summed over its links. This is an addition to the design |
+| Product drawer | Photos and videos, name, category, price (optional text), review with character count and an Expand button that opens a full-screen editor, Shopee / TikTok / WhatsApp links (several per platform, each with an optional label), "Show on my page" toggle |
 | Drawer media | Add photos (several at one time), add a video, remove, drag to reorder, move earlier. The first photo is the cover |
-| "Use my number" | Fills the WhatsApp link from the profile number, with an order message that includes the product name |
+| "Use my number" | Fills that WhatsApp link from the profile number, with an order message that includes the product name |
 | Delete product | Two taps: "Delete", then "Tap again to delete". Also deletes the product's media from R2 |
 | Validation | Name is required. At least one buy link is required. Each link must start with `https://`. The server applies the same rules |
 | Categories | Add, rename, move up and down, delete. Delete is blocked while the category has products. Names are unique |
@@ -151,6 +151,7 @@ flowchart TB
 erDiagram
     CATEGORY ||--o{ PRODUCT : has
     PRODUCT ||--o{ MEDIA : has
+    PRODUCT ||--o{ LINK : has
     PROFILE {
         int id PK "always 1"
         text name
@@ -170,14 +171,17 @@ erDiagram
         text name
         text price
         text review
-        text shopee_url
-        text tiktok_url
-        text whatsapp_url
         int hidden
         int position
-        int shopee_clicks
-        int tiktok_clicks
-        int whatsapp_clicks
+    }
+    LINK {
+        int id PK
+        int product_id FK
+        text platform "shopee, tiktok or whatsapp"
+        text label
+        text url
+        int position
+        int clicks
     }
     MEDIA {
         int id PK
@@ -202,7 +206,7 @@ erDiagram
 | Route | Access | Purpose |
 |---|---|---|
 | `/` | Public | The page, SSR |
-| `/go/$productId/$platform` | Public | Add 1 to the click count, then redirect (302) to the buy link |
+| `/go/$linkId` | Public | Add 1 to the link's click count, then redirect (302) to its URL |
 | `/admin` | Allowlist | Admin with 4 tabs |
 | `/admin/login` | Public | Sign-in screen |
 | `/api/auth/google` | Public | Start the Google OAuth flow |
@@ -211,7 +215,7 @@ erDiagram
 
 Admin reads and writes are TanStack Start server functions. Each function checks the session and the allowlist before it does work.
 
-`/go` redirects only to a link stored on that product. It does not accept a destination from the request, so it cannot be used as an open redirect.
+`/go` redirects only to a stored link of a product that is not hidden. It does not accept a destination from the request, so it cannot be used as an open redirect.
 
 ## 9. Media
 

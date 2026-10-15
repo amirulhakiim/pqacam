@@ -17,14 +17,17 @@ saveProfile(db, {
 addCategory(db, 'Kitchen')
 addCategory(db, 'Decor')
 const [kitchen, decor] = getAdminData(db, '').categories
-const base = { price: '', review: 'I use these every day.', shopeeUrl: '', tiktokUrl: '', whatsappUrl: '', hidden: false, media: [] }
-saveProduct(db, { ...base, name: 'Bud Vase', categoryId: decor.id, whatsappUrl: 'https://wa.me/60123456789' })
+const base = { price: '', review: 'I use these every day.', links: [], hidden: false, media: [] }
+saveProduct(db, { ...base, name: 'Bud Vase', categoryId: decor.id, links: [{ platform: 'whatsapp' as const, label: '', url: 'https://wa.me/60123456789' }] })
 saveProduct(db, {
   ...base,
   name: 'Glass Tumbler Set',
   categoryId: kitchen.id,
   price: 'RM 24.90',
-  shopeeUrl: 'https://shopee.com.my/',
-  tiktokUrl: 'https://www.tiktok.com/shop',
+  links: [
+    { platform: 'shopee', label: 'Set of 2', url: 'https://shopee.com.my/' },
+    { platform: 'shopee', label: 'Set of 4', url: 'https://shopee.com.my/' },
+    { platform: 'tiktok', label: '', url: 'https://www.tiktok.com/shop' },
+  ],
 })
 console.log(`Sample data added to ${env('DATABASE_PATH')}.`)

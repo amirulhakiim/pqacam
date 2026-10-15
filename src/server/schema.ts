@@ -23,14 +23,8 @@ export const product = sqliteTable('product', {
   name: text('name').notNull(),
   price: text('price').notNull().default(''),
   review: text('review').notNull().default(''),
-  shopeeUrl: text('shopee_url').notNull().default(''),
-  tiktokUrl: text('tiktok_url').notNull().default(''),
-  whatsappUrl: text('whatsapp_url').notNull().default(''),
   hidden: integer('hidden', { mode: 'boolean' }).notNull().default(false),
   position: integer('position').notNull(),
-  shopeeClicks: integer('shopee_clicks').notNull().default(0),
-  tiktokClicks: integer('tiktok_clicks').notNull().default(0),
-  whatsappClicks: integer('whatsapp_clicks').notNull().default(0),
 })
 
 export const media = sqliteTable('media', {
@@ -41,6 +35,18 @@ export const media = sqliteTable('media', {
   type: text('type', { enum: ['photo', 'video'] }).notNull(),
   r2Key: text('r2_key').notNull(),
   position: integer('position').notNull(),
+})
+
+export const link = sqliteTable('link', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  productId: integer('product_id')
+    .notNull()
+    .references(() => product.id, { onDelete: 'cascade' }),
+  platform: text('platform', { enum: ['shopee', 'tiktok', 'whatsapp'] }).notNull(),
+  label: text('label').notNull().default(''),
+  url: text('url').notNull(),
+  position: integer('position').notNull(),
+  clicks: integer('clicks').notNull().default(0),
 })
 
 export const admin = sqliteTable('admin', {

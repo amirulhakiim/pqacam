@@ -107,9 +107,9 @@ export function ProductSheet({ product, hidden, onClose }: Props) {
           </div>
         )}
         <div className="pp-buy">
-          {product.platforms.map((k) => (
-            <a key={k} className={`pp-buy-button buy-${k}`} href={`/go/${product.id}/${k}`} target="_blank" rel="noopener">
-              {PLATFORM_LABEL[k].buy} <span>→</span>
+          {product.links.map((l) => (
+            <a key={l.id} className={`pp-buy-button buy-${l.platform}`} href={`/go/${l.id}`} target="_blank" rel="noopener">
+              {l.label ? `${PLATFORM_LABEL[l.platform].chip} · ${l.label}` : PLATFORM_LABEL[l.platform].buy} <span>→</span>
             </a>
           ))}
         </div>

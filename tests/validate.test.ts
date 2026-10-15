@@ -7,9 +7,7 @@ const good = {
   categoryId: 1,
   price: 'RM 24.90',
   review: 'Nice',
-  shopeeUrl: 'https://shopee.com.my/x',
-  tiktokUrl: '',
-  whatsappUrl: '',
+  links: [{ platform: 'shopee', label: '', url: 'https://shopee.com.my/x' }],
   hidden: false,
   media: [{ type: 'photo', key: KEY }],
 }
@@ -28,13 +26,15 @@ test('a product needs a name', () => {
 })
 
 test('a product needs one buy link', () => {
-  expect(error({ ...good, shopeeUrl: '' })).toBe('Add at least one Shopee, TikTok or WhatsApp link.')
+  expect(error({ ...good, links: [] })).toBe('Add at least one Shopee, TikTok or WhatsApp link.')
+  expect(error({ ...good, links: [{ platform: 'shopee', label: 'x', url: ' ' }] })).toBe('Add at least one Shopee, TikTok or WhatsApp link.')
+  expect(error({ ...good, links: [{ platform: 'lazada', label: '', url: 'https://a.com' }] })).toBe('Add at least one Shopee, TikTok or WhatsApp link.')
 })
 
 test.each(['http://shopee.com.my/x', 'javascript:alert(1)', 'shopee.com.my/x', 'https://'])(
   'link %s is refused',
-  (shopeeUrl) => {
-    expect(error({ ...good, shopeeUrl })).toBe('Links must start with https://')
+  (url) => {
+    expect(error({ ...good, links: [{ platform: 'shopee', label: '', url }] })).toBe('Links must start with https://')
   },
 )
 
@@ -68,7 +68,8 @@ test('upload rules', () => {
 })
 
 test('a link with emoji or a line break is stored in a form that is safe for a Location header', () => {
-  const r = validateProduct({ ...good, whatsappUrl: 'https://wa.me/601?text=Hi 😊\r\nX: y' })
-  expect(r.ok && r.value.whatsappUrl).toMatch(/^https:\/\/wa\.me\/601\?text=[\x21-\x7e]+$/)
-  expect(() => new Headers({ Location: r.ok ? r.value.whatsappUrl : '' })).not.toThrow()
+  const r = validateProduct({ ...good, links: [{ platform: 'whatsapp', label: '', url: 'https://wa.me/601?text=Hi 😊\r\nX: y' }] })
+  const url = r.ok ? r.value.links[0].url : ''
+  expect(url).toMatch(/^https:\/\/wa\.me\/601\?text=[\x21-\x7e]+$/)
+  expect(() => new Headers({ Location: url })).not.toThrow()
 })

@@ -57,7 +57,7 @@ flowchart LR
 | Route | Who | Purpose |
 |---|---|---|
 | `/` | Everyone | Product grid with search, category tabs, shop filter, and a sheet for each product |
-| `/go/<id>/<shop>` | Everyone | Adds 1 to the product's tap count, then redirects to the stored buy link |
+| `/go/<link id>` | Everyone | Adds 1 to the link's tap count, then redirects to the stored buy link |
 | `/privacy` | Everyone | Privacy policy |
 | `/admin` | Approved Google accounts | Manage products, categories, profile, and who has access |
 | `/api/health` | Dokploy | Returns `{"ok":true}` when the database opens |

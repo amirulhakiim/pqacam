@@ -3,30 +3,26 @@ import { resizeImage, uploadFile } from '../../lib/upload'
 import { PLATFORM_LABEL } from '../../lib/platforms'
 import type { AdminProduct } from '../../server/catalog'
 import { deleteProductFn, saveProductFn } from '../../server/fns'
-import { PLATFORMS } from '../../server/validate'
+import { PLATFORMS, type Platform } from '../../server/validate'
 import type { TabProps } from './Shell'
 
 type Props = TabProps & { product: AdminProduct | null; onClose: () => void }
-type Draft = Omit<AdminProduct, 'id' | 'clicks'> & { id?: number }
+// k is a React key. A new link has no id until it is saved.
+type DraftLink = { k: string; id?: number; platform: Platform; label: string; url: string }
+type Draft = Omit<AdminProduct, 'id' | 'links'> & { id?: number; links: DraftLink[] }
 
-const URL_FIELD = { shopee: 'shopeeUrl', tiktok: 'tiktokUrl', whatsapp: 'whatsappUrl' } as const
+const emptyLink = (platform: Platform): DraftLink => ({ k: crypto.randomUUID(), platform, label: '', url: '' })
 const PLACEHOLDER = { shopee: 'https://shopee.com.my/…', tiktok: 'https://www.tiktok.com/…', whatsapp: 'https://wa.me/…' }
 
 export function ProductDrawer({ product, data, act, flash, onClose }: Props) {
-  const [draft, setDraft] = useState<Draft>(
-    () =>
-      product ?? {
-        name: '',
-        categoryId: data.categories[0].id,
-        price: '',
-        review: '',
-        shopeeUrl: '',
-        tiktokUrl: '',
-        whatsappUrl: '',
-        hidden: false,
-        media: [],
-      },
-  )
+  const [draft, setDraft] = useState<Draft>(() => {
+    const links: DraftLink[] = (product?.links ?? []).map(({ clicks, ...l }) => ({ ...l, k: String(l.id) }))
+    for (const k of PLATFORMS) if (!links.some((l) => l.platform === k)) links.push(emptyLink(k))
+    return {
+      ...(product ?? { name: '', categoryId: data.categories[0].id, price: '', review: '', hidden: false, media: [] }),
+      links,
+    }
+  })
   const [bigReview, setBigReview] = useState(false)
   // The ref is read on each pointer move, before React renders again. The state only styles the tile.
   const dragFrom = useRef<number | null>(null)
@@ -86,18 +82,24 @@ export function ProductDrawer({ product, data, act, flash, onClose }: Props) {
     dragFrom.current = to
   }
 
-  function useMyNumber() {
+  const setLink = (k: string, patch: Partial<DraftLink>) => set({ links: draft.links.map((l) => (l.k === k ? { ...l, ...patch } : l)) })
+
+  function useMyNumber(k: string) {
     const number = data.profile.whatsapp
     if (!number) return flash('Add your WhatsApp number in Profile first')
     const message = encodeURIComponent(`Hi! I'd like to order the ${draft.name || 'item'}`)
-    set({ whatsappUrl: `https://wa.me/${number}?text=${message}` })
+    setLink(k, { url: `https://wa.me/${number}?text=${message}` })
   }
 
   async function save() {
     if (saving.current) return
     saving.current = true
     try {
-      const input = { ...draft, media: draft.media.map(({ type, key }) => ({ type, key })) }
+      const input = {
+        ...draft,
+        media: draft.media.map(({ type, key }) => ({ type, key })),
+        links: draft.links.map(({ k, ...l }) => l),
+      }
       const result = await saveProductFn({ data: input })
       if (!result.ok) return setError(result.error)
       await act(Promise.resolve(result), product ? 'Changes saved' : 'Product added')
@@ -227,21 +229,45 @@ export function ProductDrawer({ product, data, act, flash, onClose }: Props) {
             <span className="adm-label">
               Where to buy <em>Leave blank to hide a button</em>
             </span>
-            {PLATFORMS.map((k) => (
-              <div className="adm-link-row" key={k}>
-                <span className={`chip chip-${k} adm-link-chip`}>{PLATFORM_LABEL[k].chip}</span>
-                <input
-                  className="adm-input"
-                  value={draft[URL_FIELD[k]]}
-                  onChange={(e) => set({ [URL_FIELD[k]]: e.target.value })}
-                  placeholder={PLACEHOLDER[k]}
-                  inputMode="url"
-                />
-                {k === 'whatsapp' && (
-                  <button type="button" className="btn btn-light" onClick={useMyNumber}>
-                    Use my number
-                  </button>
-                )}
+            {PLATFORMS.map((platform) => (
+              <div className="adm-link-group" key={platform}>
+                <span className={`chip chip-${platform} adm-link-chip`}>{PLATFORM_LABEL[platform].chip}</span>
+                {draft.links
+                  .filter((l) => l.platform === platform)
+                  .map((l) => (
+                    <div className="adm-link-row" key={l.k}>
+                      <input
+                        className="adm-input adm-link-label"
+                        value={l.label}
+                        onChange={(e) => setLink(l.k, { label: e.target.value })}
+                        placeholder="Label, e.g. Size M"
+                        maxLength={60}
+                      />
+                      <input
+                        className="adm-input"
+                        value={l.url}
+                        onChange={(e) => setLink(l.k, { url: e.target.value })}
+                        placeholder={PLACEHOLDER[platform]}
+                        inputMode="url"
+                      />
+                      {platform === 'whatsapp' && (
+                        <button type="button" className="btn btn-light" onClick={() => useMyNumber(l.k)}>
+                          Use my number
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        className="btn-icon"
+                        onClick={() => set({ links: draft.links.filter((x) => x.k !== l.k) })}
+                        title="Remove link"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                <button type="button" className="link adm-link-add" onClick={() => set({ links: [...draft.links, emptyLink(platform)] })}>
+                  + Add {PLATFORM_LABEL[platform].chip} link
+                </button>
               </div>
             ))}
           </div>

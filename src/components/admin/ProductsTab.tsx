@@ -6,8 +6,6 @@ import { PLATFORMS } from '../../server/validate'
 import { ProductDrawer } from './ProductDrawer'
 import type { TabProps } from './Shell'
 
-const URL_FIELD = { shopee: 'shopeeUrl', tiktok: 'tiktokUrl', whatsapp: 'whatsappUrl' } as const
-
 export function ProductsTab({ data, act, flash }: TabProps) {
   const [q, setQ] = useState('')
   const [editing, setEditing] = useState<AdminProduct | 'new' | null>(null)
@@ -43,7 +41,7 @@ export function ProductsTab({ data, act, flash }: TabProps) {
           const cover = p.media.find((m) => m.type === 'photo')
           const photos = p.media.filter((m) => m.type === 'photo').length
           const videos = p.media.length - photos
-          const linked = PLATFORMS.filter((k) => p[URL_FIELD[k]])
+          const linked = PLATFORMS.filter((k) => p.links.some((l) => l.platform === k))
           return (
             <div className={p.hidden ? 'adm-row adm-row-hidden' : 'adm-row'} key={p.id}>
               <button type="button" className="adm-thumb" onClick={() => setEditing(p)} aria-label={`Edit ${p.name}`}>
@@ -60,7 +58,7 @@ export function ProductsTab({ data, act, flash }: TabProps) {
                   </span>
                   {linked.map((k) => (
                     <span key={k} className={`chip chip-${k}`} title="Taps on this buy button">
-                      {PLATFORM_LABEL[k].chip} · {p.clicks[k]}
+                      {PLATFORM_LABEL[k].chip} · {p.links.reduce((n, l) => n + (l.platform === k ? l.clicks : 0), 0)}
                     </span>
                   ))}
                   {linked.length === 0 && <span className="chip chip-warn">No buy link</span>}

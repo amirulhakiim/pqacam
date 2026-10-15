@@ -9,6 +9,7 @@ const product = (over: Partial<PublicProduct>): PublicProduct => ({
   price: '',
   review: 'Great for iced coffee',
   platforms: ['shopee'],
+  links: [],
   media: [],
   ...over,
 })

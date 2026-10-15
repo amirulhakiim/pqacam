@@ -11,7 +11,7 @@ Object.assign(process.env, {
 
 test('a new key passes product validation', () => {
   const key = newKey('photo', 'jpg')
-  const result = validateProduct({ name: 'A', categoryId: 1, shopeeUrl: 'https://a.com', media: [{ type: 'photo', key }] })
+  const result = validateProduct({ name: 'A', categoryId: 1, links: [{ platform: 'shopee', label: '', url: 'https://a.com' }], media: [{ type: 'photo', key }] })
   expect(result.ok).toBe(true)
 })
 

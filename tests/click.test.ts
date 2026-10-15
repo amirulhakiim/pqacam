@@ -5,29 +5,22 @@ import { openDb } from '../src/server/db'
 
 const db = openDb(':memory:')
 addCategory(db, 'Kitchen')
-const { id } = saveProduct(db, {
+saveProduct(db, {
   name: 'Tumbler',
   categoryId: getAdminData(db, '').categories[0].id,
   price: '',
   review: '',
-  shopeeUrl: 'https://shopee.com.my/x',
-  tiktokUrl: '',
-  whatsappUrl: '',
+  links: [{ platform: 'shopee', label: '', url: 'https://shopee.com.my/x' }],
   hidden: false,
   media: [],
 })
 
+const linkId = String(getAdminData(db, '').products[0].links[0].id)
+
 test('a good request returns the stored link', () => {
-  expect(resolveClick(db, String(id), 'shopee')).toBe('https://shopee.com.my/x')
+  expect(resolveClick(db, linkId)).toBe('https://shopee.com.my/x')
 })
 
-test.each([
-  ['abc', 'shopee'],
-  ['1.5', 'shopee'],
-  ['', 'shopee'],
-  [String(id), 'lazada'],
-  [String(id), 'tiktok'],
-  ['999', 'shopee'],
-])('request %s / %s returns null', (productId, platform) => {
-  expect(resolveClick(db, productId, platform)).toBeNull()
+test.each(['abc', '1.5', '', '-1', '999'])('request %p returns null', (id) => {
+  expect(resolveClick(db, id)).toBeNull()
 })
