@@ -128,6 +128,13 @@ button { font: inherit; color: inherit; }
 .buy-shopee { background: var(--shopee); }
 .buy-tiktok { background: var(--tiktok); }
 .buy-whatsapp { background: var(--whatsapp); }
+.pp-buy-group summary { list-style: none; cursor: pointer; }
+.pp-buy-group summary::-webkit-details-marker { display: none; }
+.pp-buy-count { font-weight: 400; font-size: 13px; opacity: 0.8; }
+.pp-buy-caret { transition: transform 0.2s; }
+.pp-buy-group[open] .pp-buy-caret { transform: rotate(180deg); }
+.pp-buy-options { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.pp-buy-option { height: 48px; box-sizing: border-box; padding: 0 18px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); text-decoration: none; font-weight: 500; font-size: 15px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 
 [data-protect], [data-protect] * { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-user-drag: none; }
 @media print { body { display: none !important; } }

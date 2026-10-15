@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { wrap } from '../../lib/filter'
 import { PLATFORM_LABEL } from '../../lib/platforms'
 import type { PublicProduct } from '../../server/catalog'
+import { PLATFORMS } from '../../server/validate'
 
 type Props = { product: PublicProduct; hidden: boolean; onClose: () => void }
 
@@ -107,11 +108,38 @@ export function ProductSheet({ product, hidden, onClose }: Props) {
           </div>
         )}
         <div className="pp-buy">
-          {product.links.map((l) => (
-            <a key={l.id} className={`pp-buy-button buy-${l.platform}`} href={`/go/${l.id}`} target="_blank" rel="noopener">
-              {l.label ? `${PLATFORM_LABEL[l.platform].chip} · ${l.label}` : PLATFORM_LABEL[l.platform].buy} <span>→</span>
-            </a>
-          ))}
+          {PLATFORMS.map((k) => {
+            const links = product.links.filter((l) => l.platform === k)
+            if (links.length === 1) {
+              const [l] = links
+              return (
+                <a key={k} className={`pp-buy-button buy-${k}`} href={`/go/${l.id}`} target="_blank" rel="noopener">
+                  {l.label ? `${PLATFORM_LABEL[k].chip} · ${l.label}` : PLATFORM_LABEL[k].buy} <span>→</span>
+                </a>
+              )
+            }
+            // Several links for one shop: one button that opens the list, so the sheet does not fill with buttons.
+            return (
+              links.length > 1 && (
+                <details key={k} className="pp-buy-group">
+                  <summary className={`pp-buy-button buy-${k}`}>
+                    {PLATFORM_LABEL[k].buy}
+                    <span className="pp-buy-count">{links.length} options</span>
+                    <span className="pp-buy-caret" aria-hidden="true">
+                      ▾
+                    </span>
+                  </summary>
+                  <div className="pp-buy-options">
+                    {links.map((l, i) => (
+                      <a key={l.id} className="pp-buy-option" href={`/go/${l.id}`} target="_blank" rel="noopener">
+                        {l.label || `Option ${i + 1}`} <span>→</span>
+                      </a>
+                    ))}
+                  </div>
+                </details>
+              )
+            )
+          })}
         </div>
       </div>
     </div>
