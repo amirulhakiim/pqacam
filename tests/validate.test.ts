@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test'
-import { validateEmail, validateJobs, validateProduct, validateUpload, validateWatermark } from '../src/server/validate'
+import { validateEmail, validateJobs, validateProduct, validateSocials, validateUpload, validateWatermark } from '../src/server/validate'
 
 const KEY = 'photo/0b9f6c1e-1c2d-4e3f-8a4b-5c6d7e8f9a0b.jpg'
 const good = {
@@ -100,4 +100,12 @@ test('a raw video is limited to 50 MB and a raw photo to 100 MB', () => {
   expect(validateUpload({ kind: 'raw', contentType: 'video/mp4', size: 50 * 1024 * 1024 + 1 }).ok).toBe(false)
   expect(validateUpload({ kind: 'raw', contentType: 'image/jpeg', size: 100 * 1024 * 1024 }).ok).toBe(true)
   expect(validateUpload({ kind: 'raw', contentType: 'image/jpeg', size: 100 * 1024 * 1024 + 1 }).ok).toBe(false)
+})
+
+test('social links get https, blanks are dropped, and a bad link names its platform', () => {
+  expect(validateSocials({ instagram: 'instagram.com/corner', tiktok: ' ', x: 'http://x.com/corner', other: 'https://a.com' })).toEqual({
+    ok: true,
+    value: { instagram: 'https://instagram.com/corner', x: 'https://x.com/corner' },
+  })
+  expect(validateSocials({ youtube: 'not a link' })).toEqual({ ok: false, error: 'Check the YouTube link.' })
 })

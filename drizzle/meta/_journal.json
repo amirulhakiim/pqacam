@@ -71,6 +71,13 @@
       "when": 1792091891863,
       "tag": "0009_watermark_tag",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1792093127451,
+      "tag": "0010_socials",
+      "breakpoints": true
     }
   ]
 }

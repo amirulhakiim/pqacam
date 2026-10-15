@@ -174,6 +174,16 @@ test('profile save returns the avatar key that was replaced', () => {
   expect(c.getPublicPage(db, BASE).profile.avatarUrl).toBe(`${BASE}/avatar/b.jpg`)
 })
 
+test('the public page lists social links in a fixed order and keeps them when another save leaves them out', () => {
+  const p = { name: 'Corner', handle: '@corner', bio: 'Hi', whatsapp: '' }
+  c.saveProfile(db, { ...p, socials: { x: 'https://x.com/c', instagram: 'https://instagram.com/c' } })
+  c.saveProfile(db, p)
+  expect(c.getPublicPage(db, BASE).profile.socials).toEqual([
+    { platform: 'instagram', url: 'https://instagram.com/c' },
+    { platform: 'x', url: 'https://x.com/c' },
+  ])
+})
+
 test('a media key that a second product still uses is not reported for deletion', () => {
   const a = c.saveProduct(db, input({ name: 'A' })).id
   const b = c.saveProduct(db, input({ name: 'B' })).id

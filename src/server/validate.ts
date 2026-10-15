@@ -5,6 +5,11 @@ export const isPlatform = (v: string): v is Platform => (PLATFORMS as readonly s
 export type Result<T> = { ok: true; value: T } | { ok: false; error: string }
 const fail = (error: string) => ({ ok: false, error }) as const
 
+export const SOCIALS = ['instagram', 'tiktok', 'facebook', 'youtube', 'x'] as const
+export type Social = (typeof SOCIALS)[number]
+export type Socials = Partial<Record<Social, string>>
+export const SOCIAL_LABEL: Record<Social, string> = { instagram: 'Instagram', tiktok: 'TikTok', facebook: 'Facebook', youtube: 'YouTube', x: 'X' }
+
 export type MediaInput = { type: 'photo' | 'video'; key: string }
 // id is set for a link that already exists, so its click count is kept.
 export type LinkInput = { id?: number; platform: Platform; label: string; url: string }
@@ -61,6 +66,19 @@ export function validateProduct(raw: unknown): Result<ProductInput> {
     const type = m?.type === 'video' ? 'video' : 'photo'
     if (typeof m?.key !== 'string' || !MEDIA_KEY[type].test(m.key)) return fail('Upload the file again.')
     value.media.push({ type, key: m.key })
+  }
+  return { ok: true, value }
+}
+
+export function validateSocials(raw: unknown): Result<Socials> {
+  const r = (raw ?? {}) as Record<string, unknown>
+  const value: Socials = {}
+  for (const k of SOCIALS) {
+    const v = text(r[k], 300)
+    if (!v) continue
+    const href = httpsLink(/^https?:\/\//i.test(v) ? v.replace(/^http:/i, 'https:') : `https://${v}`)
+    if (!href) return fail(`Check the ${SOCIAL_LABEL[k]} link.`)
+    value[k] = href
   }
   return { ok: true, value }
 }

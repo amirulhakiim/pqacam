@@ -10,6 +10,7 @@ export const profile = sqliteTable('profile', {
   whatsapp: text('whatsapp').notNull().default(''),
   // JSON of WatermarkSettings. Empty means the defaults.
   watermark: text('watermark').notNull().default(''),
+  socials: text('socials').notNull().default('{}'),
 })
 
 export const category = sqliteTable('category', {

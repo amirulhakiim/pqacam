@@ -1,0 +1,1 @@
+ALTER TABLE `profile` ADD `socials` text DEFAULT '{}' NOT NULL;

@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { resizeImage, uploadFile } from '../../lib/upload'
 import { saveProfileFn } from '../../server/fns'
-import { BIO_SIZES } from '../../server/validate'
+import { BIO_SIZES, SOCIAL_LABEL, SOCIALS, type Social } from '../../server/validate'
+import { SocialIcon } from '../SocialIcon'
 import type { TabProps } from './Shell'
 
 export function ProfileTab({ data, act, flash }: TabProps) {
-  const { name, handle, bio, bioSize, whatsapp, avatarUrl } = data.profile
-  const [form, setForm] = useState({ name, handle, bio, bioSize, whatsapp })
+  const { name, handle, bio, bioSize, whatsapp, avatarUrl, socials } = data.profile
+  const [form, setForm] = useState({ name, handle, bio, bioSize, whatsapp, socials })
   const edited = useRef(false)
 
   const pending = useRef<typeof form | null>(null)
@@ -29,7 +30,7 @@ export function ProfileTab({ data, act, flash }: TabProps) {
     [act],
   )
 
-  const field = (key: Exclude<keyof typeof form, 'bioSize'>) => ({
+  const field = (key: Exclude<keyof typeof form, 'bioSize' | 'socials'>) => ({
     className: 'adm-input',
     value: form[key],
     onChange: (e: { target: { value: string } }) => {
@@ -102,6 +103,29 @@ export function ProfileTab({ data, act, flash }: TabProps) {
           <input {...field('whatsapp')} placeholder="60123456789" inputMode="numeric" />
           <span className="adm-hint">Country code + number, no spaces or +. Used for "Order via WhatsApp" links.</span>
         </label>
+        <div className="adm-field">
+          <span className="adm-label">
+            Social media <em>Optional. Shown as icons under your bio</em>
+          </span>
+          {SOCIALS.map((k: Social) => (
+            <label className="adm-social-row" key={k}>
+              <span className="adm-social-icon" title={SOCIAL_LABEL[k]}>
+                <SocialIcon platform={k} />
+              </span>
+              <input
+                className="adm-input"
+                value={form.socials[k] ?? ''}
+                aria-label={`${SOCIAL_LABEL[k]} link`}
+                placeholder={`${SOCIAL_LABEL[k]} link`}
+                inputMode="url"
+                onChange={(e) => {
+                  edited.current = true
+                  setForm((f) => ({ ...f, socials: { ...f.socials, [k]: e.target.value } }))
+                }}
+              />
+            </label>
+          ))}
+        </div>
       </div>
     </>
   )

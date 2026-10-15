@@ -1,9 +1,17 @@
 import { and, asc, desc, eq, inArray, lt, ne, notInArray, or, sql } from 'drizzle-orm'
 import type { Db } from './db'
 import { admin, category, click, folder, job, link, media, product, profile } from './schema'
-import { type BioSize, DEFAULT_WATERMARK, type JobInput, PLATFORMS, type ProductInput, validateWatermark, type WatermarkSettings } from './validate'
+import { type BioSize, DEFAULT_WATERMARK, type JobInput, PLATFORMS, SOCIALS, type Socials, type ProductInput, validateWatermark, type WatermarkSettings } from './validate'
 
 export class UserError extends Error {}
+
+function socialsOf(p: typeof profile.$inferSelect): Socials {
+  try {
+    return JSON.parse(p.socials)
+  } catch {
+    return {}
+  }
+}
 
 function load(db: Db) {
   return {
@@ -26,6 +34,10 @@ export function getPublicPage(db: Db, mediaBase: string) {
       bioSize: d.profile.bioSize,
       whatsapp: d.profile.whatsapp,
       avatarUrl: d.profile.avatarKey ? `${mediaBase}/${d.profile.avatarKey}` : null,
+      socials: SOCIALS.flatMap((platform) => {
+        const url = socialsOf(d.profile)[platform]
+        return url ? [{ platform, url }] : []
+      }),
     },
     categories: d.categories.map((c) => c.name),
     products: d.products
@@ -56,7 +68,7 @@ export function getAdminData(db: Db, mediaBase: string) {
   const { watermark: _, ...p } = d.profile
   const jobs = db.select().from(job).orderBy(desc(job.id)).all()
   return {
-    profile: { ...p, avatarUrl: p.avatarKey ? `${mediaBase}/${p.avatarKey}` : null },
+    profile: { ...p, socials: socialsOf(d.profile), avatarUrl: p.avatarKey ? `${mediaBase}/${p.avatarKey}` : null },
     watermark: watermarkSettings(d.profile),
     folders: db
       .select()
@@ -208,7 +220,7 @@ export function deleteCategory(db: Db, id: number) {
   db.delete(category).where(eq(category.id, id)).run()
 }
 
-export type ProfileInput = { name: string; handle: string; bio: string; bioSize?: BioSize; whatsapp: string; avatarKey?: string }
+export type ProfileInput = { name: string; handle: string; bio: string; bioSize?: BioSize; whatsapp: string; avatarKey?: string; socials?: Socials }
 
 export function saveProfile(db: Db, input: ProfileInput): string | null {
   const old = db.select().from(profile).get()!.avatarKey
@@ -220,6 +232,7 @@ export function saveProfile(db: Db, input: ProfileInput): string | null {
       ...(input.bioSize ? { bioSize: input.bioSize } : {}),
       whatsapp: input.whatsapp.replace(/\D/g, '').slice(0, 20),
       ...(input.avatarKey ? { avatarKey: input.avatarKey } : {}),
+      ...(input.socials ? { socials: JSON.stringify(input.socials) } : {}),
     })
     .where(eq(profile.id, 1))
     .run()

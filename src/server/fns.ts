@@ -13,6 +13,7 @@ import {
   type UploadKind,
   validateEmail,
   validateHash,
+  validateSocials,
   validateJobs,
   validateLibraryMedia,
   validateProduct,
@@ -115,6 +116,7 @@ export const saveProfileFn = createServerFn({ method: 'POST' })
         bioSize: toBioSize(data?.bioSize),
         whatsapp: String(data?.whatsapp ?? ''),
         avatarKey: data?.avatarKey,
+        socials: data?.socials === undefined ? undefined : need(validateSocials(data.socials)),
       })
       if (replaced) await deleteObjects([replaced])
     }),
