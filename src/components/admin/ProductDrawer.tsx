@@ -38,6 +38,35 @@ function EditorVideoThumb({ url }: { url: string }) {
   />
 }
 
+function FullView({ media, onClose }: { media: DraftMedia; onClose: () => void }) {
+  const ref = useRef<HTMLDialogElement>(null)
+  const [url, setUrl] = useState(pending(media) && media.type === 'photo' ? '' : media.url)
+  useEffect(() => {
+    ref.current?.showModal()
+    if (!pending(media) || media.type !== 'photo') return
+    const full = URL.createObjectURL(media.file)
+    setUrl(full)
+    return () => URL.revokeObjectURL(full)
+  }, [media])
+  return (
+    <dialog
+      ref={ref}
+      className="pp-lightbox"
+      aria-label="Full screen"
+      onClose={onClose}
+      onKeyDown={(e) => e.stopPropagation()}
+      onClick={(e) => (e.target as HTMLElement).closest('img, video') === null && ref.current?.close()}
+    >
+      <div className="pp-lightbox-stage">
+        {url && (media.type === 'photo' ? <img src={url} alt="" /> : <video src={url} controls autoPlay playsInline />)}
+      </div>
+      <button type="button" className="pp-round pp-lightbox-close" onClick={() => ref.current?.close()} aria-label="Close">
+        ✕
+      </button>
+    </dialog>
+  )
+}
+
 export function ProductDrawer({ product, data, act, flash, onClose, onQueue }: Props) {
   const [draft, setDraft] = useState<Draft>(() => {
     const links: DraftLink[] = (product?.links ?? []).map(({ clicks, ...l }) => ({ ...l, k: String(l.id) }))
@@ -48,6 +77,7 @@ export function ProductDrawer({ product, data, act, flash, onClose, onQueue }: P
   })
   const [bigReview, setBigReview] = useState(false)
   const [picking, setPicking] = useState(false)
+  const [full, setFull] = useState<DraftMedia | null>(null)
   const drag = useRef<{ from: number; x: number; y: number; key: string; moving: boolean } | null>(null)
   const [dragKey, setDragKey] = useState<string | null>(null)
   const [savingState, setSavingState] = useState(false)
@@ -224,7 +254,7 @@ export function ProductDrawer({ product, data, act, flash, onClose, onQueue }: P
         <div className="adm-drawer-body">
           <div className="adm-field">
             <span className="adm-label">
-              Photos &amp; videos <em>Drag to reorder. First photo is the cover</em>
+              Photos &amp; videos <em>Tap to view, drag to reorder. First photo is the cover</em>
             </span>
             <div className="adm-media">
               {draft.media.map((m, i) => (
@@ -238,7 +268,10 @@ export function ProductDrawer({ product, data, act, flash, onClose, onQueue }: P
                     e.currentTarget.setPointerCapture(e.pointerId)
                   }}
                   onPointerMove={dragOver}
-                  onPointerUp={endDrag}
+                  onPointerUp={() => {
+                    if (drag.current && !drag.current.moving) setFull(m)
+                    endDrag()
+                  }}
                   onPointerCancel={endDrag}
                 >
                   {m.type === 'photo' ? <img src={m.url} alt="" draggable={false} /> : <EditorVideoThumb url={m.url} />}
@@ -301,6 +334,7 @@ export function ProductDrawer({ product, data, act, flash, onClose, onQueue }: P
               </button>
             </div>
             {draft.media.some(pending) && !savingState && <span className="adm-hint">Selected files upload when you save this product.</span>}
+            {full && <FullView media={full} onClose={() => setFull(null)} />}
             {picking && (
               <LibraryPicker
                 jobs={data.jobs}
