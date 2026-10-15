@@ -84,7 +84,15 @@ export function ProductDrawer({ product, data, act, flash, onClose }: Props) {
       const job = r.value
       if (job.status === 'failed') return fail(`${file.name}: ${job.error}`)
       if (job.status !== 'done' || !('key' in job)) {
-        setStage(job.progress > 0 ? `Compressing ${file.name}` : `Preparing ${file.name}`)
+        setStage(
+          job.status === 'queued'
+            ? job.ahead > 0
+              ? `Waiting for ${job.ahead} earlier file${job.ahead === 1 ? '' : 's'} before ${file.name}`
+              : `Waiting for compression to start: ${file.name}`
+            : job.progress > 0
+              ? `Compressing ${file.name}`
+              : `Preparing ${file.name}`,
+        )
         setProgress(job.progress > 0 ? job.progress / 100 : null)
         continue
       }

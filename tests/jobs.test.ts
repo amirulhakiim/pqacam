@@ -142,7 +142,7 @@ test('a product video compresses without a watermark, and the editor takes the r
   await Bun.spawn(['ffmpeg', '-v', 'error', '-f', 'lavfi', '-i', 'testsrc=size=640x360:duration=1', '-f', 'lavfi', '-i', 'sine=duration=1',
     '-shortest', '-c:v', 'libx264', '-c:a', 'aac', at(raw)]).exited
   const id = c.addCompressJob(db, { type: 'video', key: raw, name: 'IMG_1.MOV' })
-  expect(c.takeJob(db, id, BASE)).toMatchObject({ status: 'queued' })
+  expect(c.takeJob(db, id, BASE)).toMatchObject({ status: 'queued', ahead: 0 })
   expect(jobs()[0]).toMatchObject({ compressOnly: true, status: 'queued' })
   await runJob(db, c.claimJob(db)!)
   const taken = c.takeJob(db, id, BASE)
@@ -151,4 +151,14 @@ test('a product video compresses without a watermark, and the editor takes the r
   expect(taken.bytes).toBeGreaterThan(0)
   expect(jobs()).toEqual([])
   expect(() => c.takeJob(db, id, BASE)).toThrow(c.UserError)
+})
+
+test('a queued product video reports how many jobs are ahead of it', () => {
+  add(photo(1))
+  const id = c.addCompressJob(db, { type: 'video', key: raw(2, 'mov'), name: 'IMG_2.MOV' })
+  expect(c.takeJob(db, id, BASE)).toMatchObject({ status: 'queued', ahead: 1 })
+  const first = c.claimJob(db)!
+  expect(c.takeJob(db, id, BASE)).toMatchObject({ status: 'queued', ahead: 1 })
+  c.failJob(db, first.id, 'Failed')
+  expect(c.takeJob(db, id, BASE)).toMatchObject({ status: 'queued', ahead: 0 })
 })

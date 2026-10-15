@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, notInArray, sql } from 'drizzle-orm'
+import { and, asc, desc, eq, lt, notInArray, or, sql } from 'drizzle-orm'
 import type { Db } from './db'
 import { admin, category, click, folder, job, link, media, product, profile } from './schema'
 import { type BioSize, DEFAULT_WATERMARK, type JobInput, PLATFORMS, type ProductInput, validateWatermark, type WatermarkSettings } from './validate'
@@ -310,6 +310,14 @@ export function addCompressJob(db: Db, input: JobInput): number {
 export function takeJob(db: Db, id: number, mediaBase: string) {
   const row = db.select().from(job).where(eq(job.id, id)).get()
   if (!row) throw new UserError('This video is no longer in the library.')
+  if (row.status === 'queued') {
+    const ahead = db
+      .select({ count: sql<number>`count(*)` })
+      .from(job)
+      .where(or(eq(job.status, 'processing'), and(eq(job.status, 'queued'), lt(job.id, id))))
+      .get()!.count
+    return { status: row.status, progress: row.progress, error: row.error, ahead }
+  }
   if (row.status !== 'done') return { status: row.status, progress: row.progress, error: row.error }
   db.delete(job).where(eq(job.id, id)).run()
   return { status: row.status, progress: 100, error: '', key: row.outputKey, url: `${mediaBase}/${row.outputKey}`, bytes: row.outputBytes }

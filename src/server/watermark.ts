@@ -103,11 +103,28 @@ async function run(cmd: string[], onLine?: (line: string) => void): Promise<stri
   const proc = Bun.spawn(cmd, { stdout: 'pipe', stderr: 'pipe' })
   const stderr = new Response(proc.stderr).text()
   let stdout = ''
-  for await (const line of streamLines(proc.stdout)) {
-    if (onLine) onLine(line)
-    else stdout += `${line}\n`
+  let stalled = false
+  let timer: ReturnType<typeof setTimeout> | undefined
+  const resetTimer = () => {
+    clearTimeout(timer)
+    timer = setTimeout(() => {
+      stalled = true
+      proc.kill()
+    }, 10 * 60_000)
   }
-  if ((await proc.exited) !== 0) throw new Error(`${cmd[0]} failed: ${(await stderr).trim().split('\n').slice(-3).join(' | ')}`)
+  resetTimer()
+  try {
+    for await (const line of streamLines(proc.stdout)) {
+      resetTimer()
+      if (onLine) onLine(line)
+      else stdout += `${line}\n`
+    }
+    if ((await proc.exited) !== 0) {
+      throw new Error(stalled ? `${cmd[0]} stopped responding` : `${cmd[0]} failed: ${(await stderr).trim().split('\n').slice(-3).join(' | ')}`)
+    }
+  } finally {
+    clearTimeout(timer)
+  }
   return stdout
 }
 
