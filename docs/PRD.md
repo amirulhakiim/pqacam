@@ -101,7 +101,7 @@ Source: [`design/Home Finds Links.dc.html`](../design/Home%20Finds%20Links.dc.ht
 | Grid | 2 columns. Each card shows the cover photo, media count, name, price if set, and a chip for each platform that has a link |
 | Product sheet | Opens from the bottom. Shows the media carousel, category, name, price if set, "My honest review", and one buy button for each link that is set |
 | Carousel | Swipe, arrows, dots, and a counter. Advances automatically: 3.5 s for a photo, 7 s for a video. Stops advancing after the visitor moves it. Videos play muted in a loop |
-| Buy buttons | One per link. A link with a label shows "Shopee · <label>". A link without one shows "Buy on Shopee", "Buy on TikTok Shop" or "Order via WhatsApp". Each opens `/go/$linkId` in a new tab |
+| Buy buttons | One per shop. A shop with one link opens it directly; with a label it shows "Shopee · <label>". A shop with several links shows "Buy on Shopee · N options", which opens a list of the links by label. Each link opens `/go/$linkId` in a new tab |
 | Empty result | "Nothing here yet" with a link that clears search and filters |
 | Hidden products | The server does not send them to the browser |
 | Share preview | SSR `title`, `description` from the bio, and Open Graph image from the avatar |
@@ -143,13 +143,14 @@ flowchart TB
 | Session | The server checks the allowlist on each admin request. A removed email loses access on its next request |
 | Products | List with search, thumbnail, category, media count, platform chips, "No buy link" chip, Live/Hidden toggle, up and down buttons, Edit |
 | Click counts | Each product row shows the count for each platform, summed over its links. This is an addition to the design |
+| Analytics | Range 7, 30 or 90 days, in Malaysia time (UTC+8). Taps in the range against the previous period, daily average, all-time taps. Insights in sentences: trend, peak hour, busiest weekday and date, leading shop, top product and option, live products with no taps. Columns by day (with a table view), by hour of day, by day of week. Bar lists by shop, top products, top buy links. Taps are recorded from the release that added this tab |
 | Product drawer | Photos and videos, name, category, price (optional text), review with character count and an Expand button that opens a full-screen editor, Shopee / TikTok / WhatsApp links (several per platform, each with an optional label), "Show on my page" toggle |
 | Drawer media | Add photos (several at one time), add a video, add from the watermark library, remove, drag to reorder, move earlier. The first photo is the cover |
 | "Use my number" | Fills that WhatsApp link from the profile number, with an order message that includes the product name |
 | Delete product | Two taps: "Delete", then "Tap again to delete". Also deletes the product's media from R2 |
 | Validation | Name is required. At least one buy link is required. Each link must start with `https://`. The server applies the same rules |
 | Categories | Add, rename, move up and down, delete. Delete is blocked while the category has products. Names are unique |
-| Profile | Avatar upload (400 px), page name, handle, bio, WhatsApp number. Changes save automatically |
+| Profile | Avatar upload (400 px), page name, handle, bio (Enter starts a new paragraph), WhatsApp number. Changes save automatically |
 | Watermark | Settings with a live preview: text (default: the handle), font, position (moving bounce or a fixed corner), size, opacity, speed. "+ Add photos & videos" takes many files. The server watermarks them one at a time. Each batch keeps the settings it was added with, and they become the next defaults |
 | Watermark uploads | One upload at a time, with a progress bar. The queue continues while the admin uses other tabs. The page asks before it closes, and keeps the screen awake. The upload stops if the page closes, because a browser cannot upload from a closed page |
 | Watermark library | Each file shows "Waiting", "Watermarking" with a percentage, "Ready" or "Failed". Failed: "Try again", Delete. The list updates every 3 s while work is running |
@@ -167,6 +168,13 @@ erDiagram
     PRODUCT ||--o{ MEDIA : has
     PRODUCT ||--o{ LINK : has
     FOLDER |o--o{ JOB : holds
+    CLICK {
+        int id PK
+        int link_id "no foreign key, history survives deletes"
+        int product_id
+        text platform
+        int at "epoch ms, indexed"
+    }
     FOLDER {
         int id PK
         text name "unique"
@@ -240,7 +248,7 @@ erDiagram
 |---|---|---|
 | `/` | Public | The page, SSR |
 | `/go/$linkId` | Public | Add 1 to the link's click count, then redirect (302) to its URL |
-| `/admin` | Allowlist | Admin with 5 tabs |
+| `/admin` | Allowlist | Admin with 6 tabs |
 | `/admin/login` | Public | Sign-in screen |
 | `/api/auth/google` | Public | Start the Google OAuth flow |
 | `/api/auth/google/callback` | Public | Finish the flow, check the allowlist, set the session cookie |

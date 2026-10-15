@@ -14,7 +14,20 @@
 | Previewer | Admin, Watermark tab | Tap a ready file to see it full size, play videos, and swipe through the rest. Add it to a product, move it, copy its link, or delete it from there |
 | Folders | Admin, Watermark tab | Make folders to sort the library. Uploads go into the folder that is open. Deleting a folder keeps its files in Unfiled |
 
+| Analytics tab | Admin | Taps by day, by hour of day and by day of week, taps per shop, top products and top buy links, with insights in plain sentences. Choose 7, 30 or 90 days. Times are Malaysia time |
+| One button per shop | Public page, product view | A shop with several links shows one button, "Buy on Shopee · 2 options", that opens the list of options |
+| Bio paragraphs | Profile, public page | Press Enter in the bio to start a new paragraph |
+
+### Changed
+
+| Change | Where |
+|---|---|
+| "Nothing here yet" uses the same font as the page, in bold | Public page |
+| The privacy page says that the time of each tap is recorded | Privacy |
+
 ### Notes
+
+- The analytics charts start from this release. Earlier taps are in the all-time total only, because their times were not recorded.
 
 - Keep the page open until the uploads finish. A phone browser cannot upload from a closed page. The page asks before it closes and keeps the screen awake while uploading.
 - Videos are saved at up to 1080p as MP4. iPhone HDR videos are converted so their colours look right. Location data is removed from the files.
