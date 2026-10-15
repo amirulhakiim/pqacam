@@ -21,11 +21,14 @@ test('ffmpeg progress lines survive split output chunks', async () => {
 test('a portrait phone clip is turned and capped at 1920 on the long edge', () => {
   const p = parseProbe(
     JSON.stringify({
-      streams: [{ codec_type: 'video', width: 3840, height: 2160, color_transfer: 'arib-std-b67', side_data_list: [{ rotation: -90 }] }],
+      streams: [
+        { codec_type: 'video', codec_name: 'hevc', width: 3840, height: 2160, color_transfer: 'arib-std-b67', side_data_list: [{ rotation: -90 }] },
+        { codec_type: 'audio', codec_name: 'aac' },
+      ],
       format: { duration: '12.5' },
     }),
   )
-  expect(p).toEqual({ width: 2160, height: 3840, hdr: 'arib-std-b67', duration: 12.5 })
+  expect(p).toEqual({ width: 2160, height: 3840, hdr: 'arib-std-b67', duration: 12.5, codec: 'hevc', audioCodec: 'aac' })
   expect(outputSize(p)).toEqual({ width: 1080, height: 1920 })
 })
 
@@ -111,6 +114,23 @@ test('compress only: no drawtext, and the size cap pass is 720p at a fitted bitr
   expect(capped).toContain(String(cap.videoBitrate))
   expect(capped).not.toContain('-crf')
 })
+
+test.skipIf(!hasFfmpeg)('an H.264 video is repackaged without re-encoding, keeping its rotation and dropping its tags', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'wm-'))
+  const mov = join(dir, 'in.mov')
+  await Bun.spawn(['ffmpeg', '-v', 'error', '-f', 'lavfi', '-i', 'testsrc=size=640x360:duration=1', '-f', 'lavfi', '-i', 'sine=duration=1',
+    '-shortest', '-c:v', 'libx264', '-c:a', 'aac', '-metadata', 'location=+03.1390+101.6869/', mov]).exited
+  const rotated = join(dir, 'rotated.mov')
+  await Bun.spawn(['ffmpeg', '-v', 'error', '-display_rotation', '90', '-i', mov, '-c', 'copy', '-metadata', 'location=+03.1390+101.6869/', rotated]).exited
+  const out = join(dir, 'out.mp4')
+  await watermarkFile('video', rotated, out, join(dir, 't.txt'), null, () => {})
+  const before = await Bun.file(rotated).bytes()
+  const info = JSON.parse(await new Response(Bun.spawn(['ffprobe', '-v', 'error', '-show_streams', '-show_format', '-of', 'json', out]).stdout).text())
+  expect(info.streams.map((x: { codec_name: string }) => x.codec_name)).toEqual(['h264', 'aac'])
+  expect(info.format.tags?.location).toBeUndefined()
+  expect((await probe(out)).width).toBe(360)
+  expect(Bun.file(out).size).toBeLessThan(before.length * 1.1)
+}, 60_000)
 
 test.skipIf(!hasFfmpeg)('a video over the limit is compressed again until it fits, keeping its sound', async () => {
   const dir = mkdtempSync(join(tmpdir(), 'wm-'))

@@ -7,7 +7,7 @@ const FONT_DIR = resolve(existsSync('public/fonts') ? 'public/fonts' : 'dist/cli
 export const fontFile = (font: WatermarkSettings['font']) => `${FONT_DIR}/${font}.ttf`
 
 // hdr is the transfer of an HDR video, or false for SDR.
-export type Probe = { width: number; height: number; hdr: false | 'smpte2084' | 'arib-std-b67'; duration: number }
+export type Probe = { width: number; height: number; hdr: false | 'smpte2084' | 'arib-std-b67'; duration: number; codec?: string; audioCodec?: string | null }
 const MAX_EDGE = 1920
 const even = (n: number) => Math.max(2, Math.round(n / 2) * 2)
 
@@ -27,6 +27,8 @@ export function parseProbe(json: string): Probe {
     height: turned ? v.width : v.height,
     hdr: ['smpte2084', 'arib-std-b67'].includes(v.color_transfer) ? v.color_transfer : false,
     duration,
+    codec: v.codec_name,
+    audioCodec: (data.streams ?? []).find((s: { codec_type?: string }) => s.codec_type === 'audio')?.codec_name ?? null,
   }
 }
 
@@ -70,13 +72,18 @@ export const sizeCap = (duration: number, limit = MAX_VIDEO_BYTES): SizeCap => (
 export function videoArgs(input: string, output: string, textFile: string, s: WatermarkSettings | null, p: Probe, cap?: SizeCap): string[] {
   const out = outputSize(p, cap?.maxEdge)
   const filter = [p.hdr && tonemap(p.hdr), `scale=${out.width}:${out.height}`, s && drawtext(s, out.width, textFile, false)].filter(Boolean).join(',')
-  const rate = cap ? ['-b:v', String(cap.videoBitrate), '-maxrate', String(Math.round(cap.videoBitrate * 1.2)), '-bufsize', String(cap.videoBitrate * 2)] : ['-crf', '23']
+  const rate = cap ? ['-b:v', String(cap.videoBitrate), '-maxrate', String(Math.round(cap.videoBitrate * 1.2)), '-bufsize', String(cap.videoBitrate * 2)] : ['-crf', '18']
   return [
     ...['-hide_banner', '-nostats', '-y', '-i', input, '-vf', filter, '-map', '0:v:0', '-map', '0:a:0?'],
     // -map_metadata -1 drops the phone's GPS location and other tags.
     ...['-map_metadata', '-1', '-c:v', 'libx264', '-preset', 'veryfast', ...rate, '-pix_fmt', 'yuv420p'],
     ...['-c:a', 'aac', '-b:a', cap ? '96k' : '128k', '-movflags', '+faststart', '-threads', '2', '-progress', 'pipe:1', output],
   ]
+}
+
+export function remuxArgs(input: string, output: string, p: Probe): string[] {
+  const audio = p.audioCodec === 'aac' ? ['-c:a', 'copy'] : ['-c:a', 'aac', '-b:a', '192k']
+  return ['-hide_banner', '-nostats', '-y', '-i', input, '-map', '0:v:0', '-map', '0:a:0?', '-map_metadata', '-1', '-c:v', 'copy', ...audio, '-movflags', '+faststart', output]
 }
 
 export function photoArgs(input: string, output: string, textFile: string, s: WatermarkSettings, p: Probe): string[] {
@@ -150,6 +157,10 @@ export async function watermarkFile(
     if (!s) throw new Error('a photo needs watermark settings')
     await run(['ffmpeg', ...photoArgs(input, output, textFile, s, p)])
     return Bun.file(output).size
+  }
+  if (!s && p.codec === 'h264' && !p.hdr) {
+    await run(['ffmpeg', ...remuxArgs(input, output, p)])
+    if (Bun.file(output).size <= limit) return Bun.file(output).size
   }
   // Keep room for a second pass and the upload to storage, without moving the progress backwards.
   const encode = (cap: SizeCap | undefined, from: number, span: number) =>
