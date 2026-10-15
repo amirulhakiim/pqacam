@@ -3,6 +3,7 @@ import { wrap } from '../../lib/filter'
 import { PLATFORM_LABEL } from '../../lib/platforms'
 import type { PublicProduct } from '../../server/catalog'
 import { PLATFORMS } from '../../server/validate'
+import { Lightbox } from './Lightbox'
 
 type Props = { product: PublicProduct; hidden: boolean; onClose: () => void }
 
@@ -13,6 +14,7 @@ export function ProductSheet({ product, hidden, onClose }: Props) {
   // Autoplay needs a muted video, so sound starts off and the visitor turns it on.
   const [sound, setSound] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [full, setFull] = useState(false)
 
   // The phone's share sheet where there is one, otherwise the link is copied.
   async function share() {
@@ -60,6 +62,11 @@ export function ProductSheet({ product, hidden, onClose }: Props) {
             const dx = e.clientX - (swipeStart.current ?? e.clientX)
             swipeStart.current = null
             if (Math.abs(dx) > 40) go(current + (dx < 0 ? 1 : -1))
+            // A tap, not a swipe, on the media itself (not on a button over it) opens it full screen.
+            else if (Math.abs(dx) < 8 && media.length && !(e.target as HTMLElement).closest('button')) {
+              setPaused(true)
+              setFull(true)
+            }
           }}
         >
           <div className="pp-track" style={{ transform: `translateX(${-current * 100}%)` }}>
@@ -193,6 +200,7 @@ export function ProductSheet({ product, hidden, onClose }: Props) {
           </div>
         )}
       </div>
+      {full && <Lightbox media={media} index={current} onIndex={go} hidden={hidden} onClose={() => setFull(false)} />}
     </div>
   )
 }

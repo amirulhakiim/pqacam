@@ -112,7 +112,8 @@ button { font: inherit; color: inherit; }
 .pp-sheet { width: 100%; max-width: 460px; max-height: 92vh; overflow-y: auto; box-sizing: border-box; background: oklch(0.985 0.006 80); border-radius: 28px 28px 0 0; padding: 10px 20px 28px; display: flex; flex-direction: column; gap: 16px; animation: sheet-up 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); }
 .pp-grip { align-self: center; width: 40px; height: 4px; margin: 4px 0; border-radius: 2px; background: oklch(0.85 0.01 70); }
 /* Square and capped at 40% of the screen, so the title and buy buttons show without scrolling. */
-.pp-stage { position: relative; flex: none; aspect-ratio: 1 / 1; max-height: 40vh; border-radius: 20px; overflow: hidden; touch-action: pan-y; background: repeating-linear-gradient(135deg, oklch(0.9 0.03 70) 0 8px, oklch(0.95 0.01 75) 8px 16px); }
+/* width follows the 40vh cap, so on a short phone the square is narrower than the sheet: centred, not left aligned. */
+.pp-stage { position: relative; flex: none; aspect-ratio: 1 / 1; width: min(100%, 40vh); align-self: center; cursor: zoom-in; border-radius: 20px; overflow: hidden; touch-action: pan-y; background: repeating-linear-gradient(135deg, oklch(0.9 0.03 70) 0 8px, oklch(0.95 0.01 75) 8px 16px); }
 .pp-track { display: flex; height: 100%; transition: transform 0.55s cubic-bezier(0.2, 0.8, 0.2, 1); }
 .pp-slide { position: relative; flex: 0 0 100%; height: 100%; }
 .pp-slide video, .pp-cover video { pointer-events: none; }
@@ -121,6 +122,12 @@ button { font: inherit; color: inherit; }
 .pp-counter { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 3; font-size: 11.5px; font-weight: 600; background: oklch(0.99 0.004 80 / 0.85); color: oklch(0.35 0.02 60); padding: 4px 10px; border-radius: 999px; }
 .pp-round { position: absolute; z-index: 5; width: 40px; height: 40px; border-radius: 50%; border: none; background: oklch(0.99 0.004 80 / 0.85); color: oklch(0.35 0.02 60); font-size: 18px; cursor: pointer; }
 .pp-sound { right: 10px; bottom: 10px; }
+.pp-lightbox { width: 100vw; height: 100dvh; max-width: none; max-height: none; margin: 0; padding: 0; border: none; background: oklch(0.15 0.01 60); color: var(--surface); }
+.pp-lightbox::backdrop { background: oklch(0.15 0.01 60); }
+.pp-lightbox-stage { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; touch-action: pan-y; }
+.pp-lightbox-stage img, .pp-lightbox-stage video { max-width: 100%; max-height: 100%; object-fit: contain; display: block; }
+.pp-lightbox-close { top: calc(12px + env(safe-area-inset-top)); right: 12px; font-size: 16px; }
+.pp-lightbox-counter { top: calc(18px + env(safe-area-inset-top)); }
 .pp-sound svg { width: 20px; height: 20px; fill: currentColor; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .pp-close { top: 10px; right: 10px; font-size: 16px; background: var(--surface); }
 .pp-prev { left: 10px; top: 50%; transform: translateY(-50%); }
@@ -210,6 +217,8 @@ button { font: inherit; color: inherit; }
 .adm-sub { font-size: 13.5px; color: var(--ink-soft); }
 .adm-head-actions { display: flex; gap: 10px; flex-wrap: wrap; }
 .adm-input { box-sizing: border-box; width: 100%; min-width: 0; height: 44px; padding: 0 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); font: inherit; font-size: 14.5px; color: var(--ink); outline: none; }
+/* The native arrow sits against the right edge. This one has the same inset as the text. */
+select.adm-input { appearance: none; -webkit-appearance: none; padding-right: 38px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 4.5 6 8l3.5-3.5' fill='none' stroke='%237a6a5c' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; background-size: 12px; }
 .adm-input:focus { border-color: oklch(0.7 0.06 150); }
 .adm-input::placeholder { color: oklch(0.62 0.02 70); }
 textarea.adm-input { height: auto; padding: 12px 14px; line-height: 1.55; resize: vertical; }
