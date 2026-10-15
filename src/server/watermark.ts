@@ -17,11 +17,16 @@ export function parseProbe(json: string): Probe {
   if (!v) throw new Error('no video stream')
   const rotation = Number(v.side_data_list?.find((d: { rotation?: number }) => d.rotation !== undefined)?.rotation ?? v.tags?.rotate ?? 0)
   const turned = Math.abs(rotation) % 180 === 90
+  const [rate, divisor] = String(v.avg_frame_rate ?? '').split('/').map(Number)
+  const frames = Number(v.nb_frames)
+  const duration = [data.format?.duration, v.duration, frames > 0 && rate > 0 && divisor > 0 ? (frames * divisor) / rate : 0]
+    .map(Number)
+    .find((value) => Number.isFinite(value) && value > 0) ?? 0
   return {
     width: turned ? v.height : v.width,
     height: turned ? v.width : v.height,
     hdr: ['smpte2084', 'arib-std-b67'].includes(v.color_transfer) ? v.color_transfer : false,
-    duration: Number(data.format?.duration ?? v.duration ?? 0) || 0,
+    duration,
   }
 }
 
@@ -78,15 +83,29 @@ export function photoArgs(input: string, output: string, textFile: string, s: Wa
   return ['-hide_banner', '-nostats', '-y', '-i', input, '-vf', drawtext(s, p.width, textFile, true), '-map_metadata', '-1', '-q:v', '3', '-frames:v', '1', '-update', '1', output]
 }
 
+export async function* streamLines(stream: AsyncIterable<Uint8Array>): AsyncGenerator<string> {
+  const decoder = new TextDecoder()
+  let pending = ''
+  for await (const chunk of stream) {
+    pending += decoder.decode(chunk, { stream: true })
+    let newline = pending.indexOf('\n')
+    while (newline !== -1) {
+      yield pending.slice(0, newline)
+      pending = pending.slice(newline + 1)
+      newline = pending.indexOf('\n')
+    }
+  }
+  pending += decoder.decode()
+  if (pending) yield pending
+}
+
 async function run(cmd: string[], onLine?: (line: string) => void): Promise<string> {
   const proc = Bun.spawn(cmd, { stdout: 'pipe', stderr: 'pipe' })
   const stderr = new Response(proc.stderr).text()
   let stdout = ''
-  const decoder = new TextDecoder()
-  for await (const chunk of proc.stdout) {
-    const text = decoder.decode(chunk, { stream: true })
-    stdout += text
-    if (onLine) for (const line of text.split('\n')) onLine(line)
+  for await (const line of streamLines(proc.stdout)) {
+    if (onLine) onLine(line)
+    else stdout += `${line}\n`
   }
   if ((await proc.exited) !== 0) throw new Error(`${cmd[0]} failed: ${(await stderr).trim().split('\n').slice(-3).join(' | ')}`)
   return stdout
@@ -115,15 +134,15 @@ export async function watermarkFile(
     await run(['ffmpeg', ...photoArgs(input, output, textFile, s, p)])
     return Bun.file(output).size
   }
-  // The second pass, when it runs, reports the second half of the progress.
+  // Keep room for a second pass and the upload to storage, without moving the progress backwards.
   const encode = (cap: SizeCap | undefined, from: number, span: number) =>
     run(['ffmpeg', ...videoArgs(input, output, textFile, s, p, cap)], (line) => {
       const us = line.startsWith('out_time_us=') ? Number(line.slice(12)) : NaN
-      if (p.duration && us > 0) onProgress(Math.min(99, Math.floor(from + (span * us) / 1e6 / p.duration)))
+      if (p.duration && us > 0) onProgress(Math.min(from + span, Math.max(1, Math.floor(from + (span * us) / 1e6 / p.duration))))
     })
-  await encode(undefined, 0, 100)
+  await encode(undefined, 0, 90)
   if (Bun.file(output).size <= limit) return Bun.file(output).size
-  await encode(sizeCap(p.duration, limit), 50, 50)
+  await encode(sizeCap(p.duration, limit), 90, 9)
   const size = Bun.file(output).size
   if (size > limit) throw new TooLargeError(`still ${size} bytes`)
   return size

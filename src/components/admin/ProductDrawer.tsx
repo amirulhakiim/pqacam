@@ -75,8 +75,8 @@ export function ProductDrawer({ product, data, act, flash, onClose }: Props) {
     if (!uploaded.ok) return fail(`${file.name}: ${uploaded.error}`)
     const started = await compressVideoFn({ data: { type: 'video', key: uploaded.value.key, name: file.name } })
     if (!started.ok) return fail(`${file.name}: ${started.error}`)
-    setStage(`Compressing ${file.name}`)
-    setProgress(0)
+    setStage(`Preparing ${file.name}`)
+    setProgress(null)
     while (open.current) {
       await new Promise((r) => setTimeout(r, 2000))
       const r = await takeJobFn({ data: started.value })
@@ -84,7 +84,8 @@ export function ProductDrawer({ product, data, act, flash, onClose }: Props) {
       const job = r.value
       if (job.status === 'failed') return fail(`${file.name}: ${job.error}`)
       if (job.status !== 'done' || !('key' in job)) {
-        setProgress(job.progress / 100)
+        setStage(job.progress > 0 ? `Compressing ${file.name}` : `Preparing ${file.name}`)
+        setProgress(job.progress > 0 ? job.progress / 100 : null)
         continue
       }
       setDraft((d) => ({ ...d, media: [...d.media, { type: 'video', key: job.key!, url: job.url! }] }))

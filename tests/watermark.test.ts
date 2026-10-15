@@ -3,10 +3,20 @@ import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { DEFAULT_WATERMARK, type WatermarkSettings } from '../src/server/validate'
-import { outputSize, parseProbe, photoArgs, probe, sizeCap, TooLargeError, videoArgs, watermarkFile } from '../src/server/watermark'
+import { outputSize, parseProbe, photoArgs, probe, sizeCap, streamLines, TooLargeError, videoArgs, watermarkFile } from '../src/server/watermark'
 
 const s: WatermarkSettings = { ...DEFAULT_WATERMARK, text: "@me: it's 100%" }
 const vf = (args: string[]) => args[args.indexOf('-vf') + 1]
+
+test('ffmpeg progress lines survive split output chunks', async () => {
+  const encoder = new TextEncoder()
+  async function* chunks() {
+    for (const part of ['out_time_', 'us=125', '0000\npro', 'gress=continue\nout_time_us=25', '00000\n']) yield encoder.encode(part)
+  }
+  const lines: string[] = []
+  for await (const line of streamLines(chunks())) lines.push(line)
+  expect(lines).toEqual(['out_time_us=1250000', 'progress=continue', 'out_time_us=2500000'])
+})
 
 test('a portrait phone clip is turned and capped at 1920 on the long edge', () => {
   const p = parseProbe(
@@ -17,6 +27,12 @@ test('a portrait phone clip is turned and capped at 1920 on the long edge', () =
   )
   expect(p).toEqual({ width: 2160, height: 3840, hdr: 'arib-std-b67', duration: 12.5 })
   expect(outputSize(p)).toEqual({ width: 1080, height: 1920 })
+})
+
+test('video duration falls back to stream metadata when the container has none', () => {
+  const stream = { codec_type: 'video', width: 1920, height: 1080, duration: '4.5', nb_frames: '135', avg_frame_rate: '30/1' }
+  expect(parseProbe(JSON.stringify({ streams: [stream], format: { duration: 'N/A' } })).duration).toBe(4.5)
+  expect(parseProbe(JSON.stringify({ streams: [{ ...stream, duration: 'N/A' }], format: { duration: '0' } })).duration).toBe(4.5)
 })
 
 test('video filter: tone map for HDR only, then scale, then the bounce', () => {
@@ -57,7 +73,7 @@ test.skipIf(!hasFfmpeg)('ffmpeg watermarks a real video and a real photo', async
     Bun.spawn(['ffprobe', '-v', 'error', '-show_entries', 'stream=codec_name', '-of', 'csv=p=0', join(dir, 'out.mp4')]).stdout,
   ).text()
   expect(streams.split('\n').filter(Boolean).sort()).toEqual(['aac', 'h264'])
-  expect(seen.length).toBeGreaterThan(0)
+  expect(Math.max(...seen)).toBeGreaterThan(0)
   expect((await probe(join(dir, 'out.jpg'))).width).toBe(1000)
 }, 60_000)
 
@@ -108,6 +124,7 @@ test.skipIf(!hasFfmpeg)('a video over the limit is compressed again until it fit
   expect(bytes).toBeLessThanOrEqual(300_000)
   expect(bytes).toBe(Bun.file(out).size)
   expect(Math.max(...seen)).toBeGreaterThanOrEqual(50)
+  expect(seen).toEqual([...seen].sort((a, b) => a - b))
   const streams = await new Response(
     Bun.spawn(['ffprobe', '-v', 'error', '-show_entries', 'stream=codec_name,width', '-of', 'csv=p=0', out]).stdout,
   ).text()
