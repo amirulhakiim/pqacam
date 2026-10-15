@@ -36,6 +36,9 @@ export async function runJob(db: Db, row: Row) {
   const input = join(dir, `in.${row.sourceKey.split('.').pop()}`)
   const output = join(dir, `out.${ext}`)
   let lastWrite = 0
+  const startedAt = Date.now()
+  const timing = { queueMs: startedAt - row.createdAt, downloadMs: 0, processMs: 0, uploadMs: 0 }
+  console.info('Media job started', { id: row.id, type: row.type, queueMs: timing.queueMs })
   try {
     // A job for a product video compresses only. Its settings hold { compressOnly: true } instead of a watermark.
     const saved = JSON.parse(row.settings)
@@ -43,13 +46,21 @@ export async function runJob(db: Db, row: Row) {
     if (!settings.ok) throw new Error(settings.error)
     await mkdir(dir, { recursive: true })
     await getToFile(row.sourceKey, input)
+    timing.downloadMs = Date.now() - startedAt
+    console.info('Media job downloaded', { id: row.id, downloadMs: timing.downloadMs })
+    const processStarted = Date.now()
     const bytes = await watermarkFile(row.type, input, output, join(dir, 'text.txt'), settings.value, (percent) => {
       if (Date.now() - lastWrite < 2000) return
       lastWrite = Date.now()
       catalog.setJobProgress(db, row.id, percent)
     })
+    timing.processMs = Date.now() - processStarted
+    console.info('Media job processed', { id: row.id, processMs: timing.processMs })
     const key = newKey(row.type, ext)
+    const uploadStarted = Date.now()
     await putFile(key, output, row.type === 'video' ? 'video/mp4' : 'image/jpeg')
+    timing.uploadMs = Date.now() - uploadStarted
+    console.info('Media job uploaded', { id: row.id, uploadMs: timing.uploadMs })
     catalog.finishJob(db, row.id, key, bytes)
     await deleteObjects([row.sourceKey])
   } catch (error) {
@@ -62,6 +73,7 @@ export async function runJob(db: Db, row: Row) {
         : 'Could not process this file. Try again, or upload it again.',
     )
   } finally {
+    console.info('Media job timing', { id: row.id, type: row.type, ...timing, elapsedMs: Date.now() - startedAt })
     await rm(dir, { recursive: true, force: true })
   }
 }
