@@ -5,10 +5,10 @@ export const isPlatform = (v: string): v is Platform => (PLATFORMS as readonly s
 export type Result<T> = { ok: true; value: T } | { ok: false; error: string }
 const fail = (error: string) => ({ ok: false, error }) as const
 
-export const SOCIALS = ['instagram', 'tiktok', 'facebook', 'youtube', 'x'] as const
+export const SOCIALS = ['instagram', 'tiktok', 'threads', 'facebook', 'youtube', 'x'] as const
 export type Social = (typeof SOCIALS)[number]
 export type Socials = Partial<Record<Social, string>>
-export const SOCIAL_LABEL: Record<Social, string> = { instagram: 'Instagram', tiktok: 'TikTok', facebook: 'Facebook', youtube: 'YouTube', x: 'X' }
+export const SOCIAL_LABEL: Record<Social, string> = { instagram: 'Instagram', tiktok: 'TikTok', threads: 'Threads', facebook: 'Facebook', youtube: 'YouTube', x: 'X' }
 
 export type MediaInput = { type: 'photo' | 'video'; key: string }
 // id is set for a link that already exists, so its click count is kept.
