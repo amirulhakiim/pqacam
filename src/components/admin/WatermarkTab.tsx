@@ -54,7 +54,7 @@ export function WatermarkTab({ data, act, flash, uploads }: TabProps & { uploads
         <label className="adm-wm-target">
           <span className="adm-sub">Save to</span>
           <select className="adm-input adm-wm-attach" value={uploadFolder ?? ''} onChange={(e) => setUploadFolder(e.target.value ? Number(e.target.value) : null)}>
-            <option value="">Unfiled</option>
+            <option value="">No folder</option>
             {data.folders.map((f) => (
               <option key={f.id} value={f.id}>
                 {f.name}

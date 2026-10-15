@@ -108,7 +108,7 @@ export function Library({ data, act, flash, filter, onFilter }: Props) {
 
   async function removeFolder(id: number) {
     if (!armed(`folder-${id}`)) return
-    if (await act(deleteFolderFn({ data: id }), 'Folder deleted. Its files are in Unfiled')) onFilter('all')
+    if (await act(deleteFolderFn({ data: id }), 'Folder deleted. Its files are in No folder')) onFilter('all')
   }
 
   const pill = (key: FolderFilter, label: string, count: number) => (
@@ -120,14 +120,14 @@ export function Library({ data, act, flash, filter, onFilter }: Props) {
   return (
     <div className="adm-list adm-list-wide">
       <div className="adm-wm-folders">
-        {pill('all', 'All', done.length)}
-        {pill('unused', 'Unused', unusedCount)}
-        {pill('plain', 'No watermark', done.filter((j) => j.watermark === null).length)}
-        {pill('none', 'Unfiled', unfiled)}
-        {data.folders.map((f) => pill(f.id, f.name, done.filter((j) => j.folderId === f.id).length))}
         <button type="button" className="pill adm-wm-new" onClick={() => startNaming('new')}>
           + New folder
         </button>
+        {pill('all', 'All', done.length)}
+        {pill('unused', 'Unused', unusedCount)}
+        {pill('plain', 'No watermark', done.filter((j) => j.watermark === null).length)}
+        {pill('none', 'No folder', unfiled)}
+        {data.folders.map((f) => pill(f.id, f.name, done.filter((j) => j.folderId === f.id).length))}
       </div>
 
       {naming !== null && (

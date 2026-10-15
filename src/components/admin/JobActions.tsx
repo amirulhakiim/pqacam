@@ -59,11 +59,11 @@ export function JobActions({ job, data, act, flash, onDeleted }: Props) {
         aria-label="Folder"
         onChange={(e) => {
           const folderId = e.target.value ? Number(e.target.value) : null
-          const name = data.folders.find((f) => f.id === folderId)?.name ?? 'Unfiled'
+          const name = data.folders.find((f) => f.id === folderId)?.name ?? 'No folder'
           act(moveJobFn({ data: { id: job.id, folderId } }), `Moved to ${name}`)
         }}
       >
-        <option value="">Unfiled</option>
+        <option value="">No folder</option>
         {data.folders.map((f) => (
           <option key={f.id} value={f.id}>
             {f.name}

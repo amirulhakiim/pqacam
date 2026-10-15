@@ -32,7 +32,7 @@ export function LibraryPicker({ jobs, folders, taken, onPick, onClose }: Props) 
             onChange={(e) => setFilter(e.target.value === 'all' || e.target.value === 'none' ? e.target.value : Number(e.target.value))}
           >
             <option value="all">All folders</option>
-            <option value="none">Unfiled</option>
+            <option value="none">No folder</option>
             {folders.map((f) => (
               <option key={f.id} value={f.id}>
                 {f.name}

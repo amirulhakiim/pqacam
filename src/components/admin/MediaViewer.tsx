@@ -20,7 +20,7 @@ export function MediaViewer({ jobs, id, onId, onClose, data, act, flash }: Props
 
   if (!job) return null
   const go = (step: number) => jobs.length > 1 && onId(jobs[wrap(index + step, jobs.length)].id)
-  const folderName = data.folders.find((f) => f.id === job.folderId)?.name ?? 'Unfiled'
+  const folderName = data.folders.find((f) => f.id === job.folderId)?.name ?? 'No folder'
 
   return (
     <dialog
