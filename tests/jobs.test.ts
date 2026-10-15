@@ -75,16 +75,30 @@ test('only a failed job can be retried, and a processing job cannot be deleted',
   expect(c.deleteJob(db, id)).toEqual([raw(1)])
 })
 
-test('a library file on a product survives deleting either one', () => {
+test('a library file survives deleting its product, and cannot be deleted while a product uses it', () => {
   add(photo(1))
   const id = c.claimJob(db)!.id
   const out = 'photo/00000000-0000-4000-8000-000000000009.jpg'
   c.finishJob(db, id, out)
   const productId = productWith([out])
   expect(c.deleteProduct(db, productId)).toEqual([])
-  const again = productWith([out])
-  expect(c.deleteJob(db, id)).toEqual([])
-  expect(c.deleteProduct(db, again)).toEqual([out])
+  productWith([out])
+  expect(() => c.deleteJob(db, id)).toThrow('This file is on Tumbler. Remove it from that product first.')
+})
+
+test('product media joins the library once, is found by hash, and unused files are cleaned up', () => {
+  const out = 'photo/00000000-0000-4000-8000-000000000008.jpg'
+  const other = 'photo/00000000-0000-4000-8000-000000000007.jpg'
+  const hash = 'a'.repeat(64)
+  c.addMedia(db, { type: 'photo', key: out, name: 'a.jpg', hash })
+  c.addMedia(db, { type: 'photo', key: out, name: 'a.jpg', hash })
+  c.addMedia(db, { type: 'photo', key: other, name: 'b.jpg' })
+  expect(jobs()).toHaveLength(2)
+  expect(c.findMedia(db, hash)).toEqual({ status: 'done', type: 'photo', key: out })
+  expect(c.findMedia(db, 'b'.repeat(64))).toBeNull()
+  productWith([out])
+  expect(c.deleteUnusedJobs(db)).toEqual([other])
+  expect(jobs().map((j) => j.key)).toEqual([out])
 })
 
 test('attach adds the library file at the end of the product media, once', () => {
@@ -137,7 +151,7 @@ test('folder rules: unique names, upload into a folder, move, and delete keeps t
   expect(() => c.moveJob(db, ids[0], trips)).toThrow(c.UserError)
 })
 
-test('a product video compresses without a watermark, and the editor takes the result out of the library', async () => {
+test('a product video compresses without a watermark, and the result stays in the library', async () => {
   const raw = 'raw/00000000-0000-4000-8000-00000000000c.mp4'
   await Bun.spawn(['ffmpeg', '-v', 'error', '-f', 'lavfi', '-i', 'testsrc=size=640x360:duration=1', '-f', 'lavfi', '-i', 'sine=duration=1',
     '-shortest', '-c:v', 'libx264', '-c:a', 'aac', at(raw)]).exited
@@ -149,8 +163,7 @@ test('a product video compresses without a watermark, and the editor takes the r
   expect(taken.status).toBe('done')
   expect(taken.key).toMatch(/^video\/.+\.mp4$/)
   expect(taken.bytes).toBeGreaterThan(0)
-  expect(jobs()).toEqual([])
-  expect(() => c.takeJob(db, id, BASE)).toThrow(c.UserError)
+  expect(jobs()).toMatchObject([{ status: 'done', key: taken.key }])
 })
 
 test('a queued product video reports how many jobs are ahead of it', () => {

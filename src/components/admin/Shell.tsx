@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import type { AdminData } from '../../server/catalog'
 import type { Result } from '../../server/validate'
 
-export type Tab = 'products' | 'analytics' | 'watermark' | 'categories' | 'profile' | 'admins'
+export type Tab = 'products' | 'media' | 'analytics' | 'watermark' | 'categories' | 'profile' | 'admins'
 export type Act = (work: Promise<Result<unknown>>, done?: string) => Promise<boolean>
 export type TabProps = { data: AdminData; act: Act; flash: (text: string, error?: boolean) => void }
 
@@ -18,8 +18,9 @@ type Props = {
 export function Shell({ data, me, tab, onTab, onSignOut, children }: Props) {
   const nav: [Tab, string, number | ''][] = [
     ['products', 'Products', data.products.length],
+    ['media', 'Media', data.jobs.filter((j) => j.status === 'done').length],
     ['analytics', 'Analytics', ''],
-    ['watermark', 'Watermark', data.jobs.length],
+    ['watermark', 'Watermark', data.jobs.filter((j) => j.status !== 'done').length || ''],
     ['categories', 'Categories', data.categories.length],
     ['profile', 'Profile', ''],
     ['admins', 'Admin access', data.admins.length],

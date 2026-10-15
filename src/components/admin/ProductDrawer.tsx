@@ -209,7 +209,7 @@ export function ProductDrawer({ product, data, act, flash, onClose, onQueue }: P
 
   async function remove() {
     if (!confirmDelete) return setConfirmDelete(true)
-    if (await act(deleteProductFn({ data: draft.id! }), 'Product deleted')) onClose()
+    if (await act(deleteProductFn({ data: draft.id! }), 'Product deleted. Its photos and videos stay in Media.')) onClose()
   }
 
   return (

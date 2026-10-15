@@ -1,6 +1,11 @@
 import { createUploadFn } from '../server/fns'
 import type { Result, UploadKind } from '../server/validate'
 
+export async function mediaHash(file: Blob, tag: string): Promise<string> {
+  const digest = await crypto.subtle.digest('SHA-256', await new Blob([file, tag]).arrayBuffer())
+  return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, '0')).join('')
+}
+
 export async function resizeImage(file: Blob, max: number): Promise<Blob> {
   const bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' })
   const scale = Math.min(1, max / Math.max(bitmap.width, bitmap.height))

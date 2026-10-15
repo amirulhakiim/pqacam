@@ -101,6 +101,7 @@ export const job = sqliteTable('job', {
   createdAt: integer('created_at').notNull(),
   // Deleting a folder keeps its files: they go back to no folder.
   folderId: integer('folder_id').references(() => folder.id, { onDelete: 'set null' }),
+  hash: text('hash').notNull().default(''),
 })
 
 export const admin = sqliteTable('admin', {

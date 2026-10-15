@@ -12,7 +12,9 @@ import {
   type Result,
   type UploadKind,
   validateEmail,
+  validateHash,
   validateJobs,
+  validateLibraryMedia,
   validateProduct,
   validateUpload,
   isPlatform,
@@ -161,6 +163,22 @@ export const retryJobFn = createServerFn({ method: 'POST' })
 export const deleteJobFn = createServerFn({ method: 'POST' })
   .inputValidator((data: number) => data)
   .handler(({ data }) => asAdmin(() => deleteObjects(catalog.deleteJob(getDb(), int(data)))))
+
+export const deleteUnusedJobsFn = createServerFn({ method: 'POST' }).handler(() =>
+  asAdmin(async () => {
+    const keys = catalog.deleteUnusedJobs(getDb())
+    await deleteObjects(keys)
+    return keys.length
+  }),
+)
+
+export const addMediaFn = createServerFn({ method: 'POST' })
+  .inputValidator((data: JobInput) => data)
+  .handler(({ data }) => asAdmin(() => catalog.addMedia(getDb(), need(validateLibraryMedia(data)))))
+
+export const findMediaFn = createServerFn({ method: 'POST' })
+  .inputValidator((data: string) => data)
+  .handler(({ data }) => asAdmin(() => catalog.findMedia(getDb(), need(validateHash(data)))))
 
 export const attachMediaFn = createServerFn({ method: 'POST' })
   .inputValidator((data: { productId: number; jobId: number }) => data)

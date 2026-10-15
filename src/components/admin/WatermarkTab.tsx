@@ -1,6 +1,6 @@
 import { type CSSProperties, useState } from 'react'
 import type { WatermarkSettings } from '../../server/validate'
-import { type FolderFilter, JobQueue, Library } from './Library'
+import { JobQueue } from './Library'
 import type { TabProps } from './Shell'
 import type { Uploads } from './useUploads'
 
@@ -23,10 +23,7 @@ const POSITION_LABEL: Record<WatermarkSettings['position'], string> = {
 
 export function WatermarkTab({ data, act, flash, uploads }: TabProps & { uploads: Uploads }) {
   const [settings, setSettings] = useState(data.watermark)
-  const [section, setSection] = useState<'watermark' | 'library'>('watermark')
-  const [filter, setFilter] = useState<FolderFilter>('all')
   const [uploadFolder, setUploadFolder] = useState<number | null>(null)
-  const finished = data.jobs.filter((j) => j.status === 'done').length
   const set = (patch: Partial<WatermarkSettings>) => setSettings((s) => ({ ...s, ...patch }))
 
   function pick(files: FileList | null) {
@@ -40,135 +37,109 @@ export function WatermarkTab({ data, act, flash, uploads }: TabProps & { uploads
       <div className="adm-head">
         <div>
           <h2>Watermark</h2>
-          <div className="adm-sub">Upload photos and videos. The server adds your watermark, and they wait in the library.</div>
+          <div className="adm-sub">Upload photos and videos. The server adds your watermark, and finished files go to Media.</div>
         </div>
       </div>
-      <div className="adm-wm-folders" role="tablist" aria-label="Section">
-        <button
-          type="button"
-          role="tab"
-          aria-selected={section === 'watermark'}
-          className={section === 'watermark' ? 'pill pill-on' : 'pill'}
-          onClick={() => setSection('watermark')}
-        >
-          Watermark
-        </button>
-        <button
-          type="button"
-          role="tab"
-          aria-selected={section === 'library'}
-          className={section === 'library' ? 'pill pill-on' : 'pill'}
-          onClick={() => setSection('library')}
-        >
-          Library <span className="adm-wm-count">{finished}</span>
-        </button>
+      <div className="adm-wm-start">
+        <label className="btn btn-dark btn-round adm-wm-add">
+          + Add photos &amp; videos
+          <input
+            type="file"
+            accept="image/*,video/mp4,video/quicktime,video/webm"
+            multiple
+            hidden
+            onChange={(e) => (pick(e.target.files), (e.target.value = ''))}
+          />
+        </label>
+        <label className="adm-wm-target">
+          <span className="adm-sub">Save to</span>
+          <select className="adm-input adm-wm-attach" value={uploadFolder ?? ''} onChange={(e) => setUploadFolder(e.target.value ? Number(e.target.value) : null)}>
+            <option value="">Unfiled</option>
+            {data.folders.map((f) => (
+              <option key={f.id} value={f.id}>
+                {f.name}
+              </option>
+            ))}
+          </select>
+        </label>
       </div>
 
-      {section === 'library' && <Library data={data} act={act} flash={flash} filter={filter} onFilter={setFilter} />}
-      {section === 'watermark' && (
-        <>
-          <div className="adm-wm-start">
-            <label className="btn btn-dark btn-round adm-wm-add">
-              + Add photos &amp; videos
-              <input
-                type="file"
-                accept="image/*,video/mp4,video/quicktime,video/webm"
-                multiple
-                hidden
-                onChange={(e) => (pick(e.target.files), (e.target.value = ''))}
-              />
+      <div className="adm-list adm-form adm-list-wide adm-wm-settings">
+        <Preview settings={settings} />
+        <div className="adm-wm-fields">
+          <label className="adm-field">
+            <span className="adm-label">Watermark text</span>
+            <input className="adm-input" value={settings.text} maxLength={100} onChange={(e) => set({ text: e.target.value })} />
+          </label>
+          <div className="adm-two">
+            <label className="adm-field">
+              <span className="adm-label">Font</span>
+              <select className="adm-input" value={settings.font} onChange={(e) => set({ font: e.target.value as WatermarkSettings['font'] })}>
+                {Object.entries(FONT_LABEL).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
             </label>
-            <label className="adm-wm-target">
-              <span className="adm-sub">Save to</span>
-              <select className="adm-input adm-wm-attach" value={uploadFolder ?? ''} onChange={(e) => setUploadFolder(e.target.value ? Number(e.target.value) : null)}>
-                <option value="">Unfiled</option>
-                {data.folders.map((f) => (
-                  <option key={f.id} value={f.id}>
-                    {f.name}
+            <label className="adm-field">
+              <span className="adm-label">Position</span>
+              <select
+                className="adm-input"
+                value={settings.position}
+                onChange={(e) => set({ position: e.target.value as WatermarkSettings['position'] })}
+              >
+                {Object.entries(POSITION_LABEL).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
                   </option>
                 ))}
               </select>
             </label>
           </div>
-
-          <div className="adm-list adm-form adm-list-wide adm-wm-settings">
-            <Preview settings={settings} />
-            <div className="adm-wm-fields">
-              <label className="adm-field">
-                <span className="adm-label">Watermark text</span>
-                <input className="adm-input" value={settings.text} maxLength={100} onChange={(e) => set({ text: e.target.value })} />
-              </label>
-              <div className="adm-two">
-                <label className="adm-field">
-                  <span className="adm-label">Font</span>
-                  <select className="adm-input" value={settings.font} onChange={(e) => set({ font: e.target.value as WatermarkSettings['font'] })}>
-                    {Object.entries(FONT_LABEL).map(([value, label]) => (
-                      <option key={value} value={value}>
-                        {label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="adm-field">
-                  <span className="adm-label">Position</span>
-                  <select
-                    className="adm-input"
-                    value={settings.position}
-                    onChange={(e) => set({ position: e.target.value as WatermarkSettings['position'] })}
-                  >
-                    {Object.entries(POSITION_LABEL).map(([value, label]) => (
-                      <option key={value} value={value}>
-                        {label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              </div>
-              <div className="adm-two">
-                <Slider label="Size" unit="%" min={2} max={25} value={settings.size} onChange={(size) => set({ size })} />
-                <Slider label="Opacity" unit="%" min={10} max={100} value={settings.opacity} onChange={(opacity) => set({ opacity })} />
-                {settings.position === 'move' && (
-                  <Slider label="Speed" unit="" min={40} max={400} value={settings.speed} onChange={(speed) => set({ speed })} />
-                )}
-              </div>
-              <span className="adm-hint">
-                {settings.position === 'move' ? 'Photos get the bottom-right corner. ' : ''}Videos are saved at up to 1080p. Each batch uses
-                the settings at the time you add it.
-              </span>
-            </div>
+          <div className="adm-two">
+            <Slider label="Size" unit="%" min={2} max={25} value={settings.size} onChange={(size) => set({ size })} />
+            <Slider label="Opacity" unit="%" min={10} max={100} value={settings.opacity} onChange={(opacity) => set({ opacity })} />
+            {settings.position === 'move' && (
+              <Slider label="Speed" unit="" min={40} max={400} value={settings.speed} onChange={(speed) => set({ speed })} />
+            )}
           </div>
+          <span className="adm-hint">
+            {settings.position === 'move' ? 'Photos get the bottom-right corner. ' : ''}Videos are saved at up to 1080p. Each batch uses
+            the settings at the time you add it.
+          </span>
+        </div>
+      </div>
 
-          {uploads.items.length > 0 && (
-            <div className="adm-list adm-list-wide">
-              <div className="adm-wm-note">Uploading. You can use other tabs, but keep this page open until the uploads finish.</div>
-              {uploads.items.map((u) => (
-                <div className="adm-row adm-row-slim adm-wm-row" key={u.id}>
-                  <span className="adm-wm-name">{u.file.name}</span>
-                  {u.error ? (
-                    <>
-                      <span className="chip chip-warn">{u.error}</span>
-                      <div className="adm-row-actions">
-                        <button type="button" className="btn btn-soft" onClick={() => uploads.retry(u.id)}>
-                          Try again
-                        </button>
-                        <button type="button" className="btn-icon" onClick={() => uploads.remove(u.id)} title="Remove">
-                          ✕
-                        </button>
-                      </div>
-                    </>
-                  ) : (
-                    <span className="adm-bar">
-                      <span style={{ width: `${Math.round(u.progress * 100)}%` }} />
-                    </span>
-                  )}
-                </div>
-              ))}
+      {uploads.items.length > 0 && (
+        <div className="adm-list adm-list-wide">
+          <div className="adm-wm-note">Uploading. You can use other tabs, but keep this page open until the uploads finish.</div>
+          {uploads.items.map((u) => (
+            <div className="adm-row adm-row-slim adm-wm-row" key={u.id}>
+              <span className="adm-wm-name">{u.file.name}</span>
+              {u.error ? (
+                <>
+                  <span className="chip chip-warn">{u.error}</span>
+                  <div className="adm-row-actions">
+                    <button type="button" className="btn btn-soft" onClick={() => uploads.retry(u.id)}>
+                      Try again
+                    </button>
+                    <button type="button" className="btn-icon" onClick={() => uploads.remove(u.id)} title="Remove">
+                      ✕
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <span className="adm-bar">
+                  <span style={{ width: `${Math.round(u.progress * 100)}%` }} />
+                </span>
+              )}
             </div>
-          )}
-
-          <JobQueue data={data} act={act} />
-        </>
+          ))}
+        </div>
       )}
+
+      <JobQueue data={data} act={act} />
     </>
   )
 }

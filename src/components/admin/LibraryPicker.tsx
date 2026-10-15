@@ -22,7 +22,7 @@ export function LibraryPicker({ jobs, folders, taken, onPick, onClose }: Props) 
       onClick={(e) => e.target === ref.current && ref.current.close()}
     >
       <div className="adm-pick-head">
-        <h3>Watermarked files</h3>
+        <h3>Media</h3>
         <span className="adm-grow" />
         {folders.length > 0 && (
           <select
@@ -63,7 +63,7 @@ export function LibraryPicker({ jobs, folders, taken, onPick, onClose }: Props) 
         ))}
       </div>
       {ready.length === 0 && (
-        <div className="adm-none">{filter === 'all' ? 'No watermarked files yet. Add them in the Watermark tab.' : 'No files in this folder.'}</div>
+        <div className="adm-none">{filter === 'all' ? 'No media yet. Upload from a product or the Watermark tab.' : 'No files in this folder.'}</div>
       )}
     </dialog>
   )

@@ -139,7 +139,8 @@ export function validateWatermark(raw: unknown): Result<WatermarkSettings> {
 }
 
 const RAW_KEY = { photo: new RegExp(`^raw/${UUID}\\.jpg$`), video: new RegExp(`^raw/${UUID}\\.(mp4|webm|mov)$`) }
-export type JobInput = { type: 'photo' | 'video'; key: string; name: string }
+export type JobInput = { type: 'photo' | 'video'; key: string; name: string; hash?: string }
+const toHash = (v: unknown) => (typeof v === 'string' && /^[0-9a-f]{64}$/.test(v) ? v : '')
 
 export function validateJobs(raw: unknown): Result<JobInput[]> {
   const list = Array.isArray(raw) ? raw.slice(0, 200) : []
@@ -147,7 +148,7 @@ export function validateJobs(raw: unknown): Result<JobInput[]> {
   for (const j of list) {
     const type = j?.type === 'video' ? 'video' : 'photo'
     if (typeof j?.key !== 'string' || !RAW_KEY[type].test(j.key)) return fail('Upload the file again.')
-    jobs.push({ type, key: j.key, name: text(j.name, 200) || 'Untitled' })
+    jobs.push({ type, key: j.key, name: text(j.name, 200) || 'Untitled', hash: toHash(j.hash) })
   }
   return jobs.length ? { ok: true, value: jobs } : fail('Choose at least one photo or video.')
 }
@@ -155,3 +156,12 @@ export function validateJobs(raw: unknown): Result<JobInput[]> {
 export const RANGES = [7, 30, 90] as const
 export type Range = (typeof RANGES)[number]
 export const toRange = (v: unknown): Range => (RANGES.includes(v as Range) ? (v as Range) : 30)
+
+export function validateLibraryMedia(raw: unknown): Result<JobInput> {
+  const r = (raw ?? {}) as Record<string, unknown>
+  const type = r.type === 'video' ? 'video' : 'photo'
+  if (typeof r.key !== 'string' || !MEDIA_KEY[type].test(r.key)) return fail('Upload the file again.')
+  return { ok: true, value: { type, key: r.key, name: text(r.name, 200) || 'Untitled', hash: toHash(r.hash) } }
+}
+
+export const validateHash = (raw: unknown): Result<string> => (toHash(raw) ? { ok: true, value: toHash(raw) } : fail('Upload the file again.'))

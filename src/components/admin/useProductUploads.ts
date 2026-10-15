@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { resizeImage, uploadFile } from '../../lib/upload'
-import { compressVideoFn, saveProductFn, takeJobFn } from '../../server/fns'
+import { mediaHash, resizeImage, uploadFile } from '../../lib/upload'
+import { addMediaFn, compressVideoFn, findMediaFn, saveProductFn, takeJobFn } from '../../server/fns'
 import { type MediaInput, type ProductInput } from '../../server/validate'
 
 export type ProductMediaItem = MediaInput & { file?: File }
@@ -13,7 +13,7 @@ type Task = ProductUploadRequest & {
   error: string
 }
 
-export function useProductUploads(refresh: () => void) {
+export function useProductUploads(refresh: () => void, flash: (text: string) => void) {
   const [tasks, setTasks] = useState<Task[]>([])
   const busy = useRef(false)
   const patch = useCallback((id: string, change: Partial<Task>) => {
@@ -45,6 +45,7 @@ export function useProductUploads(refresh: () => void) {
       const media = [...task.media]
       const total = media.filter((item) => item.file).length
       let current = 0
+      let reused = 0
       for (let index = 0; index < media.length; index++) {
         const item = media[index]
         if (!item.file) continue
@@ -52,6 +53,15 @@ export function useProductUploads(refresh: () => void) {
         const count = total > 1 ? ` ${current}/${total}` : ''
         const file = item.file
         const startedAt = performance.now()
+        patch(task.id, { stage: `Checking${count}`, progress: null })
+        const hash = await mediaHash(file, 'plain')
+        const found = await findMediaFn({ data: hash })
+        if (found.ok && found.value?.status === 'done' && found.value.type === item.type) {
+          reused++
+          media[index] = { type: item.type, key: found.value.key }
+          patch(task.id, { media: [...media], progress: null })
+          continue
+        }
         patch(task.id, { stage: `Uploading${count}`, progress: 0 })
         const blob = item.type === 'photo' ? await resizeImage(file, 1000) : file
         const compress = item.type === 'video' && file.type === 'video/quicktime'
@@ -60,7 +70,7 @@ export function useProductUploads(refresh: () => void) {
         const uploadMs = Math.round(performance.now() - startedAt)
         let key = uploaded.value.key
         if (compress) {
-          const started = await compressVideoFn({ data: { type: 'video', key, name: file.name } })
+          const started = await compressVideoFn({ data: { type: 'video', key, name: file.name, hash } })
           if (!started.ok) throw new Error(`${file.name}: ${started.error}`)
           patch(task.id, { stage: `Preparing${count}`, progress: null })
           for (;;) {
@@ -81,6 +91,10 @@ export function useProductUploads(refresh: () => void) {
             })
           }
         }
+        if (!compress) {
+          const added = await addMediaFn({ data: { type: item.type, key, name: file.name, hash } })
+          if (!added.ok) throw new Error(`${file.name}: ${added.error}`)
+        }
         console.info('Product media timing', { productId: task.productId, type: item.type, bytes: file.size, uploadMs, queueAndProcessMs: Math.round(performance.now() - startedAt - uploadMs) })
         media[index] = { type: item.type, key }
         patch(task.id, { media: [...media], progress: null })
@@ -88,8 +102,9 @@ export function useProductUploads(refresh: () => void) {
       patch(task.id, { stage: 'Saving media', progress: null })
       const saved = await saveProductFn({ data: { ...task.input, media: media.map(({ type, key }) => ({ type, key })) } })
       if (!saved.ok) throw new Error(saved.error)
+      if (reused) flash(`${reused === 1 ? 'A file was' : `${reused} files were`} already in Media and reused`)
     }
-  }, [tasks, patch, refresh])
+  }, [tasks, patch, refresh, flash])
 
   const active = tasks.some((task) => task.status === 'queued' || task.status === 'running')
   const unfinished = tasks.length > 0

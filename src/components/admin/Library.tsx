@@ -1,15 +1,14 @@
 import { useState } from 'react'
 import type { AdminJob } from '../../server/catalog'
-import { addFolderFn, deleteFolderFn, deleteJobFn, renameFolderFn, retryJobFn } from '../../server/fns'
+import { addFolderFn, deleteFolderFn, deleteJobFn, deleteUnusedJobsFn, renameFolderFn, retryJobFn } from '../../server/fns'
 import { VideoThumb } from '../VideoThumb'
 import { JobActions } from './JobActions'
 import { MediaViewer } from './MediaViewer'
 import type { TabProps } from './Shell'
 
-// 'all' shows every file, 'none' the files in no folder, a number one folder.
-export type FolderFilter = 'all' | 'none' | number
+export type FolderFilter = 'all' | 'none' | 'unused' | number
 export const inFolder = (j: AdminJob, filter: FolderFilter) =>
-  filter === 'all' || (filter === 'none' ? j.folderId === null : j.folderId === filter)
+  filter === 'all' || (filter === 'unused' ? j.productIds.length === 0 : filter === 'none' ? j.folderId === null : j.folderId === filter)
 
 const STATUS: Record<AdminJob['status'], string> = { queued: 'Waiting', processing: 'Watermarking', done: 'Ready', failed: 'Failed' }
 
@@ -53,6 +52,21 @@ export function JobQueue({ data, act }: Pick<TabProps, 'data' | 'act'>) {
   )
 }
 
+export function MediaTab(props: TabProps) {
+  const [filter, setFilter] = useState<FolderFilter>('all')
+  return (
+    <>
+      <div className="adm-head">
+        <div>
+          <h2>Media</h2>
+          <div className="adm-sub">Every photo and video, from products and from Watermark. Deleting a product keeps its files here.</div>
+        </div>
+      </div>
+      <Library {...props} filter={filter} onFilter={setFilter} />
+    </>
+  )
+}
+
 export function Library({ data, act, flash, filter, onFilter }: Props) {
   const [viewing, setViewing] = useState<number | null>(null)
   const [naming, setNaming] = useState<'new' | number | null>(null)
@@ -62,6 +76,7 @@ export function Library({ data, act, flash, filter, onFilter }: Props) {
   const ready = done.filter((j) => inFolder(j, filter))
   const current = data.folders.find((f) => f.id === filter)
   const unfiled = done.filter((j) => j.folderId === null).length
+  const unusedCount = done.filter((j) => j.productIds.length === 0).length
   const productName = new Map(data.products.map((p) => [p.id, p.name]))
 
   // Two taps for anything that deletes. The key says which button is armed.
@@ -106,6 +121,7 @@ export function Library({ data, act, flash, filter, onFilter }: Props) {
     <div className="adm-list adm-list-wide">
       <div className="adm-wm-folders">
         {pill('all', 'All', done.length)}
+        {pill('unused', 'Unused', unusedCount)}
         {pill('none', 'Unfiled', unfiled)}
         {data.folders.map((f) => pill(f.id, f.name, done.filter((j) => j.folderId === f.id).length))}
         <button type="button" className="pill adm-wm-new" onClick={() => startNaming('new')}>
@@ -155,6 +171,20 @@ export function Library({ data, act, flash, filter, onFilter }: Props) {
         </div>
       )}
 
+      {filter === 'unused' && unusedCount > 0 && naming === null && (
+        <div className="adm-wm-folder-head">
+          <span className="adm-sub">Not on any product. Delete them to free space in the bucket.</span>
+          <span className="adm-grow" />
+          <button
+            type="button"
+            className={confirm === 'unused' ? 'btn btn-danger btn-danger-on' : 'btn btn-danger'}
+            onClick={() => armed('unused') && act(deleteUnusedJobsFn(), 'Unused files deleted')}
+          >
+            {confirm === 'unused' ? 'Tap again' : `Delete all ${unusedCount}`}
+          </button>
+        </div>
+      )}
+
       {ready.map((j) => (
         <div className="adm-row adm-wm-card" key={j.id}>
           <button type="button" className="adm-thumb" onClick={() => setViewing(j.id)} aria-label={`Open ${j.name}`}>
@@ -180,7 +210,7 @@ export function Library({ data, act, flash, filter, onFilter }: Props) {
         </div>
       ))}
       {ready.length === 0 && (
-        <div className="adm-none">{done.length ? 'No files in this folder.' : 'No finished files yet. Add photos and videos in the Watermark section.'}</div>
+        <div className="adm-none">{done.length ? (filter === 'unused' ? 'Every file is on a product.' : 'No files in this folder.') : 'No media yet. Upload from a product or the Watermark tab.'}</div>
       )}
 
       {viewing !== null && (

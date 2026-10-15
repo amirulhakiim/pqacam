@@ -86,8 +86,10 @@ test('a job needs a raw key of the matching type', () => {
   const raw = 'raw/0b9f6c1e-1c2d-4e3f-8a4b-5c6d7e8f9a0b'
   expect(validateJobs([{ type: 'video', key: `${raw}.mov`, name: 'a.mov' }])).toEqual({
     ok: true,
-    value: [{ type: 'video', key: `${raw}.mov`, name: 'a.mov' }],
+    value: [{ type: 'video', key: `${raw}.mov`, name: 'a.mov', hash: '' }],
   })
+  expect(validateJobs([{ type: 'video', key: `${raw}.mov`, name: 'a.mov', hash: 'f'.repeat(64) }])).toMatchObject({ value: [{ hash: 'f'.repeat(64) }] })
+  expect(validateJobs([{ type: 'video', key: `${raw}.mov`, name: 'a.mov', hash: 'not a hash' }])).toMatchObject({ value: [{ hash: '' }] })
   expect(validateJobs([{ type: 'photo', key: `${raw}.mov`, name: 'a' }]).ok).toBe(false)
   expect(validateJobs([{ type: 'video', key: KEY, name: 'a' }]).ok).toBe(false)
   expect(validateJobs([]).ok).toBe(false)

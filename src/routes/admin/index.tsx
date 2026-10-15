@@ -9,6 +9,7 @@ import { type Act, Shell, type Tab } from '../../components/admin/Shell'
 import { useUploads } from '../../components/admin/useUploads'
 import { useProductUploads } from '../../components/admin/useProductUploads'
 import { WatermarkTab } from '../../components/admin/WatermarkTab'
+import { MediaTab } from '../../components/admin/Library'
 import { getAdminDataFn, signOutFn } from '../../server/fns'
 
 export const Route = createFileRoute('/admin/')({
@@ -24,8 +25,8 @@ function Admin() {
   const [toast, setToast] = useState<{ text: string; error: boolean } | null>(null)
   const flash = useCallback((text: string, error = false) => setToast({ text, error }), [])
   const refresh = useCallback(() => void router.invalidate(), [router])
-  const uploads = useUploads(refresh)
-  const productUploads = useProductUploads(refresh)
+  const uploads = useUploads(refresh, flash)
+  const productUploads = useProductUploads(refresh, flash)
   const failedUploads = productUploads.tasks.some((task) => task.status === 'failed')
   const working = data.jobs.some((j) => j.status === 'queued' || j.status === 'processing')
 
@@ -79,6 +80,7 @@ function Admin() {
       )}
       {tab === 'products' && <ProductsTab {...props} uploads={productUploads} />}
       {tab === 'analytics' && <AnalyticsTab {...props} />}
+      {tab === 'media' && <MediaTab {...props} />}
       {tab === 'watermark' && <WatermarkTab {...props} uploads={uploads} />}
       {tab === 'categories' && <CategoriesTab {...props} />}
       {tab === 'profile' && <ProfileTab {...props} />}

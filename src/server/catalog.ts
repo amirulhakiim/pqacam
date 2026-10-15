@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, lt, notInArray, or, sql } from 'drizzle-orm'
+import { and, asc, desc, eq, inArray, lt, ne, notInArray, or, sql } from 'drizzle-orm'
 import type { Db } from './db'
 import { admin, category, click, folder, job, link, media, product, profile } from './schema'
 import { type BioSize, DEFAULT_WATERMARK, type JobInput, PLATFORMS, type ProductInput, validateWatermark, type WatermarkSettings } from './validate'
@@ -255,6 +255,19 @@ export function recordClick(db: Db, linkId: number, at = Date.now()): string | n
 }
 
 export type AdminJob = AdminData['jobs'][number]
+const PLAIN = JSON.stringify({ compressOnly: true })
+
+export function addMedia(db: Db, input: JobInput) {
+  if (db.select().from(job).where(eq(job.outputKey, input.key)).get()) return
+  db.insert(job)
+    .values({ type: input.type, name: input.name, sourceKey: '', outputKey: input.key, settings: PLAIN, status: 'done', progress: 100, createdAt: Date.now(), hash: input.hash ?? '' })
+    .run()
+}
+
+export function findMedia(db: Db, hash: string) {
+  const row = db.select().from(job).where(and(eq(job.hash, hash), ne(job.status, 'failed'))).orderBy(desc(job.id)).get()
+  return row ? { status: row.status, type: row.type, key: row.outputKey } : null
+}
 
 // The settings used for a batch also become the defaults for the next one.
 export function addJobs(db: Db, jobs: JobInput[], settings: WatermarkSettings, folderId: number | null = null) {
@@ -266,7 +279,7 @@ export function addJobs(db: Db, jobs: JobInput[], settings: WatermarkSettings, f
     tx.update(profile).set({ watermark: json }).where(eq(profile.id, 1)).run()
     const createdAt = Date.now()
     tx.insert(job)
-      .values(jobs.map((j) => ({ type: j.type, name: j.name, sourceKey: j.key, settings: json, createdAt, folderId })))
+      .values(jobs.map((j) => ({ type: j.type, name: j.name, sourceKey: j.key, settings: json, createdAt, folderId, hash: j.hash ?? '' })))
       .run()
   })
 }
@@ -300,13 +313,11 @@ export function finishJob(db: Db, id: number, outputKey: string, outputBytes = 0
 export function addCompressJob(db: Db, input: JobInput): number {
   return db
     .insert(job)
-    .values({ type: 'video', name: input.name, sourceKey: input.key, settings: JSON.stringify({ compressOnly: true }), createdAt: Date.now() })
+    .values({ type: 'video', name: input.name, sourceKey: input.key, settings: PLAIN, createdAt: Date.now(), hash: input.hash ?? '' })
     .returning({ id: job.id })
     .get().id
 }
 
-// The editor polls this. When the video is done, the job leaves the library and the editor takes the file.
-// If the editor was closed first, the job stays in the library, so the video is not lost.
 export function takeJob(db: Db, id: number, mediaBase: string) {
   const row = db.select().from(job).where(eq(job.id, id)).get()
   if (!row) throw new UserError('This video is no longer in the library.')
@@ -319,7 +330,6 @@ export function takeJob(db: Db, id: number, mediaBase: string) {
     return { status: row.status, progress: row.progress, error: row.error, ahead }
   }
   if (row.status !== 'done') return { status: row.status, progress: row.progress, error: row.error }
-  db.delete(job).where(eq(job.id, id)).run()
   return { status: row.status, progress: 100, error: '', key: row.outputKey, url: `${mediaBase}/${row.outputKey}`, bytes: row.outputBytes }
 }
 
@@ -338,8 +348,23 @@ export function deleteJob(db: Db, id: number): string[] {
   const row = db.select().from(job).where(eq(job.id, id)).get()
   if (!row) return []
   if (row.status === 'processing') throw new UserError('Wait until this file is finished.')
+  const users = row.outputKey ? productsUsing(db, row.outputKey) : []
+  if (users.length) throw new UserError(`This file is on ${users.join(', ')}. Remove it from ${users.length === 1 ? 'that product' : 'those products'} first.`)
   db.delete(job).where(eq(job.id, id)).run()
   return [row.sourceKey, ...unused(db, row.outputKey ? [row.outputKey] : [])].filter(Boolean)
+}
+
+function productsUsing(db: Db, key: string) {
+  const rows = db.select({ name: product.name }).from(media).innerJoin(product, eq(product.id, media.productId)).where(eq(media.r2Key, key)).all()
+  return [...new Set(rows.map((r) => r.name))]
+}
+
+export function deleteUnusedJobs(db: Db): string[] {
+  const used = new Set(db.select({ key: media.r2Key }).from(media).all().map((m) => m.key))
+  const rows = db.select().from(job).where(eq(job.status, 'done')).all().filter((j) => !used.has(j.outputKey))
+  if (!rows.length) return []
+  db.delete(job).where(inArray(job.id, rows.map((j) => j.id))).run()
+  return unused(db, [...new Set(rows.map((j) => j.outputKey).filter(Boolean))])
 }
 
 // The key comes from the job row, so a request cannot attach a file that is not in the library.

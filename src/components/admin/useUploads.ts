@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { resizeImage, uploadFile } from '../../lib/upload'
+import { mediaHash, resizeImage, uploadFile } from '../../lib/upload'
 import { mediaSizeError } from '../../lib/mediaSelection'
-import { addJobsFn } from '../../server/fns'
+import { addJobsFn, findMediaFn } from '../../server/fns'
 import type { WatermarkSettings } from '../../server/validate'
 
 export type Upload = {
@@ -17,7 +17,7 @@ export type Uploads = ReturnType<typeof useUploads>
 
 // Lives in the admin route, not in a tab, so uploads continue while the admin uses other tabs.
 // A browser cannot upload from a closed page, so the page warns before it closes and keeps the screen awake.
-export function useUploads(onUploaded: () => void) {
+export function useUploads(onUploaded: () => void, flash: (text: string) => void) {
   const [items, setItems] = useState<Upload[]>([])
   const busy = useRef(false)
   const update = (id: string, patch: Partial<Upload>) => setItems((list) => list.map((i) => (i.id === id ? { ...i, ...patch } : i)))
@@ -48,14 +48,20 @@ export function useUploads(onUploaded: () => void) {
         busy.current = false
         setItems((list) => [...list])
       })
-  }, [items, onUploaded])
+  }, [items, onUploaded, flash])
 
   async function send(item: Upload): Promise<string> {
     try {
+      const hash = await mediaHash(item.file, JSON.stringify(item.settings))
+      const found = await findMediaFn({ data: hash })
+      if (found.ok && found.value) {
+        flash(`${item.file.name} is already in Media with these settings`)
+        return ''
+      }
       const blob = item.type === 'photo' ? await resizeImage(item.file, 1000) : item.file
       const uploaded = await uploadFile('raw', blob, (progress) => update(item.id, { progress }))
       if (!uploaded.ok) return uploaded.error
-      const job = { type: item.type, key: uploaded.value.key, name: item.file.name }
+      const job = { type: item.type, key: uploaded.value.key, name: item.file.name, hash }
       const added = await addJobsFn({ data: { jobs: [job], settings: item.settings, folderId: item.folderId } })
       return added.ok ? '' : added.error
     } catch {
