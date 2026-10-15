@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { addCategoryFn, deleteCategoryFn, moveFn, renameCategoryFn } from '../../server/fns'
+import { addCategoryFn, deleteCategoryFn, moveCategoryFn, renameCategoryFn } from '../../server/fns'
 import type { TabProps } from './Shell'
 
 export function CategoriesTab({ data, act }: TabProps) {
@@ -35,10 +35,10 @@ export function CategoriesTab({ data, act }: TabProps) {
             <span className="adm-sub">
               {c.count} product{c.count === 1 ? '' : 's'}
             </span>
-            <button type="button" className="btn-icon" disabled={i === 0} onClick={() => act(moveFn({ data: { kind: 'category', id: c.id, dir: -1 } }))} title="Move up">
+            <button type="button" className="btn-icon" disabled={i === 0} onClick={() => act(moveCategoryFn({ data: { id: c.id, dir: -1 } }))} title="Move up">
               ↑
             </button>
-            <button type="button" className="btn-icon" disabled={i === last} onClick={() => act(moveFn({ data: { kind: 'category', id: c.id, dir: 1 } }))} title="Move down">
+            <button type="button" className="btn-icon" disabled={i === last} onClick={() => act(moveCategoryFn({ data: { id: c.id, dir: 1 } }))} title="Move down">
               ↓
             </button>
             <button type="button" className="btn btn-danger btn-small" onClick={() => act(deleteCategoryFn({ data: c.id }), 'Category deleted')}>

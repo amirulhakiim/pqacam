@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { PLATFORM_LABEL } from '../../lib/platforms'
 import type { AdminProduct } from '../../server/catalog'
-import { moveFn, setHiddenFn } from '../../server/fns'
+import { reorderProductsFn, setHiddenFn } from '../../server/fns'
 import { PLATFORMS } from '../../server/validate'
 import { ProductDrawer } from './ProductDrawer'
 import type { TabProps } from './Shell'
@@ -11,9 +11,42 @@ export function ProductsTab({ data, act, flash }: TabProps) {
   const [editing, setEditing] = useState<AdminProduct | 'new' | null>(null)
   const categoryName = new Map(data.categories.map((c) => [c.id, c.name]))
   const needle = q.trim().toLowerCase()
-  const rows = data.products.filter((p) => !needle || `${p.name} ${categoryName.get(p.categoryId)}`.toLowerCase().includes(needle))
+  // The order while a drag runs, before it is saved. null shows the order from the server.
+  const [order, setOrder] = useState<number[] | null>(null)
+  const dragFrom = useRef<number | null>(null)
+  const byId = new Map(data.products.map((p) => [p.id, p]))
+  const sorted = order ? order.flatMap((id) => byId.get(id) ?? []) : data.products
+  const rows = sorted.filter((p) => !needle || `${p.name} ${categoryName.get(p.categoryId)}`.toLowerCase().includes(needle))
   const live = data.products.filter((p) => !p.hidden).length
-  const last = data.products.length - 1
+  const ids = () => order ?? data.products.map((p) => p.id)
+
+  function move(from: number, to: number) {
+    const next = ids().slice()
+    next.splice(to, 0, ...next.splice(from, 1))
+    setOrder(next)
+    return next
+  }
+
+  async function save(next: number[]) {
+    await act(reorderProductsFn({ data: next }))
+    setOrder(null)
+  }
+
+  // Pointer events, not HTML drag and drop: those do not fire for touch on most phones.
+  function dragOver(e: React.PointerEvent) {
+    if (dragFrom.current === null) return
+    const row = document.elementFromPoint(e.clientX, e.clientY)?.closest<HTMLElement>('[data-row]')
+    const to = Number(row?.dataset.row)
+    if (!row || to === dragFrom.current) return
+    move(dragFrom.current, to)
+    dragFrom.current = to
+  }
+
+  function endDrag() {
+    if (dragFrom.current === null) return
+    dragFrom.current = null
+    if (order) save(order)
+  }
 
   return (
     <>
@@ -36,14 +69,43 @@ export function ProductsTab({ data, act, flash }: TabProps) {
         </div>
       </div>
       <div className="adm-list adm-list-wide">
+        {needle && rows.length > 1 && <div className="adm-sub">Clear the search to drag products into a new order.</div>}
         {rows.map((p) => {
-          const index = data.products.indexOf(p)
+          const index = sorted.indexOf(p)
           const cover = p.media.find((m) => m.type === 'photo')
           const photos = p.media.filter((m) => m.type === 'photo').length
           const videos = p.media.length - photos
           const linked = PLATFORMS.filter((k) => p.links.some((l) => l.platform === k))
           return (
-            <div className={p.hidden ? 'adm-row adm-row-hidden' : 'adm-row'} key={p.id}>
+            <div
+              className={['adm-row', p.hidden && 'adm-row-hidden', order && dragFrom.current === index && 'adm-row-dragging'].filter(Boolean).join(' ')}
+              key={p.id}
+              data-row={index}
+            >
+              {!needle && (
+                <button
+                  type="button"
+                  className="adm-handle"
+                  aria-label={`Move ${p.name}. Drag, or use the arrow keys`}
+                  title="Drag to reorder"
+                  onPointerDown={(e) => {
+                    dragFrom.current = index
+                    setOrder(ids())
+                    e.currentTarget.setPointerCapture(e.pointerId)
+                  }}
+                  onPointerMove={dragOver}
+                  onPointerUp={endDrag}
+                  onPointerCancel={endDrag}
+                  onKeyDown={(e) => {
+                    const to = index + (e.key === 'ArrowUp' ? -1 : e.key === 'ArrowDown' ? 1 : 0)
+                    if (to === index || to < 0 || to >= sorted.length) return
+                    e.preventDefault()
+                    save(move(index, to))
+                  }}
+                >
+                  ⠿
+                </button>
+              )}
               <button type="button" className="adm-thumb" onClick={() => setEditing(p)} aria-label={`Edit ${p.name}`}>
                 {cover && <img src={cover.url} alt="" />}
               </button>
@@ -74,24 +136,6 @@ export function ProductsTab({ data, act, flash }: TabProps) {
                 >
                   <span className={p.hidden ? 'switch' : 'switch switch-on'} />
                   {p.hidden ? 'Hidden' : 'Live'}
-                </button>
-                <button
-                  type="button"
-                  className="btn-icon"
-                  disabled={index === 0}
-                  onClick={() => act(moveFn({ data: { kind: 'product', id: p.id, dir: -1 } }))}
-                  title="Move up"
-                >
-                  ↑
-                </button>
-                <button
-                  type="button"
-                  className="btn-icon"
-                  disabled={index === last}
-                  onClick={() => act(moveFn({ data: { kind: 'product', id: p.id, dir: 1 } }))}
-                  title="Move down"
-                >
-                  ↓
                 </button>
                 <button type="button" className="btn btn-soft" onClick={() => setEditing(p)}>
                   Edit

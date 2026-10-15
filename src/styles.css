@@ -207,6 +207,10 @@ textarea.adm-input { height: auto; padding: 12px 14px; line-height: 1.55; resize
 .adm-list-wide { max-width: none; }
 .adm-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 14px; padding: 10px 14px 10px 10px; border-radius: 18px; background: var(--surface); box-shadow: 0 1px 2px oklch(0.5 0.03 60 / 0.05), 0 6px 18px oklch(0.5 0.03 60 / 0.05); }
 .adm-row-hidden { opacity: 0.55; }
+.adm-handle { flex: none; width: 28px; height: 44px; margin-right: -6px; padding: 0; border: none; border-radius: 8px; background: none; color: oklch(0.6 0.02 65); font-size: 18px; cursor: grab; touch-action: none; -webkit-user-select: none; user-select: none; }
+.adm-handle:hover, .adm-handle:focus-visible { background: oklch(0.95 0.01 75); color: var(--ink); }
+.adm-row-dragging { outline: 2px solid oklch(0.7 0.06 150); box-shadow: 0 10px 30px oklch(0.3 0.02 60 / 0.15); }
+.adm-row-dragging .adm-handle { cursor: grabbing; }
 .adm-thumb { width: 60px; height: 60px; flex: none; padding: 0; border: none; border-radius: 12px; overflow: hidden; cursor: pointer; background: repeating-linear-gradient(135deg, oklch(0.9 0.03 70) 0 6px, oklch(0.95 0.01 75) 6px 12px); }
 .adm-thumb img, .adm-tile img, .adm-tile video, .adm-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .adm-row-text { flex: 1 1 160px; min-width: 0; border: none; background: none; padding: 0; text-align: left; cursor: pointer; display: flex; flex-direction: column; gap: 5px; }

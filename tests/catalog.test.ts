@@ -78,15 +78,17 @@ test('delete returns the media keys and removes the product', () => {
   expect(names()).toEqual([])
 })
 
-test('move changes the order and stops at each end', () => {
-  c.saveProduct(db, input({ name: 'A' }))
+test('reorder sets the order, and refuses a list that is out of date', () => {
+  const a = c.saveProduct(db, input({ name: 'A' })).id
   const b = c.saveProduct(db, input({ name: 'B' })).id
-  c.moveProduct(db, b, -1)
-  expect(names()).toEqual(['B', 'A'])
-  c.moveProduct(db, b, 1)
-  expect(names()).toEqual(['A', 'B'])
-  c.moveProduct(db, b, 1)
-  expect(names()).toEqual(['A', 'B'])
+  const d = c.saveProduct(db, input({ name: 'D' })).id
+  c.reorderProducts(db, [a, d, b])
+  expect(names()).toEqual(['A', 'D', 'B'])
+  expect(() => c.reorderProducts(db, [a, b])).toThrow(c.UserError)
+  expect(() => c.reorderProducts(db, [a, a, b])).toThrow(c.UserError)
+  expect(() => c.reorderProducts(db, [a, b, 999])).toThrow(c.UserError)
+  c.saveProduct(db, input({ name: 'New' }))
+  expect(names()).toEqual(['New', 'A', 'D', 'B'])
 })
 
 test('category rules', () => {

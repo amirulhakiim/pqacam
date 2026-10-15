@@ -165,7 +165,17 @@ function move(db: Db, table: typeof product | typeof category, id: number, dir: 
     tx.update(table).set({ position: rows[from].position }).where(eq(table.id, rows[to].id)).run()
   })
 }
-export const moveProduct = (db: Db, id: number, dir: -1 | 1) => move(db, product, id, dir)
+
+// The list must hold every product once. A list from a page that is out of date is refused, so no product loses its place.
+export function reorderProducts(db: Db, ids: number[]) {
+  const current = db.select({ id: product.id }).from(product).all().map((p) => p.id)
+  if (ids.length !== current.length || new Set(ids).size !== ids.length || !ids.every((id) => current.includes(id))) {
+    throw new UserError('The list changed. Reload the page and try again.')
+  }
+  db.transaction((tx) => {
+    ids.forEach((id, position) => tx.update(product).set({ position }).where(eq(product.id, id)).run())
+  })
+}
 export const moveCategory = (db: Db, id: number, dir: -1 | 1) => move(db, category, id, dir)
 
 function freeName(db: Db, table: typeof category | typeof folder, raw: string, exceptId?: number) {

@@ -77,15 +77,13 @@ export const setHiddenFn = createServerFn({ method: 'POST' })
   .inputValidator((data: { id: number; hidden: boolean }) => data)
   .handler(({ data }) => asAdmin(() => catalog.setHidden(getDb(), int(data?.id), data.hidden === true)))
 
-export const moveFn = createServerFn({ method: 'POST' })
-  .inputValidator((data: { kind: 'product' | 'category'; id: number; dir: -1 | 1 }) => data)
-  .handler(({ data }) =>
-    asAdmin(() =>
-      data?.kind === 'category'
-        ? catalog.moveCategory(getDb(), int(data.id), dir(data.dir))
-        : catalog.moveProduct(getDb(), int(data?.id), dir(data?.dir)),
-    ),
-  )
+export const moveCategoryFn = createServerFn({ method: 'POST' })
+  .inputValidator((data: { id: number; dir: -1 | 1 }) => data)
+  .handler(({ data }) => asAdmin(() => catalog.moveCategory(getDb(), int(data?.id), dir(data?.dir))))
+
+export const reorderProductsFn = createServerFn({ method: 'POST' })
+  .inputValidator((data: number[]) => data)
+  .handler(({ data }) => asAdmin(() => catalog.reorderProducts(getDb(), (Array.isArray(data) ? data : []).map(int))))
 
 export const addCategoryFn = createServerFn({ method: 'POST' })
   .inputValidator((data: string) => data)
