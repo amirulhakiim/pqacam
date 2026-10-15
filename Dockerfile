@@ -11,6 +11,8 @@ COPY package.json bun.lock ./
 RUN bun install --frozen-lockfile --production
 
 FROM oven/bun:1
+# ffmpeg draws the watermarks. Debian's build includes zscale, which the HDR tone map needs.
+RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 ENV NODE_ENV=production PORT=3000 DATABASE_PATH=/data/pqacam.db
 # The built server imports its packages at run time, so the image needs node_modules.
