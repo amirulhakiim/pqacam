@@ -74,7 +74,8 @@ export function ProfileTab({ data, act, flash }: TabProps) {
         </label>
         <label className="adm-field">
           <span className="adm-label">Bio</span>
-          <textarea rows={3} {...field('bio')} />
+          <textarea rows={4} {...field('bio')} />
+          <span className="adm-hint">Press Enter for a new paragraph.</span>
         </label>
         <label className="adm-field">
           <span className="adm-label">WhatsApp number</span>

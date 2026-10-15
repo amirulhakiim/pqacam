@@ -14,7 +14,8 @@ export const Route = createFileRoute('/')({
   loader: () => getPublicPageFn(),
   head: ({ loaderData }) => {
     const title = loaderData?.profile.name || 'pqacam'
-    const description = loaderData?.profile.bio ?? ''
+    // A share preview shows one line, so the bio's paragraphs are joined.
+    const description = (loaderData?.profile.bio ?? '').replace(/\s+/g, ' ').trim()
     const image = loaderData?.profile.avatarUrl
     return {
       meta: [
