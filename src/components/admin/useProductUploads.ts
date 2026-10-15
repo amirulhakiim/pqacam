@@ -63,7 +63,7 @@ export function useProductUploads(refresh: () => void, flash: (text: string) => 
           continue
         }
         patch(task.id, { stage: `Uploading${count}`, progress: 0 })
-        const blob = item.type === 'photo' ? await resizeImage(file, 1000) : file
+        const blob = item.type === 'photo' ? await resizeImage(file, 2048, 0.9) : file
         const compress = item.type === 'video' && file.type === 'video/quicktime'
         const uploaded = await uploadFile(compress ? 'raw' : item.type, blob, (progress) => patch(task.id, { progress }))
         if (!uploaded.ok) throw new Error(`${file.name}: ${uploaded.error}`)

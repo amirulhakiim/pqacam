@@ -96,7 +96,7 @@ export const VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/quicktime']
 const UPLOAD: Record<UploadKind, { max: number; types: Record<string, string> }> = {
   // An original for the watermark worker. Photos arrive already resized to JPEG by the browser.
   raw: { max: MEDIA_MAX_MB * MB, types: { 'image/jpeg': 'jpg', 'video/mp4': 'mp4', 'video/webm': 'webm', 'video/quicktime': 'mov' } },
-  photo: { max: 2 * MB, types: { 'image/jpeg': 'jpg' } },
+  photo: { max: 8 * MB, types: { 'image/jpeg': 'jpg' } },
   avatar: { max: 2 * MB, types: { 'image/jpeg': 'jpg' } },
   video: { max: VIDEO_MAX_MB * MB, types: { 'video/mp4': 'mp4', 'video/webm': 'webm', 'video/quicktime': 'mov' } },
 }

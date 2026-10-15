@@ -6,7 +6,7 @@ export async function mediaHash(file: Blob, tag: string): Promise<string> {
   return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, '0')).join('')
 }
 
-export async function resizeImage(file: Blob, max: number): Promise<Blob> {
+export async function resizeImage(file: Blob, max: number, quality = 0.82): Promise<Blob> {
   const bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' })
   const scale = Math.min(1, max / Math.max(bitmap.width, bitmap.height))
   const canvas = document.createElement('canvas')
@@ -15,7 +15,7 @@ export async function resizeImage(file: Blob, max: number): Promise<Blob> {
   canvas.getContext('2d')!.drawImage(bitmap, 0, 0, canvas.width, canvas.height)
   bitmap.close()
   return new Promise((resolve, reject) =>
-    canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error('resize failed'))), 'image/jpeg', 0.82),
+    canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error('resize failed'))), 'image/jpeg', quality),
   )
 }
 

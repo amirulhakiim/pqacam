@@ -58,7 +58,7 @@ export function useUploads(onUploaded: () => void, flash: (text: string) => void
         flash(`${item.file.name} is already in Media with these settings`)
         return ''
       }
-      const blob = item.type === 'photo' ? await resizeImage(item.file, 1000) : item.file
+      const blob = item.type === 'photo' ? await resizeImage(item.file, 2048, 0.9) : item.file
       const uploaded = await uploadFile('raw', blob, (progress) => update(item.id, { progress }))
       if (!uploaded.ok) return uploaded.error
       const job = { type: item.type, key: uploaded.value.key, name: item.file.name, hash }
