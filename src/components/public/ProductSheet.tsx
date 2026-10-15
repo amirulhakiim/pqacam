@@ -10,6 +10,8 @@ export function ProductSheet({ product, hidden, onClose }: Props) {
   const { media } = product
   const [index, setIndex] = useState(0)
   const [paused, setPaused] = useState(false)
+  // Autoplay needs a muted video, so sound starts off and the visitor turns it on.
+  const [sound, setSound] = useState(false)
   const swipeStart = useRef<number | null>(null)
   const current = media.length ? wrap(index, media.length) : 0
 
@@ -54,7 +56,11 @@ export function ProductSheet({ product, hidden, onClose }: Props) {
                   <video
                     src={m.url}
                     autoPlay
-                    muted
+                    muted={!sound}
+                    // React sets muted only on the first render, so a change is applied to the element here.
+                    ref={(v) => {
+                      if (v) v.muted = !sound
+                    }}
                     loop
                     playsInline
                     disablePictureInPicture
@@ -66,6 +72,28 @@ export function ProductSheet({ product, hidden, onClose }: Props) {
             ))}
           </div>
           {hidden && <div className="pp-protected">Content protected</div>}
+          {media[current]?.type === 'video' && (
+            <button
+              type="button"
+              className="pp-round pp-sound"
+              aria-pressed={sound}
+              aria-label={sound ? 'Turn sound off' : 'Turn sound on'}
+              onClick={() => {
+                setSound(!sound)
+                // With sound on, the slide stays until the visitor moves on.
+                setPaused(true)
+              }}
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 9h4l5-4v14l-5-4H4z" />
+                {sound ? (
+                  <path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" />
+                ) : (
+                  <path d="M16 9l5 6M21 9l-5 6" fill="none" />
+                )}
+              </svg>
+            </button>
+          )}
           <button type="button" className="pp-round pp-close" onClick={onClose} aria-label="Close">
             ✕
           </button>
