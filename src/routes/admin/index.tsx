@@ -5,7 +5,7 @@ import { AnalyticsTab } from '../../components/admin/AnalyticsTab'
 import { CategoriesTab } from '../../components/admin/CategoriesTab'
 import { ProductsTab } from '../../components/admin/ProductsTab'
 import { ProfileTab } from '../../components/admin/ProfileTab'
-import { type Act, Shell, type Tab } from '../../components/admin/Shell'
+import { type Act, Shell, type Tab, TABS } from '../../components/admin/Shell'
 import { useUploads } from '../../components/admin/useUploads'
 import { useProductUploads } from '../../components/admin/useProductUploads'
 import { WatermarkTab } from '../../components/admin/WatermarkTab'
@@ -13,6 +13,8 @@ import { MediaTab } from '../../components/admin/Library'
 import { getAdminDataFn, signOutFn } from '../../server/fns'
 
 export const Route = createFileRoute('/admin/')({
+  validateSearch: (search: Record<string, unknown>): { tab?: Tab } =>
+    TABS.includes(search.tab as Tab) && search.tab !== 'products' ? { tab: search.tab as Tab } : {},
   loader: () => getAdminDataFn(),
   head: () => ({ meta: [{ title: 'Admin' }, { name: 'robots', content: 'noindex' }] }),
   component: Admin,
@@ -21,7 +23,9 @@ export const Route = createFileRoute('/admin/')({
 function Admin() {
   const { me, ...data } = Route.useLoaderData()
   const router = useRouter()
-  const [tab, setTab] = useState<Tab>('products')
+  const tab = Route.useSearch().tab ?? 'products'
+  const navigate = Route.useNavigate()
+  const setTab = useCallback((next: Tab) => void navigate({ search: next === 'products' ? {} : { tab: next }, replace: true }), [navigate])
   const [toast, setToast] = useState<{ text: string; error: boolean } | null>(null)
   const flash = useCallback((text: string, error = false) => setToast({ text, error }), [])
   const refresh = useCallback(() => void router.invalidate(), [router])

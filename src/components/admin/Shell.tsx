@@ -2,7 +2,8 @@ import type { ReactNode } from 'react'
 import type { AdminData } from '../../server/catalog'
 import type { Result } from '../../server/validate'
 
-export type Tab = 'products' | 'media' | 'analytics' | 'watermark' | 'categories' | 'profile' | 'admins'
+export const TABS = ['products', 'media', 'analytics', 'watermark', 'categories', 'profile', 'admins'] as const
+export type Tab = (typeof TABS)[number]
 export type Act = (work: Promise<Result<unknown>>, done?: string) => Promise<boolean>
 export type TabProps = { data: AdminData; act: Act; flash: (text: string, error?: boolean) => void }
 
