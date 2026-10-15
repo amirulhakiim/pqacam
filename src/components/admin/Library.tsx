@@ -10,12 +10,13 @@ export type FolderFilter = 'all' | 'none' | number
 export const inFolder = (j: AdminJob, filter: FolderFilter) =>
   filter === 'all' || (filter === 'none' ? j.folderId === null : j.folderId === filter)
 
-type Show = 'all' | 'unused' | 'watermarked' | 'plain'
+type Show = 'all' | 'unused' | 'watermarked' | 'plain' | 'watermarking'
 const SHOW: [Show, string, (j: AdminJob) => boolean][] = [
   ['all', 'All', () => true],
   ['unused', 'Unused', (j) => j.productIds.length === 0],
   ['watermarked', 'Watermarked', (j) => j.watermark !== null],
   ['plain', 'No watermark', (j) => j.watermark === null],
+  ['watermarking', 'Watermarking', (j) => j.watermarking],
 ]
 
 const STATUS: Record<AdminJob['status'], string> = { queued: 'Waiting', processing: 'Watermarking', done: 'Ready', failed: 'Failed' }
@@ -141,7 +142,7 @@ export function Library({ data, act, flash, filter, onFilter }: Props) {
       </div>
       <div className="adm-wm-folders" role="group" aria-label="Show">
         <span className="adm-filter-label">Show</span>
-        {SHOW.map(([key, label, match]) => (
+        {SHOW.filter(([key, , match]) => key !== 'watermarking' || show === key || folderFiles.some(match)).map(([key, label, match]) => (
           <button type="button" key={key} className={show === key ? 'pill pill-on' : 'pill'} aria-pressed={show === key} onClick={() => setShow(key)}>
             {label} <span className="adm-wm-count">{folderFiles.filter(match).length}</span>
           </button>
@@ -213,13 +214,7 @@ export function Library({ data, act, flash, filter, onFilter }: Props) {
             <span className="adm-row-name">{j.name}</span>
             <span className="adm-row-meta">
               <span>{j.type === 'photo' ? 'Photo' : 'Video'}</span>
-              {j.status !== 'done' ? (
-                <span className={j.status === 'failed' ? 'chip chip-warn' : 'chip chip-tiktok'}>
-                  {j.status === 'failed' ? 'Watermark failed. Retry in Watermark' : j.status === 'queued' ? 'Waiting to watermark' : `Watermarking ${j.progress}%`}
-                </span>
-              ) : (
-                <span className="chip chip-tiktok">{j.watermark ? 'Watermarked' : 'No watermark'}</span>
-              )}
+              <span className="chip chip-tiktok">{j.watermark ? 'Watermarked' : 'No watermark'}</span>
               {j.productIds.length > 0 ? (
                 j.productIds.map((id) => (
                   <span className="chip chip-whatsapp" key={id}>
@@ -231,7 +226,7 @@ export function Library({ data, act, flash, filter, onFilter }: Props) {
               )}
             </span>
           </button>
-          {j.status === 'done' && <JobActions job={j} data={data} act={act} flash={flash} />}
+          <JobActions job={j} data={data} act={act} flash={flash} />
         </div>
       ))}
       {ready.length === 0 && (

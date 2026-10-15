@@ -84,7 +84,11 @@ export function getAdminData(db: Db, mediaBase: string) {
         progress: j.progress,
         error: j.error,
         compressOnly: JSON.parse(j.settings).compressOnly === true,
-        watermark: JSON.parse(j.settings).compressOnly !== true ? ('app' as const) : j.tagged ? ('manual' as const) : null,
+        watermarking: JSON.parse(j.settings).compressOnly !== true && j.outputKey !== '' && j.status !== 'done',
+        watermark:
+          JSON.parse(j.settings).compressOnly === true
+            ? j.tagged ? ('manual' as const) : null
+            : j.outputKey !== '' && j.status !== 'done' ? null : ('app' as const),
         folderId: j.folderId,
         // The products that already show this file, so the library can say where it is used.
         productIds: j.outputKey ? [...new Set(d.media.filter((m) => m.r2Key === j.outputKey).map((m) => m.productId))] : [],

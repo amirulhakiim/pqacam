@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { AdminJob } from '../../server/catalog'
-import { attachMediaFn, deleteJobFn, downloadUrlFn, moveJobFn, tagWatermarkFn, watermarkJobFn } from '../../server/fns'
+import { attachMediaFn, deleteJobFn, downloadUrlFn, moveJobFn, retryJobFn, tagWatermarkFn, watermarkJobFn } from '../../server/fns'
 import type { TabProps } from './Shell'
 
 type Props = Pick<TabProps, 'data' | 'act' | 'flash'> & { job: AdminJob; onDeleted?: () => void }
@@ -9,6 +9,7 @@ type Props = Pick<TabProps, 'data' | 'act' | 'flash'> & { job: AdminJob; onDelet
 export function JobActions({ job, data, act, flash, onDeleted }: Props) {
   const [confirmDelete, setConfirmDelete] = useState(false)
   const used = new Set(job.productIds)
+  const busy = job.watermarking && job.status !== 'failed'
 
   async function copy() {
     try {
@@ -40,6 +41,7 @@ export function JobActions({ job, data, act, flash, onDeleted }: Props) {
         className="adm-input adm-wm-attach"
         value=""
         aria-label="Add to product"
+        disabled={job.watermarking}
         onChange={(e) => {
           const product = data.products.find((p) => p.id === Number(e.target.value))
           if (product) act(attachMediaFn({ data: { productId: product.id, jobId: job.id } }), `Added to ${product.name}`)
@@ -76,6 +78,7 @@ export function JobActions({ job, data, act, flash, onDeleted }: Props) {
           className="switch-button adm-tag"
           role="switch"
           aria-checked={job.watermark === 'manual'}
+          disabled={job.watermarking}
           title="Mark a file that already had a watermark before upload. Nothing changes in the file."
           onClick={() =>
             act(tagWatermarkFn({ data: { id: job.id, tagged: job.watermark === null } }), job.watermark === null ? 'Marked as already watermarked' : 'Mark removed')
@@ -85,7 +88,18 @@ export function JobActions({ job, data, act, flash, onDeleted }: Props) {
           Already has a watermark
         </button>
       )}
-      {job.watermark === null && (
+      {busy && (
+        <button type="button" className="btn btn-dark adm-wm-run" disabled aria-live="polite">
+          <span className="adm-spin" aria-hidden="true" />
+          {job.status === 'queued' ? 'Waiting…' : `Watermarking ${job.progress}%`}
+        </button>
+      )}
+      {job.watermarking && job.status === 'failed' && (
+        <button type="button" className="btn btn-danger btn-danger-on adm-wm-run" title={job.error} onClick={() => act(retryJobFn({ data: job.id }), 'Trying again')}>
+          Failed. Try again
+        </button>
+      )}
+      {job.watermark === null && !job.watermarking && (
         <button
           type="button"
           className="btn btn-dark adm-wm-run"
@@ -106,7 +120,7 @@ export function JobActions({ job, data, act, flash, onDeleted }: Props) {
           <path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" />
         </svg>
       </button>
-      <button type="button" className={confirmDelete ? 'btn btn-danger btn-danger-on' : 'btn btn-danger'} onClick={remove}>
+      <button type="button" className={confirmDelete ? 'btn btn-danger btn-danger-on' : 'btn btn-danger'} onClick={remove} disabled={busy}>
         {confirmDelete ? 'Tap again' : 'Delete'}
       </button>
     </div>

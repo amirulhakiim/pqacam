@@ -112,7 +112,7 @@ test('a plain file can be tagged, and only an untagged plain file can be waterma
   c.saveProfile(db, { name: '', handle: '@corner', bio: '', whatsapp: '' })
   c.tagWatermark(db, id, false)
   c.watermarkJob(db, id)
-  expect(jobs()[0]).toMatchObject({ status: 'queued', watermark: 'app', key: out })
+  expect(jobs()[0]).toMatchObject({ status: 'queued', watermark: null, watermarking: true, key: out })
   expect(() => c.tagWatermark(db, id, true)).toThrow(c.UserError)
 })
 
