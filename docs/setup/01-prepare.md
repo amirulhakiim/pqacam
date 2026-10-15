@@ -16,6 +16,7 @@ Part of the setup guides: **01 Prepare** · [02 Run locally](02-local.md) · [03
   - [3.3 CORS policy](#33-cors-policy)
   - [3.4 API token](#34-api-token)
   - [3.5 Backup bucket](#35-backup-bucket)
+  - [3.6 Lifecycle rule for originals](#36-lifecycle-rule-for-originals)
 - [4. Git repository](#4-git-repository)
 - [5. Dokploy server](#5-dokploy-server)
 - [Values you end with](#values-you-end-with)
@@ -159,6 +160,14 @@ For production only.
 
 1. Create a second bucket, `pqacam-backup`. Do not connect a domain.
 2. Create a second Account API token: **Object Read & Write**, for `pqacam-backup` only. Copy its two keys. [03 Deploy](03-deploy.md), step 9 uses them.
+
+### 3.6 Lifecycle rule for originals
+
+The Watermark tab uploads each original to `raw/` in the media bucket. The server deletes it when the watermarked file is ready. An upload that stops halfway leaves its original behind. This rule deletes those.
+
+1. Bucket `pqacam-media`, "Settings". Under "Object Lifecycle Rules", select "Add rule".
+2. Name `raw uploads`. Select "Apply to objects with prefix", and enter `raw/`.
+3. Select "Delete uploaded objects after", and enter **2** days. Select "Save".
 
 ## 4. Git repository
 

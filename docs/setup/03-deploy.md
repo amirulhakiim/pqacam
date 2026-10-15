@@ -187,6 +187,10 @@ No automated test covers these, because they need the real accounts.
 | Paste the site link in WhatsApp | A preview with the page name, bio, and photo |
 | Redeploy | Products and counts are the same |
 | Open a product on an iPhone | Close button visible, video plays, the page behind does not scroll |
+| Watermark tab: add 2 photos and 1 iPhone video | Each goes "Waiting", "Watermarking", "Ready". The video is 1080p at most, with the watermark moving |
+| Close `/admin` while a file is "Watermarking", then open it again | The file still finishes |
+| "Add to product…" on a ready file | It shows at the end of that product's media |
+| Watch the public page while a long video is watermarking | Pages still load. The server encodes one file at a time on 2 threads |
 
 ## Updates and restore
 

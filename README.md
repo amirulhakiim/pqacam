@@ -51,6 +51,8 @@ flowchart LR
     G --> S["Shopee, TikTok Shop, WhatsApp"]
     A["Admin"] -->|"/admin, Google sign-in"| M["Products, categories, profile, admin access"]
     M -->|"upload from the browser"| R["R2 bucket"]
+    M -->|"Watermark tab"| W["Watermark worker, ffmpeg"]
+    W -->|"originals and results"| R
     P -->|"photos and videos"| R
 ```
 
@@ -59,7 +61,7 @@ flowchart LR
 | `/` | Everyone | Product grid with search, category tabs, shop filter, and a sheet for each product |
 | `/go/<link id>` | Everyone | Adds 1 to the link's tap count, then redirects to the stored buy link |
 | `/privacy` | Everyone | Privacy policy |
-| `/admin` | Approved Google accounts | Manage products, categories, profile, and who has access |
+| `/admin` | Approved Google accounts | Manage products, categories, profile, and who has access. Watermark many photos and videos on the server and add them to products |
 | `/api/health` | Dokploy | Returns `{"ok":true}` when the database opens |
 
 ## Stack

@@ -50,6 +50,7 @@ flowchart LR
         T["Traefik, TLS"]
         subgraph C["App container"]
             S["TanStack Start on Bun"]
+            W["Watermark worker, ffmpeg"]
             DB[("SQLite, file on volume /data")]
         end
     end
@@ -59,6 +60,9 @@ flowchart LR
     A --> T
     T --> S
     S --> DB
+    S --> W
+    W --> DB
+    W -->|"originals and results"| R
     S -->|"sign-in"| G
     A -->|"direct upload, presigned URL"| R
     V -->|"photos and videos"| R
@@ -125,6 +129,11 @@ flowchart TB
     P --- C["Categories"]
     P --- F["Profile"]
     P --- X["Admin access"]
+    P --- K["Watermark"]
+    K -->|"upload many"| Q["Upload queue"]
+    Q --> J["Library: waiting, watermarking, ready"]
+    J -->|"Add to product"| P
+    W -->|"From library"| J
     P -->|"Add product, Edit"| W["Product drawer"]
 ```
 
@@ -135,12 +144,15 @@ flowchart TB
 | Products | List with search, thumbnail, category, media count, platform chips, "No buy link" chip, Live/Hidden toggle, up and down buttons, Edit |
 | Click counts | Each product row shows the count for each platform, summed over its links. This is an addition to the design |
 | Product drawer | Photos and videos, name, category, price (optional text), review with character count and an Expand button that opens a full-screen editor, Shopee / TikTok / WhatsApp links (several per platform, each with an optional label), "Show on my page" toggle |
-| Drawer media | Add photos (several at one time), add a video, remove, drag to reorder, move earlier. The first photo is the cover |
+| Drawer media | Add photos (several at one time), add a video, add from the watermark library, remove, drag to reorder, move earlier. The first photo is the cover |
 | "Use my number" | Fills that WhatsApp link from the profile number, with an order message that includes the product name |
 | Delete product | Two taps: "Delete", then "Tap again to delete". Also deletes the product's media from R2 |
 | Validation | Name is required. At least one buy link is required. Each link must start with `https://`. The server applies the same rules |
 | Categories | Add, rename, move up and down, delete. Delete is blocked while the category has products. Names are unique |
 | Profile | Avatar upload (400 px), page name, handle, bio, WhatsApp number. Changes save automatically |
+| Watermark | Settings with a live preview: text (default: the handle), font, position (moving bounce or a fixed corner), size, opacity, speed. "+ Add photos & videos" takes many files. The server watermarks them one at a time. Each batch keeps the settings it was added with, and they become the next defaults |
+| Watermark uploads | One upload at a time, with a progress bar. The queue continues while the admin uses other tabs. The page asks before it closes, and keeps the screen awake. The upload stops if the page closes, because a browser cannot upload from a closed page |
+| Watermark library | Each file shows "Waiting", "Watermarking" with a percentage, "Ready" or "Failed". Ready: "Add to product…", "Copy link", Delete. Failed: "Try again", Delete. The list updates every 3 s while work is running |
 | Admin access | List of emails. Add and remove. An admin cannot remove their own email |
 | Layout | Sidebar at 760 px and wider. Below 760 px: header with tab pills that stays at the top |
 | Feedback | A toast confirms each save, as in the design |
@@ -152,6 +164,18 @@ erDiagram
     CATEGORY ||--o{ PRODUCT : has
     PRODUCT ||--o{ MEDIA : has
     PRODUCT ||--o{ LINK : has
+    JOB {
+        int id PK
+        text type "photo or video"
+        text name "file name from the device"
+        text source_key "raw original, empty when done"
+        text output_key "photo or video key"
+        text settings "JSON"
+        text status "queued, processing, done, failed"
+        int progress
+        text error
+        int created_at
+    }
     PROFILE {
         int id PK "always 1"
         text name
@@ -159,6 +183,7 @@ erDiagram
         text bio
         text avatar_key
         text whatsapp
+        text watermark "JSON, default settings"
     }
     CATEGORY {
         int id PK
@@ -207,7 +232,7 @@ erDiagram
 |---|---|---|
 | `/` | Public | The page, SSR |
 | `/go/$linkId` | Public | Add 1 to the link's click count, then redirect (302) to its URL |
-| `/admin` | Allowlist | Admin with 4 tabs |
+| `/admin` | Allowlist | Admin with 5 tabs |
 | `/admin/login` | Public | Sign-in screen |
 | `/api/auth/google` | Public | Start the Google OAuth flow |
 | `/api/auth/google/callback` | Public | Finish the flow, check the allowlist, set the session cookie |
@@ -240,13 +265,15 @@ sequenceDiagram
 | Size and type check | The presigned URL signs `Content-Type` and `Content-Length`, so R2 rejects a different file |
 | Object key | Random ID from the server. The file name from the device is not used |
 | Public URL | `MEDIA_BASE_URL` + object key, served through the Cloudflare CDN |
-| Delete | When an admin removes media or deletes a product, the server deletes the objects from R2 |
+| Delete | When an admin removes media or deletes a product, the server deletes the objects from R2. An object stays while a product or a library item still uses it |
+| Watermark original | `raw/` key, any of JPEG, `mp4`, `webm`, `mov`. 1 GB maximum. Deleted when its result exists. An R2 lifecycle rule deletes any left over after 2 days |
+| Watermark result | Video: H.264 `mp4`, long side 1920 px at most, AAC audio, HDR tone mapped to SDR, metadata (GPS) removed. Photo: JPEG, 1000 px. Fonts in `public/fonts` |
 
 ## 10. Deployment
 
 | Item | Value |
 |---|---|
-| Build | Multi-stage `Dockerfile` on the `oven/bun:1` image. `bun install --frozen-lockfile`, then `bun run build`. Dokploy builds it from the Git repository |
+| Build | Multi-stage `Dockerfile` on the `oven/bun:1` image, with Debian's `ffmpeg`. `bun install --frozen-lockfile`, then `bun run build`. Dokploy builds it from the Git repository |
 | Start | The container runs the built server with `bun` and listens on port 3000 |
 | Volume | `/data` holds `pqacam.db` in WAL mode |
 | Migrations | Drizzle migrations run when the container starts |

@@ -1,5 +1,25 @@
 # Changelog
 
+## Unreleased
+
+### New
+
+| Change | Where | What it does |
+|---|---|---|
+| Watermark tab | Admin | Choose many photos and videos at once from the phone gallery. The server adds the watermark, and the files wait in a library |
+| Watermark settings | Admin, Watermark tab | Text (your handle by default), six fonts, moving or a fixed corner, size, opacity and speed, with a live preview. The last settings used are kept |
+| Leave while it works | Admin, Watermark tab | After the uploads finish, close the page. The server keeps going, and the files are ready when you come back |
+| Add to product | Admin, Watermark tab | "Add to product…" puts a ready file at the end of a product's photos and videos. "Copy link" copies its address |
+| From library | Admin, product editor | A new "From library" tile picks watermarked files for the product |
+
+### Notes
+
+- Keep the page open until the uploads finish. A phone browser cannot upload from a closed page. The page asks before it closes and keeps the screen awake while uploading.
+- Videos are saved at up to 1080p as MP4. iPhone HDR videos are converted so their colours look right. Location data is removed from the files.
+- The original files are deleted once the watermarked copy exists. To change the text, upload again.
+- One file is watermarked at a time. A big batch waits its turn.
+- Set the R2 lifecycle rule in [01 Prepare, 3.6](docs/setup/01-prepare.md#36-lifecycle-rule-for-originals) before the first deploy.
+
 ## 2026-10-15
 
 ### New
