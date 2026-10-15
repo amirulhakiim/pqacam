@@ -1,7 +1,7 @@
 import { and, asc, desc, eq, notInArray, sql } from 'drizzle-orm'
 import type { Db } from './db'
 import { admin, category, click, folder, job, link, media, product, profile } from './schema'
-import { DEFAULT_WATERMARK, type JobInput, PLATFORMS, type ProductInput, validateWatermark, type WatermarkSettings } from './validate'
+import { type BioSize, DEFAULT_WATERMARK, type JobInput, PLATFORMS, type ProductInput, validateWatermark, type WatermarkSettings } from './validate'
 
 export class UserError extends Error {}
 
@@ -23,6 +23,7 @@ export function getPublicPage(db: Db, mediaBase: string) {
       name: d.profile.name,
       handle: d.profile.handle,
       bio: d.profile.bio,
+      bioSize: d.profile.bioSize,
       avatarUrl: d.profile.avatarKey ? `${mediaBase}/${d.profile.avatarKey}` : null,
     },
     categories: d.categories.map((c) => c.name),
@@ -192,7 +193,7 @@ export function deleteCategory(db: Db, id: number) {
   db.delete(category).where(eq(category.id, id)).run()
 }
 
-export type ProfileInput = { name: string; handle: string; bio: string; whatsapp: string; avatarKey?: string }
+export type ProfileInput = { name: string; handle: string; bio: string; bioSize?: BioSize; whatsapp: string; avatarKey?: string }
 
 export function saveProfile(db: Db, input: ProfileInput): string | null {
   const old = db.select().from(profile).get()!.avatarKey
@@ -201,6 +202,7 @@ export function saveProfile(db: Db, input: ProfileInput): string | null {
       name: input.name.trim().slice(0, 80),
       handle: input.handle.trim().slice(0, 80),
       bio: input.bio.trim().slice(0, 400),
+      ...(input.bioSize ? { bioSize: input.bioSize } : {}),
       whatsapp: input.whatsapp.replace(/\D/g, '').slice(0, 20),
       ...(input.avatarKey ? { avatarKey: input.avatarKey } : {}),
     })

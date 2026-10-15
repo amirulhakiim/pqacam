@@ -64,6 +64,8 @@ button { font: inherit; color: inherit; }
 .pp-name { margin: 4px 0 0; font-family: var(--serif); font-weight: 400; font-size: 38px; line-height: 1; letter-spacing: -0.01em; }
 .pp-handle { font-size: 13px; color: var(--ink-soft); }
 .pp-bio { margin: 2px 0 0; font-size: 14.5px; line-height: 1.5; max-width: 320px; text-wrap: pretty; white-space: pre-line; color: oklch(0.4 0.02 60); }
+.pp-bio-small { font-size: 13px; }
+.pp-bio-large { font-size: 17px; max-width: 360px; }
 
 .pp-filters { position: sticky; top: 0; z-index: 5; margin: 0 -18px; padding: 8px 18px; background: oklch(0.98 0.008 75 / 0.55); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); display: flex; flex-direction: column; gap: 12px; }
 .pp-search { display: flex; align-items: center; gap: 10px; height: 50px; padding: 0 6px 0 18px; border-radius: 999px; background: var(--surface); color: var(--ink-soft); box-shadow: 0 1px 2px oklch(0.5 0.03 60 / 0.06), 0 6px 20px oklch(0.5 0.03 60 / 0.06); }
@@ -293,6 +295,7 @@ textarea.adm-input { height: auto; padding: 12px 14px; line-height: 1.55; resize
 .adm-wm-thumb { cursor: default; }
 .adm-wm-actions { flex-wrap: wrap; justify-content: flex-end; }
 .adm-wm-attach { width: auto; max-width: 180px; height: 32px; padding: 0 10px; border-radius: 10px; font-size: 13px; }
+.adm-pills-row { display: flex; flex-wrap: wrap; gap: 8px; }
 .adm-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
 .adm-stat, .adm-card { box-sizing: border-box; min-width: 0; padding: 16px 18px; border-radius: 20px; background: var(--surface); box-shadow: 0 1px 2px oklch(0.5 0.03 60 / 0.05), 0 6px 18px oklch(0.5 0.03 60 / 0.05); }
 .adm-stat { display: flex; flex-direction: column; gap: 4px; }

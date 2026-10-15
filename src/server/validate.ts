@@ -94,6 +94,10 @@ export function validateUpload(raw: unknown): Result<{ kind: UploadKind; content
   return { ok: true, value: { kind: r.kind as UploadKind, contentType: r.contentType as string, size, ext } }
 }
 
+export const BIO_SIZES = ['small', 'medium', 'large'] as const
+export type BioSize = (typeof BIO_SIZES)[number]
+export const toBioSize = (v: unknown): BioSize => (BIO_SIZES.includes(v as BioSize) ? (v as BioSize) : 'medium')
+
 export const FONTS = ['sans', 'serif', 'mono', 'comic', 'script', 'pacifico'] as const
 export const POSITIONS = ['move', 'br', 'bl', 'tr', 'tl', 'c'] as const
 export type WatermarkSettings = {

@@ -174,3 +174,11 @@ test('a media key that a second product still uses is not reported for deletion'
   c.saveProduct(db, input({ name: 'E' }))
   expect(c.deleteProduct(db, d)).toEqual([])
 })
+
+test('the bio keeps its paragraphs and its text size', () => {
+  const p = { name: 'Corner', handle: '@corner', whatsapp: '' }
+  c.saveProfile(db, { ...p, bio: ' One.\n\nTwo. ', bioSize: 'large' })
+  expect(c.getPublicPage(db, BASE).profile).toMatchObject({ bio: 'One.\n\nTwo.', bioSize: 'large' })
+  c.saveProfile(db, { ...p, bio: 'One.' })
+  expect(c.getPublicPage(db, BASE).profile.bioSize).toBe('large')
+})

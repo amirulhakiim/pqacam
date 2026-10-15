@@ -5,6 +5,7 @@ export const profile = sqliteTable('profile', {
   name: text('name').notNull().default(''),
   handle: text('handle').notNull().default(''),
   bio: text('bio').notNull().default(''),
+  bioSize: text('bio_size', { enum: ['small', 'medium', 'large'] }).notNull().default('medium'),
   avatarKey: text('avatar_key'),
   whatsapp: text('whatsapp').notNull().default(''),
   // JSON of WatermarkSettings. Empty means the defaults.

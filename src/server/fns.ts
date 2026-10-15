@@ -15,6 +15,7 @@ import {
   validateJobs,
   validateProduct,
   validateUpload,
+  toBioSize,
   toRange,
   validateWatermark,
   type WatermarkSettings,
@@ -107,6 +108,7 @@ export const saveProfileFn = createServerFn({ method: 'POST' })
         name: String(data?.name ?? ''),
         handle: String(data?.handle ?? ''),
         bio: String(data?.bio ?? ''),
+        bioSize: toBioSize(data?.bioSize),
         whatsapp: String(data?.whatsapp ?? ''),
         avatarKey: data?.avatarKey,
       })

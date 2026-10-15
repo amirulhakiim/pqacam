@@ -36,6 +36,13 @@
       "when": 1792076740421,
       "tag": "0004_clicks",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1792077454834,
+      "tag": "0005_bio_size",
+      "breakpoints": true
     }
   ]
 }

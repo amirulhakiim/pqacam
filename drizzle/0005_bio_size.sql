@@ -1,0 +1,1 @@
+ALTER TABLE `profile` ADD `bio_size` text DEFAULT 'medium' NOT NULL;

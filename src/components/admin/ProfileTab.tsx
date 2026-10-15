@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { resizeImage, uploadFile } from '../../lib/upload'
 import { saveProfileFn } from '../../server/fns'
+import { BIO_SIZES } from '../../server/validate'
 import type { TabProps } from './Shell'
 
 export function ProfileTab({ data, act, flash }: TabProps) {
-  const { name, handle, bio, whatsapp, avatarUrl } = data.profile
-  const [form, setForm] = useState({ name, handle, bio, whatsapp })
+  const { name, handle, bio, bioSize, whatsapp, avatarUrl } = data.profile
+  const [form, setForm] = useState({ name, handle, bio, bioSize, whatsapp })
   const edited = useRef(false)
 
   const pending = useRef<typeof form | null>(null)
@@ -28,7 +29,7 @@ export function ProfileTab({ data, act, flash }: TabProps) {
     [act],
   )
 
-  const field = (key: keyof typeof form) => ({
+  const field = (key: Exclude<keyof typeof form, 'bioSize'>) => ({
     className: 'adm-input',
     value: form[key],
     onChange: (e: { target: { value: string } }) => {
@@ -77,6 +78,25 @@ export function ProfileTab({ data, act, flash }: TabProps) {
           <textarea rows={4} {...field('bio')} />
           <span className="adm-hint">Press Enter for a new paragraph.</span>
         </label>
+        <div className="adm-field">
+          <span className="adm-label">Bio text size</span>
+          <div className="adm-pills-row" role="group" aria-label="Bio text size">
+            {BIO_SIZES.map((size) => (
+              <button
+                type="button"
+                key={size}
+                className={form.bioSize === size ? 'pill pill-on' : 'pill'}
+                aria-pressed={form.bioSize === size}
+                onClick={() => {
+                  edited.current = true
+                  setForm((f) => ({ ...f, bioSize: size }))
+                }}
+              >
+                {size[0].toUpperCase() + size.slice(1)}
+              </button>
+            ))}
+          </div>
+        </div>
         <label className="adm-field">
           <span className="adm-label">WhatsApp number</span>
           <input {...field('whatsapp')} placeholder="60123456789" inputMode="numeric" />
