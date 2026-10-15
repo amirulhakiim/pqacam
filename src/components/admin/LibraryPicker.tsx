@@ -1,13 +1,15 @@
-import { useEffect, useRef } from 'react'
-import type { AdminJob } from '../../server/catalog'
+import { useEffect, useRef, useState } from 'react'
+import type { AdminData, AdminJob } from '../../server/catalog'
+import { type FolderFilter, inFolder } from './Library'
 
-type Props = { jobs: AdminJob[]; taken: string[]; onPick: (job: AdminJob) => void; onClose: () => void }
+type Props = { jobs: AdminJob[]; folders: AdminData['folders']; taken: string[]; onPick: (job: AdminJob) => void; onClose: () => void }
 
 // A native dialog: it traps focus and closes on Escape.
-export function LibraryPicker({ jobs, taken, onPick, onClose }: Props) {
+export function LibraryPicker({ jobs, folders, taken, onPick, onClose }: Props) {
   const ref = useRef<HTMLDialogElement>(null)
+  const [filter, setFilter] = useState<FolderFilter>('all')
   useEffect(() => ref.current?.showModal(), [])
-  const ready = jobs.filter((j) => j.status === 'done' && j.url)
+  const ready = jobs.filter((j) => j.status === 'done' && j.url && inFolder(j, filter))
 
   return (
     <dialog
@@ -20,6 +22,23 @@ export function LibraryPicker({ jobs, taken, onPick, onClose }: Props) {
     >
       <div className="adm-pick-head">
         <h3>Watermarked files</h3>
+        <span className="adm-grow" />
+        {folders.length > 0 && (
+          <select
+            className="adm-input adm-wm-attach"
+            value={String(filter)}
+            aria-label="Folder"
+            onChange={(e) => setFilter(e.target.value === 'all' || e.target.value === 'none' ? e.target.value : Number(e.target.value))}
+          >
+            <option value="all">All folders</option>
+            <option value="none">Unfiled</option>
+            {folders.map((f) => (
+              <option key={f.id} value={f.id}>
+                {f.name}
+              </option>
+            ))}
+          </select>
+        )}
         <button type="button" className="adm-x" onClick={() => ref.current?.close()} aria-label="Close">
           ✕
         </button>
@@ -42,7 +61,9 @@ export function LibraryPicker({ jobs, taken, onPick, onClose }: Props) {
           </button>
         ))}
       </div>
-      {ready.length === 0 && <div className="adm-none">No watermarked files yet. Add them in the Watermark tab.</div>}
+      {ready.length === 0 && (
+        <div className="adm-none">{filter === 'all' ? 'No watermarked files yet. Add them in the Watermark tab.' : 'No files in this folder.'}</div>
+      )}
     </dialog>
   )
 }

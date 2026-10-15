@@ -1,7 +1,6 @@
 import { type CSSProperties, useState } from 'react'
-import type { AdminJob } from '../../server/catalog'
-import { attachMediaFn, deleteJobFn, retryJobFn } from '../../server/fns'
 import type { WatermarkSettings } from '../../server/validate'
+import { type FolderFilter, Library } from './Library'
 import type { TabProps } from './Shell'
 import type { Uploads } from './useUploads'
 
@@ -21,33 +20,16 @@ const POSITION_LABEL: Record<WatermarkSettings['position'], string> = {
   tl: 'Top left',
   c: 'Center',
 }
-const STATUS: Record<AdminJob['status'], string> = { queued: 'Waiting', processing: 'Watermarking', done: 'Ready', failed: 'Failed' }
 
 export function WatermarkTab({ data, act, flash, uploads }: TabProps & { uploads: Uploads }) {
   const [settings, setSettings] = useState(data.watermark)
-  const [confirmDelete, setConfirmDelete] = useState<number | null>(null)
+  const [filter, setFilter] = useState<FolderFilter>('all')
   const set = (patch: Partial<WatermarkSettings>) => setSettings((s) => ({ ...s, ...patch }))
-  const backdrop = data.jobs.find((j) => j.type === 'photo' && j.url)?.url ?? undefined
 
   function pick(files: FileList | null) {
     if (!files?.length) return
     if (!settings.text.trim()) return flash('Add the watermark text first')
-    uploads.add(files, settings)
-  }
-
-  async function copy(url: string) {
-    try {
-      await navigator.clipboard.writeText(url)
-      flash('Link copied')
-    } catch {
-      flash('Could not copy. Hold the link to copy it.')
-    }
-  }
-
-  function remove(id: number) {
-    if (confirmDelete !== id) return setConfirmDelete(id)
-    setConfirmDelete(null)
-    act(deleteJobFn({ data: id }), 'Deleted from the library')
+    uploads.add(files, settings, typeof filter === 'number' ? filter : null)
   }
 
   return (
@@ -70,7 +52,7 @@ export function WatermarkTab({ data, act, flash, uploads }: TabProps & { uploads
       </div>
 
       <div className="adm-list adm-form adm-list-wide adm-wm-settings">
-        <Preview settings={settings} backdrop={backdrop} />
+        <Preview settings={settings} />
         <div className="adm-wm-fields">
           <label className="adm-field">
             <span className="adm-label">Watermark text</span>
@@ -144,65 +126,7 @@ export function WatermarkTab({ data, act, flash, uploads }: TabProps & { uploads
         </div>
       )}
 
-      <div className="adm-list adm-list-wide">
-        {data.jobs.map((j) => (
-          <div className="adm-row" key={j.id}>
-            <div className="adm-thumb adm-wm-thumb">
-              {j.url && (j.type === 'photo' ? <img src={j.url} alt="" /> : <video src={`${j.url}#t=0.1`} muted preload="metadata" />)}
-            </div>
-            <div className="adm-row-text">
-              <span className="adm-row-name">{j.name}</span>
-              <span className="adm-row-meta">
-                <span>{j.type === 'photo' ? 'Photo' : 'Video'}</span>
-                <span>·</span>
-                <span className={j.status === 'failed' ? 'chip chip-warn' : j.status === 'done' ? 'chip chip-whatsapp' : 'chip chip-tiktok'}>
-                  {STATUS[j.status]}
-                  {j.status === 'processing' && j.type === 'video' ? ` ${j.progress}%` : ''}
-                </span>
-                {j.error && <span>{j.error}</span>}
-              </span>
-            </div>
-            <div className="adm-row-actions adm-wm-actions">
-              {j.status === 'done' && j.url && (
-                <>
-                  <select
-                    className="adm-input adm-wm-attach"
-                    value=""
-                    aria-label="Add to product"
-                    onChange={(e) => {
-                      const product = data.products.find((p) => p.id === Number(e.target.value))
-                      if (product) act(attachMediaFn({ data: { productId: product.id, jobId: j.id } }), `Added to ${product.name}`)
-                    }}
-                  >
-                    <option value="">Add to product…</option>
-                    {data.products.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.name}
-                      </option>
-                    ))}
-                  </select>
-                  <button type="button" className="btn btn-soft" onClick={() => copy(j.url!)}>
-                    Copy link
-                  </button>
-                </>
-              )}
-              {j.status === 'failed' && (
-                <button type="button" className="btn btn-soft" onClick={() => act(retryJobFn({ data: j.id }))}>
-                  Try again
-                </button>
-              )}
-              {j.status !== 'processing' && (
-                <button type="button" className={confirmDelete === j.id ? 'btn btn-danger btn-danger-on' : 'btn btn-danger'} onClick={() => remove(j.id)}>
-                  {confirmDelete === j.id ? 'Tap again' : 'Delete'}
-                </button>
-              )}
-            </div>
-          </div>
-        ))}
-        {data.jobs.length === 0 && uploads.items.length === 0 && (
-          <div className="adm-none">No watermarked files yet. Add photos and videos to start.</div>
-        )}
-      </div>
+      <Library data={data} act={act} flash={flash} filter={filter} onFilter={setFilter} uploading={uploads.active} />
     </>
   )
 }
@@ -231,7 +155,7 @@ function Slider(props: { label: string; unit: string; min: number; max: number; 
 
 // An approximation of the server render: the font size follows the frame width, as it does in ffmpeg.
 // The bounce takes the time a 1920 px frame would take at this speed.
-function Preview({ settings, backdrop }: { settings: WatermarkSettings; backdrop?: string }) {
+function Preview({ settings }: { settings: WatermarkSettings }) {
   const style = {
     '--size': settings.size,
     '--dx': `${1400 / settings.speed}s`,
@@ -242,7 +166,6 @@ function Preview({ settings, backdrop }: { settings: WatermarkSettings; backdrop
   const mark = <span className="adm-wm-mark">{settings.text || ' '}</span>
   return (
     <div className="adm-wm-stage" style={style} aria-hidden="true">
-      {backdrop && <img src={backdrop} alt="" />}
       {settings.position === 'move' ? <div className="adm-wm-y">{mark}</div> : <div className={`adm-wm-at adm-wm-${settings.position}`}>{mark}</div>}
     </div>
   )

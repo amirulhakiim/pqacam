@@ -186,6 +186,7 @@ export function ProductDrawer({ product, data, act, flash, onClose }: Props) {
             {picking && (
               <LibraryPicker
                 jobs={data.jobs}
+                folders={data.folders}
                 taken={draft.media.map((m) => m.key)}
                 onPick={(j) => set({ media: [...draft.media, { type: j.type, key: j.key, url: j.url! }] })}
                 onClose={() => setPicking(false)}

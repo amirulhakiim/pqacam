@@ -3,7 +3,15 @@ import { resizeImage, uploadFile } from '../../lib/upload'
 import { addJobsFn } from '../../server/fns'
 import type { WatermarkSettings } from '../../server/validate'
 
-export type Upload = { id: string; file: File; type: 'photo' | 'video'; settings: WatermarkSettings; progress: number; error: string }
+export type Upload = {
+  id: string
+  file: File
+  type: 'photo' | 'video'
+  settings: WatermarkSettings
+  folderId: number | null
+  progress: number
+  error: string
+}
 export type Uploads = ReturnType<typeof useUploads>
 
 // Lives in the admin route, not in a tab, so uploads continue while the admin uses other tabs.
@@ -13,12 +21,13 @@ export function useUploads(onUploaded: () => void) {
   const busy = useRef(false)
   const update = (id: string, patch: Partial<Upload>) => setItems((list) => list.map((i) => (i.id === id ? { ...i, ...patch } : i)))
 
-  const add = useCallback((files: FileList | File[], settings: WatermarkSettings) => {
+  const add = useCallback((files: FileList | File[], settings: WatermarkSettings, folderId: number | null) => {
     const picked = Array.from(files).map((file) => ({
       id: crypto.randomUUID(),
       file,
       type: file.type.startsWith('video/') ? ('video' as const) : ('photo' as const),
       settings,
+      folderId,
       progress: 0,
       error: '',
     }))
@@ -47,7 +56,7 @@ export function useUploads(onUploaded: () => void) {
       const uploaded = await uploadFile('raw', blob, (progress) => update(item.id, { progress }))
       if (!uploaded.ok) return uploaded.error
       const job = { type: item.type, key: uploaded.value.key, name: item.file.name }
-      const added = await addJobsFn({ data: { jobs: [job], settings: item.settings } })
+      const added = await addJobsFn({ data: { jobs: [job], settings: item.settings, folderId: item.folderId } })
       return added.ok ? '' : added.error
     } catch {
       return 'Upload failed. Check your connection and try again.'
