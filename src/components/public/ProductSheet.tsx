@@ -138,7 +138,6 @@ export function ProductSheet({ product, hidden, onClose }: Props) {
         </div>
         {product.review && (
           <div className="pp-review">
-            <div className="pp-review-title">My honest review</div>
             <p>{product.review}</p>
           </div>
         )}
