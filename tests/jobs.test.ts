@@ -101,6 +101,21 @@ test('product media joins the library once, is found by hash, and unused files a
   expect(jobs().map((j) => j.key)).toEqual([out])
 })
 
+test('a plain file can be tagged, and only an untagged plain file can be watermarked', () => {
+  const out = 'photo/00000000-0000-4000-8000-000000000006.jpg'
+  c.addMedia(db, { type: 'photo', key: out, name: 'a.jpg' })
+  const id = jobs()[0].id
+  expect(jobs()[0].watermark).toBeNull()
+  c.tagWatermark(db, id, true)
+  expect(jobs()[0].watermark).toBe('manual')
+  expect(() => c.watermarkJob(db, id)).toThrow('This file is tagged as already watermarked.')
+  c.saveProfile(db, { name: '', handle: '@corner', bio: '', whatsapp: '' })
+  c.tagWatermark(db, id, false)
+  c.watermarkJob(db, id)
+  expect(jobs()[0]).toMatchObject({ status: 'queued', watermark: 'app', key: out })
+  expect(() => c.tagWatermark(db, id, true)).toThrow(c.UserError)
+})
+
 test('attach adds the library file at the end of the product media, once', () => {
   add(photo(1), photo(2))
   const first = c.claimJob(db)!.id
@@ -115,6 +130,21 @@ test('attach adds the library file at the end of the product media, once', () =>
 })
 
 const hasFfmpeg = Bun.which('ffmpeg') && Bun.which('ffprobe')
+
+test.skipIf(!hasFfmpeg)('watermarking a library file replaces it on its products and deletes the original', async () => {
+  const out = 'photo/00000000-0000-4000-8000-000000000005.jpg'
+  await Bun.spawn(['ffmpeg', '-v', 'error', '-f', 'lavfi', '-i', 'testsrc=size=400x300', '-frames:v', '1', at(out)]).exited
+  c.addMedia(db, { type: 'photo', key: out, name: 'a.jpg' })
+  productWith([out])
+  c.saveProfile(db, { name: '', handle: '@corner', bio: '', whatsapp: '' })
+  c.watermarkJob(db, jobs()[0].id)
+  await runJob(db, c.claimJob(db)!)
+  const [j] = jobs()
+  expect(j).toMatchObject({ status: 'done', watermark: 'app' })
+  expect(j.key).not.toBe(out)
+  expect(c.getAdminData(db, BASE).products[0].media.map((m) => m.key)).toEqual([j.key])
+  expect(deleted).toEqual([out])
+})
 
 test.skipIf(!hasFfmpeg)('the worker watermarks a file, stores the result, and deletes the original', async () => {
   await Bun.spawn(['ffmpeg', '-v', 'error', '-f', 'lavfi', '-i', 'testsrc=size=400x300', '-frames:v', '1', at(raw(1))]).exited

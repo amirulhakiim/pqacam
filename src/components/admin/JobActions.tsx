@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { AdminJob } from '../../server/catalog'
-import { attachMediaFn, deleteJobFn, moveJobFn } from '../../server/fns'
+import { attachMediaFn, deleteJobFn, downloadUrlFn, moveJobFn, tagWatermarkFn, watermarkJobFn } from '../../server/fns'
 import type { TabProps } from './Shell'
 
 type Props = Pick<TabProps, 'data' | 'act' | 'flash'> & { job: AdminJob; onDeleted?: () => void }
@@ -16,6 +16,16 @@ export function JobActions({ job, data, act, flash, onDeleted }: Props) {
       flash('Link copied')
     } catch {
       flash('Could not copy. Open the file and hold its link to copy it.', true)
+    }
+  }
+
+  async function save() {
+    try {
+      const result = await downloadUrlFn({ data: job.id })
+      if (!result.ok) return flash(result.error, true)
+      window.location.href = result.value
+    } catch {
+      flash('Could not save this file. Try again.', true)
     }
   }
 
@@ -60,6 +70,25 @@ export function JobActions({ job, data, act, flash, onDeleted }: Props) {
           </option>
         ))}
       </select>
+      {job.watermark === null && (
+        <button type="button" className="btn btn-soft" onClick={() => act(watermarkJobFn({ data: job.id }), 'Watermarking in the background')}>
+          Add watermark
+        </button>
+      )}
+      {job.watermark !== 'app' && (
+        <button
+          type="button"
+          className="btn btn-soft"
+          onClick={() =>
+            act(tagWatermarkFn({ data: { id: job.id, tagged: job.watermark === null } }), job.watermark === null ? 'Tagged as watermarked' : 'Tag removed')
+          }
+        >
+          {job.watermark === null ? 'Tag as watermarked' : 'Remove tag'}
+        </button>
+      )}
+      <button type="button" className="btn btn-soft" onClick={save}>
+        Save {job.type}
+      </button>
       <button type="button" className="btn btn-soft" onClick={copy}>
         Copy link
       </button>

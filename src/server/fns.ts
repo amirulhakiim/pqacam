@@ -4,7 +4,7 @@ import { appSession, requireAdmin } from './auth'
 import * as catalog from './catalog'
 import { getDb } from './db'
 import { env } from './env'
-import { deleteObjects, newKey, presignPut } from './r2'
+import { deleteObjects, newKey, presignGet, presignPut } from './r2'
 import {
   AVATAR_KEY,
   type JobInput,
@@ -163,6 +163,28 @@ export const retryJobFn = createServerFn({ method: 'POST' })
 export const deleteJobFn = createServerFn({ method: 'POST' })
   .inputValidator((data: number) => data)
   .handler(({ data }) => asAdmin(() => deleteObjects(catalog.deleteJob(getDb(), int(data)))))
+
+export const tagWatermarkFn = createServerFn({ method: 'POST' })
+  .inputValidator((data: { id: number; tagged: boolean }) => data)
+  .handler(({ data }) => asAdmin(() => catalog.tagWatermark(getDb(), int(data?.id), data?.tagged === true)))
+
+export const watermarkJobFn = createServerFn({ method: 'POST' })
+  .inputValidator((data: number) => data)
+  .handler(({ data }) =>
+    asAdmin(() => {
+      catalog.watermarkJob(getDb(), int(data))
+      kick()
+    }),
+  )
+
+export const downloadUrlFn = createServerFn({ method: 'POST' })
+  .inputValidator((data: number) => data)
+  .handler(({ data }) =>
+    asAdmin(() => {
+      const file = catalog.downloadName(getDb(), int(data))
+      return presignGet(file.key, file.name)
+    }),
+  )
 
 export const deleteUnusedJobsFn = createServerFn({ method: 'POST' }).handler(() =>
   asAdmin(async () => {

@@ -75,15 +75,21 @@ export function MediaViewer({ jobs, id, onId, onClose, data, act, flash }: Props
             <span>{job.type === 'photo' ? 'Photo' : 'Video'}</span>
             <span>·</span>
             <span>{folderName}</span>
+            <span>·</span>
+            <span>{job.watermark === 'app' ? 'Watermark added by the app' : job.watermark === 'manual' ? 'Watermark tagged by you' : 'No watermark'}</span>
           </div>
         </div>
-        <JobActions
-          job={job}
-          data={data}
-          act={act}
-          flash={flash}
-          onDeleted={() => (jobs.length > 1 ? onId(jobs[wrap(index + 1, jobs.length)].id) : ref.current?.close())}
-        />
+        {job.status === 'done' ? (
+          <JobActions
+            job={job}
+            data={data}
+            act={act}
+            flash={flash}
+            onDeleted={() => (jobs.length > 1 ? onId(jobs[wrap(index + 1, jobs.length)].id) : ref.current?.close())}
+          />
+        ) : (
+          <span className="chip chip-tiktok">{job.status === 'failed' ? 'Watermark failed' : `Watermarking ${job.progress}%`}</span>
+        )}
       </div>
     </dialog>
   )

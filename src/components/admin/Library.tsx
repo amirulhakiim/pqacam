@@ -6,9 +6,9 @@ import { JobActions } from './JobActions'
 import { MediaViewer } from './MediaViewer'
 import type { TabProps } from './Shell'
 
-export type FolderFilter = 'all' | 'none' | 'unused' | number
+export type FolderFilter = 'all' | 'none' | 'unused' | 'plain' | number
 export const inFolder = (j: AdminJob, filter: FolderFilter) =>
-  filter === 'all' || (filter === 'unused' ? j.productIds.length === 0 : filter === 'none' ? j.folderId === null : j.folderId === filter)
+  filter === 'all' || (filter === 'plain' ? j.watermark === null : filter === 'unused' ? j.productIds.length === 0 : filter === 'none' ? j.folderId === null : j.folderId === filter)
 
 const STATUS: Record<AdminJob['status'], string> = { queued: 'Waiting', processing: 'Watermarking', done: 'Ready', failed: 'Failed' }
 
@@ -72,11 +72,11 @@ export function Library({ data, act, flash, filter, onFilter }: Props) {
   const [naming, setNaming] = useState<'new' | number | null>(null)
   const [name, setName] = useState('')
   const [confirm, setConfirm] = useState<string | null>(null)
-  const done = data.jobs.filter((j) => j.status === 'done' && j.url)
+  const done = data.jobs.filter((j) => j.url)
   const ready = done.filter((j) => inFolder(j, filter))
   const current = data.folders.find((f) => f.id === filter)
   const unfiled = done.filter((j) => j.folderId === null).length
-  const unusedCount = done.filter((j) => j.productIds.length === 0).length
+  const unusedCount = done.filter((j) => j.status === 'done' && j.productIds.length === 0).length
   const productName = new Map(data.products.map((p) => [p.id, p.name]))
 
   // Two taps for anything that deletes. The key says which button is armed.
@@ -122,6 +122,7 @@ export function Library({ data, act, flash, filter, onFilter }: Props) {
       <div className="adm-wm-folders">
         {pill('all', 'All', done.length)}
         {pill('unused', 'Unused', unusedCount)}
+        {pill('plain', 'No watermark', done.filter((j) => j.watermark === null).length)}
         {pill('none', 'Unfiled', unfiled)}
         {data.folders.map((f) => pill(f.id, f.name, done.filter((j) => j.folderId === f.id).length))}
         <button type="button" className="pill adm-wm-new" onClick={() => startNaming('new')}>
@@ -194,7 +195,13 @@ export function Library({ data, act, flash, filter, onFilter }: Props) {
             <span className="adm-row-name">{j.name}</span>
             <span className="adm-row-meta">
               <span>{j.type === 'photo' ? 'Photo' : 'Video'}</span>
-              {j.compressOnly && <span className="chip chip-tiktok">No watermark</span>}
+              {j.status !== 'done' ? (
+                <span className={j.status === 'failed' ? 'chip chip-warn' : 'chip chip-tiktok'}>
+                  {j.status === 'failed' ? 'Watermark failed. Retry in Watermark' : j.status === 'queued' ? 'Waiting to watermark' : `Watermarking ${j.progress}%`}
+                </span>
+              ) : (
+                <span className="chip chip-tiktok">{j.watermark ? 'Watermarked' : 'No watermark'}</span>
+              )}
               {j.productIds.length > 0 ? (
                 j.productIds.map((id) => (
                   <span className="chip chip-whatsapp" key={id}>
@@ -206,7 +213,7 @@ export function Library({ data, act, flash, filter, onFilter }: Props) {
               )}
             </span>
           </button>
-          <JobActions job={j} data={data} act={act} flash={flash} />
+          {j.status === 'done' && <JobActions job={j} data={data} act={act} flash={flash} />}
         </div>
       ))}
       {ready.length === 0 && (

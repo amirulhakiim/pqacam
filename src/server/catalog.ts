@@ -72,6 +72,7 @@ export function getAdminData(db: Db, mediaBase: string) {
         progress: j.progress,
         error: j.error,
         compressOnly: JSON.parse(j.settings).compressOnly === true,
+        watermark: JSON.parse(j.settings).compressOnly !== true ? ('app' as const) : j.tagged ? ('manual' as const) : null,
         folderId: j.folderId,
         // The products that already show this file, so the library can say where it is used.
         productIds: j.outputKey ? [...new Set(d.media.filter((m) => m.r2Key === j.outputKey).map((m) => m.productId))] : [],
@@ -306,6 +307,8 @@ export function setJobProgress(db: Db, id: number, progress: number) {
 }
 
 export function finishJob(db: Db, id: number, outputKey: string, outputBytes = 0) {
+  const old = db.select({ key: job.outputKey }).from(job).where(eq(job.id, id)).get()?.key
+  if (old && old !== outputKey) db.update(media).set({ r2Key: outputKey }).where(eq(media.r2Key, old)).run()
   db.update(job).set({ status: 'done', progress: 100, outputKey, outputBytes, sourceKey: '' }).where(eq(job.id, id)).run()
 }
 
@@ -351,7 +354,37 @@ export function deleteJob(db: Db, id: number): string[] {
   const users = row.outputKey ? productsUsing(db, row.outputKey) : []
   if (users.length) throw new UserError(`This file is on ${users.join(', ')}. Remove it from ${users.length === 1 ? 'that product' : 'those products'} first.`)
   db.delete(job).where(eq(job.id, id)).run()
-  return [row.sourceKey, ...unused(db, row.outputKey ? [row.outputKey] : [])].filter(Boolean)
+  return [...new Set([row.sourceKey, ...unused(db, row.outputKey ? [row.outputKey] : [])].filter(Boolean))]
+}
+
+function plainFile(db: Db, id: number) {
+  const row = db.select().from(job).where(eq(job.id, id)).get()
+  if (row?.status !== 'done' || !row.outputKey) throw new UserError('This file is not ready yet.')
+  if (JSON.parse(row.settings).compressOnly !== true) throw new UserError('This file already has your watermark.')
+  return row
+}
+
+export function tagWatermark(db: Db, id: number, tagged: boolean) {
+  plainFile(db, id)
+  db.update(job).set({ tagged }).where(eq(job.id, id)).run()
+}
+
+export function watermarkJob(db: Db, id: number) {
+  const row = plainFile(db, id)
+  if (row.tagged) throw new UserError('This file is tagged as already watermarked.')
+  const settings = watermarkSettings(db.select().from(profile).get()!)
+  if (!settings.text) throw new UserError('Add the watermark text in the Watermark tab first.')
+  db.update(job)
+    .set({ sourceKey: row.outputKey, settings: JSON.stringify(settings), status: 'queued', progress: 0, error: '' })
+    .where(eq(job.id, id))
+    .run()
+}
+
+export function downloadName(db: Db, id: number) {
+  const row = db.select().from(job).where(eq(job.id, id)).get()
+  if (!row?.outputKey) throw new UserError('This file is not ready yet.')
+  const ext = row.outputKey.split('.').pop()
+  return { key: row.outputKey, name: `${row.name.replace(/\.[^.]*$/, '') || 'media'}.${ext}` }
 }
 
 function productsUsing(db: Db, key: string) {

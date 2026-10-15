@@ -1,0 +1,1 @@
+ALTER TABLE `job` ADD `tagged` integer DEFAULT false NOT NULL;

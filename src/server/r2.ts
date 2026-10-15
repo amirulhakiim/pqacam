@@ -28,6 +28,14 @@ export async function presignPut(key: string, contentType: string, size: number)
   return signed.url
 }
 
+export async function presignGet(key: string, filename: string): Promise<string> {
+  const url = new URL(objectUrl(key))
+  url.searchParams.set('X-Amz-Expires', '300')
+  url.searchParams.set('response-content-disposition', `attachment; filename="${filename.replace(/[^\w. -]/g, '_')}"`)
+  const signed = await client().sign(url.toString(), { method: 'GET', aws: { signQuery: true } })
+  return signed.url
+}
+
 export async function deleteObjects(keys: string[]): Promise<void> {
   await Promise.all(
     keys.map(async (key) => {

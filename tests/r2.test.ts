@@ -2,7 +2,7 @@ import { expect, test } from 'bun:test'
 import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { newKey, presignPut, streamToFile } from '../src/server/r2'
+import { newKey, presignGet, presignPut, streamToFile } from '../src/server/r2'
 import { validateProduct } from '../src/server/validate'
 
 Object.assign(process.env, {
@@ -23,6 +23,12 @@ test('the presigned URL signs the type and the size and expires in 5 minutes', a
   expect(url.origin + url.pathname).toBe('https://acc.r2.cloudflarestorage.com/bucket/photo/x.jpg')
   expect(url.searchParams.get('X-Amz-SignedHeaders')).toBe('content-length;content-type;host')
   expect(url.searchParams.get('X-Amz-Expires')).toBe('300')
+  expect(url.searchParams.get('X-Amz-Signature')).toMatch(/^[0-9a-f]{64}$/)
+})
+
+test('the presigned download URL asks for a download with a safe file name', async () => {
+  const url = new URL(await presignGet('video/x.mp4', 'my "clip"/1.mp4'))
+  expect(url.searchParams.get('response-content-disposition')).toBe('attachment; filename="my _clip__1.mp4"')
   expect(url.searchParams.get('X-Amz-Signature')).toMatch(/^[0-9a-f]{64}$/)
 })
 
