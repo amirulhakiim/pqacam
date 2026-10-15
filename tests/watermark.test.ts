@@ -15,7 +15,7 @@ test('a portrait phone clip is turned and capped at 1920 on the long edge', () =
       format: { duration: '12.5' },
     }),
   )
-  expect(p).toEqual({ width: 2160, height: 3840, hdr: true, duration: 12.5 })
+  expect(p).toEqual({ width: 2160, height: 3840, hdr: 'arib-std-b67', duration: 12.5 })
   expect(outputSize(p)).toEqual({ width: 1080, height: 1920 })
 })
 
@@ -25,8 +25,8 @@ test('video filter: tone map for HDR only, then scale, then the bounce', () => {
   expect(sdr).toContain("x='abs(mod(t*120\\,2*(w-tw))-(w-tw))'")
   expect(sdr).toContain("y='abs(mod(t*90\\,2*(h-th))-(h-th))'")
   expect(sdr).toContain('fontsize=77:')
-  const hdr = vf(videoArgs('in', 'out', 't.txt', s, { width: 1280, height: 720, hdr: true, duration: 1 }))
-  expect(hdr).toStartWith('zscale=')
+  const hdr = vf(videoArgs('in', 'out', 't.txt', s, { width: 1280, height: 720, hdr: 'smpte2084', duration: 1 }))
+  expect(hdr).toStartWith('zscale=tin=smpte2084:')
 })
 
 test('the watermark text never appears in the arguments', () => {
@@ -71,3 +71,14 @@ test.skipIf(!hasFfmpeg)('the text, with a % in it, is drawn on the photo', async
   ).bytes()
   expect(gray.filter((v) => v > 200).length).toBeGreaterThan(200)
 })
+
+test.skipIf(!hasFfmpeg)('an HLG clip is tone mapped to SDR', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'wm-'))
+  const hlg = join(dir, 'hlg.mp4')
+  await Bun.spawn(['ffmpeg', '-v', 'error', '-f', 'lavfi', '-i', 'testsrc=size=640x360:duration=1',
+    '-vf', 'setparams=color_primaries=bt2020:color_trc=arib-std-b67:colorspace=bt2020nc', '-pix_fmt', 'yuv420p10le', '-c:v', 'libx264', hlg]).exited
+  expect((await probe(hlg)).hdr).toBe('arib-std-b67')
+  const out = join(dir, 'out.mp4')
+  await watermarkFile('video', hlg, out, join(dir, 't.txt'), s, () => {})
+  expect((await probe(out)).hdr).toBe(false)
+}, 60_000)

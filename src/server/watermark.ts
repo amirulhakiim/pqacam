@@ -6,7 +6,8 @@ import type { WatermarkSettings } from './validate'
 const FONT_DIR = resolve(existsSync('public/fonts') ? 'public/fonts' : 'dist/client/fonts')
 export const fontFile = (font: WatermarkSettings['font']) => `${FONT_DIR}/${font}.ttf`
 
-export type Probe = { width: number; height: number; hdr: boolean; duration: number }
+// hdr is the transfer of an HDR video, or false for SDR.
+export type Probe = { width: number; height: number; hdr: false | 'smpte2084' | 'arib-std-b67'; duration: number }
 const MAX_EDGE = 1920
 const even = (n: number) => Math.max(2, Math.round(n / 2) * 2)
 
@@ -19,7 +20,7 @@ export function parseProbe(json: string): Probe {
   return {
     width: turned ? v.height : v.width,
     height: turned ? v.width : v.height,
-    hdr: ['smpte2084', 'arib-std-b67'].includes(v.color_transfer),
+    hdr: ['smpte2084', 'arib-std-b67'].includes(v.color_transfer) ? v.color_transfer : false,
     duration: Number(data.format?.duration ?? v.duration ?? 0) || 0,
   }
 }
@@ -48,11 +49,13 @@ function drawtext(s: WatermarkSettings, width: number, textFile: string, still: 
   return `drawtext=fontfile='${fontFile(s.font)}':textfile='${textFile}':expansion=none:fontsize=${px}:fontcolor=white@${s.opacity / 100}:x='${x}':y='${y}'`
 }
 
-const TONEMAP = 'zscale=t=linear:npl=100,format=gbrpf32le,zscale=p=bt709,tonemap=tonemap=hable:desat=0,zscale=t=bt709:m=bt709:r=tv,format=yuv420p'
+// The input colorspace is stated, not read from the stream: zscale stops with "no path between colorspaces" when a tag is missing.
+const tonemap = (transfer: string) =>
+  `zscale=tin=${transfer}:min=bt2020nc:pin=bt2020:rin=tv:t=linear:npl=100,format=gbrpf32le,zscale=p=bt709,tonemap=tonemap=hable:desat=0,zscale=t=bt709:m=bt709:r=tv,format=yuv420p`
 
 export function videoArgs(input: string, output: string, textFile: string, s: WatermarkSettings, p: Probe): string[] {
   const out = outputSize(p)
-  const filter = [p.hdr && TONEMAP, `scale=${out.width}:${out.height}`, drawtext(s, out.width, textFile, false)].filter(Boolean).join(',')
+  const filter = [p.hdr && tonemap(p.hdr), `scale=${out.width}:${out.height}`, drawtext(s, out.width, textFile, false)].filter(Boolean).join(',')
   return [
     ...['-hide_banner', '-nostats', '-y', '-i', input, '-vf', filter, '-map', '0:v:0', '-map', '0:a:0?'],
     // -map_metadata -1 drops the phone's GPS location and other tags.
