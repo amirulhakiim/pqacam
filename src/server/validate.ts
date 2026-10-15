@@ -70,9 +70,11 @@ export function validateEmail(raw: unknown): Result<string> {
   return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) ? { ok: true, value: email } : fail('Enter a valid Google email')
 }
 
-export type UploadKind = 'photo' | 'video' | 'avatar'
+export type UploadKind = 'photo' | 'video' | 'avatar' | 'raw'
 const MB = 1024 * 1024
 const UPLOAD: Record<UploadKind, { max: number; types: Record<string, string> }> = {
+  // An original for the watermark worker. Photos arrive already resized to JPEG by the browser.
+  raw: { max: 1024 * MB, types: { 'image/jpeg': 'jpg', 'video/mp4': 'mp4', 'video/webm': 'webm', 'video/quicktime': 'mov' } },
   photo: { max: 2 * MB, types: { 'image/jpeg': 'jpg' } },
   avatar: { max: 2 * MB, types: { 'image/jpeg': 'jpg' } },
   video: { max: 50 * MB, types: { 'video/mp4': 'mp4', 'video/webm': 'webm', 'video/quicktime': 'mov' } },
@@ -86,6 +88,57 @@ export function validateUpload(raw: unknown): Result<{ kind: UploadKind; content
   if (!ext) return fail(r.kind === 'video' ? 'Use an MP4, WebM or MOV video.' : 'This file type is not supported.')
   const size = r.size as number
   if (!Number.isInteger(size) || size <= 0) return fail('This file is empty.')
-  if (size > rule.max) return fail(r.kind === 'video' ? 'Videos can be 50 MB at most.' : 'This photo is too large.')
+  if (size > rule.max) {
+    return fail(r.kind === 'raw' ? 'Files can be 1 GB at most.' : r.kind === 'video' ? 'Videos can be 50 MB at most.' : 'This photo is too large.')
+  }
   return { ok: true, value: { kind: r.kind as UploadKind, contentType: r.contentType as string, size, ext } }
+}
+
+export const FONTS = ['sans', 'serif', 'mono', 'comic', 'script', 'pacifico'] as const
+export const POSITIONS = ['move', 'br', 'bl', 'tr', 'tl', 'c'] as const
+export type WatermarkSettings = {
+  text: string
+  size: number
+  opacity: number
+  speed: number
+  font: (typeof FONTS)[number]
+  position: (typeof POSITIONS)[number]
+}
+export const DEFAULT_WATERMARK: Omit<WatermarkSettings, 'text'> = { size: 6, opacity: 70, speed: 120, font: 'sans', position: 'move' }
+
+const within = (v: unknown, lo: number, hi: number, fallback: number) =>
+  typeof v === 'number' && Number.isFinite(v) ? Math.min(hi, Math.max(lo, Math.round(v))) : fallback
+const oneOf = <T extends string>(list: readonly T[], v: unknown, fallback: T) => (list.includes(v as T) ? (v as T) : fallback)
+
+export function validateWatermark(raw: unknown): Result<WatermarkSettings> {
+  const r = (raw ?? {}) as Record<string, unknown>
+  // Line breaks would draw a second line in ffmpeg but not in the preview.
+  const value = text(r.text, 100).replace(/\s+/g, ' ')
+  if (!value) return fail('Add the watermark text.')
+  const d = DEFAULT_WATERMARK
+  return {
+    ok: true,
+    value: {
+      text: value,
+      size: within(r.size, 2, 25, d.size),
+      opacity: within(r.opacity, 10, 100, d.opacity),
+      speed: within(r.speed, 40, 400, d.speed),
+      font: oneOf(FONTS, r.font, d.font),
+      position: oneOf(POSITIONS, r.position, d.position),
+    },
+  }
+}
+
+const RAW_KEY = { photo: new RegExp(`^raw/${UUID}\\.jpg$`), video: new RegExp(`^raw/${UUID}\\.(mp4|webm|mov)$`) }
+export type JobInput = { type: 'photo' | 'video'; key: string; name: string }
+
+export function validateJobs(raw: unknown): Result<JobInput[]> {
+  const list = Array.isArray(raw) ? raw.slice(0, 200) : []
+  const jobs: JobInput[] = []
+  for (const j of list) {
+    const type = j?.type === 'video' ? 'video' : 'photo'
+    if (typeof j?.key !== 'string' || !RAW_KEY[type].test(j.key)) return fail('Upload the file again.')
+    jobs.push({ type, key: j.key, name: text(j.name, 200) || 'Untitled' })
+  }
+  return jobs.length ? { ok: true, value: jobs } : fail('Choose at least one photo or video.')
 }

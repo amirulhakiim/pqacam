@@ -7,6 +7,8 @@ export const profile = sqliteTable('profile', {
   bio: text('bio').notNull().default(''),
   avatarKey: text('avatar_key'),
   whatsapp: text('whatsapp').notNull().default(''),
+  // JSON of WatermarkSettings. Empty means the defaults.
+  watermark: text('watermark').notNull().default(''),
 })
 
 export const category = sqliteTable('category', {
@@ -47,6 +49,20 @@ export const link = sqliteTable('link', {
   url: text('url').notNull(),
   position: integer('position').notNull(),
   clicks: integer('clicks').notNull().default(0),
+})
+
+export const job = sqliteTable('job', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  type: text('type', { enum: ['photo', 'video'] }).notNull(),
+  name: text('name').notNull(),
+  // Empty after the worker deletes the original.
+  sourceKey: text('source_key').notNull(),
+  outputKey: text('output_key').notNull().default(''),
+  settings: text('settings').notNull(),
+  status: text('status', { enum: ['queued', 'processing', 'done', 'failed'] }).notNull().default('queued'),
+  progress: integer('progress').notNull().default(0),
+  error: text('error').notNull().default(''),
+  createdAt: integer('created_at').notNull(),
 })
 
 export const admin = sqliteTable('admin', {

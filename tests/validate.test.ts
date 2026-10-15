@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test'
-import { validateEmail, validateProduct, validateUpload } from '../src/server/validate'
+import { validateEmail, validateJobs, validateProduct, validateUpload, validateWatermark } from '../src/server/validate'
 
 const KEY = 'photo/0b9f6c1e-1c2d-4e3f-8a4b-5c6d7e8f9a0b.jpg'
 const good = {
@@ -72,4 +72,28 @@ test('a link with emoji or a line break is stored in a form that is safe for a L
   const url = r.ok ? r.value.links[0].url : ''
   expect(url).toMatch(/^https:\/\/wa\.me\/601\?text=[\x21-\x7e]+$/)
   expect(() => new Headers({ Location: url })).not.toThrow()
+})
+
+test('watermark settings are clamped and need text', () => {
+  expect(validateWatermark({ text: '  ' }).ok).toBe(false)
+  expect(validateWatermark({ text: ' @me\n now ', size: 99, opacity: 1, speed: 'x', font: 'evil', position: 'tl' })).toEqual({
+    ok: true,
+    value: { text: '@me now', size: 25, opacity: 10, speed: 120, font: 'sans', position: 'tl' },
+  })
+})
+
+test('a job needs a raw key of the matching type', () => {
+  const raw = 'raw/0b9f6c1e-1c2d-4e3f-8a4b-5c6d7e8f9a0b'
+  expect(validateJobs([{ type: 'video', key: `${raw}.mov`, name: 'a.mov' }])).toEqual({
+    ok: true,
+    value: [{ type: 'video', key: `${raw}.mov`, name: 'a.mov' }],
+  })
+  expect(validateJobs([{ type: 'photo', key: `${raw}.mov`, name: 'a' }]).ok).toBe(false)
+  expect(validateJobs([{ type: 'video', key: KEY, name: 'a' }]).ok).toBe(false)
+  expect(validateJobs([]).ok).toBe(false)
+})
+
+test('a raw upload can be 1 GB', () => {
+  expect(validateUpload({ kind: 'raw', contentType: 'video/quicktime', size: 1024 * 1024 * 1024 }).ok).toBe(true)
+  expect(validateUpload({ kind: 'raw', contentType: 'video/mp4', size: 1024 * 1024 * 1024 + 1 }).ok).toBe(false)
 })
