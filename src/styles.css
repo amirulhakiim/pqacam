@@ -86,9 +86,9 @@ button { font: inherit; color: inherit; }
 .pp-platforms { display: flex; gap: 6px; align-items: center; font-size: 12.5px; color: var(--ink-soft); overflow-x: auto; scrollbar-width: none; margin: 0 -18px; padding: 0 18px; }
 .pp-platforms > span { flex: none; margin-right: 4px; white-space: nowrap; }
 .pp-platform { flex: none; height: 30px; padding: 0 12px; border-radius: 999px; border: none; background: transparent; color: oklch(0.45 0.02 65); font-size: 12.5px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; }
-.pp-platform-on { background: oklch(0.86 0.07 125); color: oklch(0.3 0.07 130); }
-.pp-tabs .pill { border-color: oklch(0.88 0.05 355); color: oklch(0.42 0.08 355); }
-.pp-tabs .pill-on { border-color: oklch(0.68 0.15 355); background: oklch(0.68 0.15 355); color: #fff; }
+.pp-platform-on { background: #9adedb; color: oklch(0.28 0.02 60); }
+.pp-tabs .pill { border-color: #ffb7c5; }
+.pp-tabs .pill-on { border-color: #ffb7c5; background: #ffb7c5; color: oklch(0.28 0.02 60); }
 .dot { width: 7px; height: 7px; border-radius: 50%; }
 .dot-all { background: oklch(0.7 0.02 70); }
 .dot-shopee { background: oklch(0.62 0.15 40); }
