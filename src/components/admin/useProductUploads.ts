@@ -7,7 +7,7 @@ export type ProductMediaItem = MediaInput & { file?: File }
 export type ProductUploadRequest = { productId: number; name: string; input: ProductInput; media: ProductMediaItem[] }
 type Task = ProductUploadRequest & {
   id: string
-  status: 'queued' | 'running' | 'done' | 'failed'
+  status: 'queued' | 'running' | 'failed'
   stage: string
   progress: number | null
   error: string
@@ -31,7 +31,7 @@ export function useProductUploads(refresh: () => void) {
     busy.current = true
     patch(next.id, { status: 'running' })
     void process(next).then(() => {
-      patch(next.id, { status: 'done', stage: 'Ready', progress: 1 })
+      setTasks((list) => list.filter((task) => task.id !== next.id))
       refresh()
     }).catch((error) => {
       patch(next.id, { status: 'failed', stage: 'Failed', progress: null, error: error instanceof Error ? error.message : 'Upload failed. Try again.' })
@@ -43,12 +43,16 @@ export function useProductUploads(refresh: () => void) {
 
     async function process(task: Task) {
       const media = [...task.media]
+      const total = media.filter((item) => item.file).length
+      let current = 0
       for (let index = 0; index < media.length; index++) {
         const item = media[index]
         if (!item.file) continue
+        current++
+        const count = total > 1 ? ` ${current}/${total}` : ''
         const file = item.file
         const startedAt = performance.now()
-        patch(task.id, { stage: `Uploading ${file.name}`, progress: 0 })
+        patch(task.id, { stage: `Uploading${count}`, progress: 0 })
         const blob = item.type === 'photo' ? await resizeImage(file, 1000) : file
         const compress = item.type === 'video' && file.type === 'video/quicktime'
         const uploaded = await uploadFile(compress ? 'raw' : item.type, blob, (progress) => patch(task.id, { progress }))
@@ -58,7 +62,7 @@ export function useProductUploads(refresh: () => void) {
         if (compress) {
           const started = await compressVideoFn({ data: { type: 'video', key, name: file.name } })
           if (!started.ok) throw new Error(`${file.name}: ${started.error}`)
-          patch(task.id, { stage: `Preparing ${file.name}`, progress: null })
+          patch(task.id, { stage: `Preparing${count}`, progress: null })
           for (;;) {
             await new Promise((resolve) => setTimeout(resolve, 2000))
             const result = await takeJobFn({ data: started.value })
@@ -71,8 +75,8 @@ export function useProductUploads(refresh: () => void) {
             }
             patch(task.id, {
               stage: job.status === 'queued'
-                ? job.ahead > 0 ? `Waiting for ${job.ahead} earlier file${job.ahead === 1 ? '' : 's'}` : 'Waiting for compression'
-                : job.progress > 0 ? `Compressing ${file.name}` : `Preparing ${file.name}`,
+                ? `Waiting${count}`
+                : job.progress > 0 ? `Compressing${count}` : `Preparing${count}`,
               progress: job.progress > 0 ? job.progress / 100 : null,
             })
           }
@@ -81,14 +85,14 @@ export function useProductUploads(refresh: () => void) {
         media[index] = { type: item.type, key }
         patch(task.id, { media: [...media], progress: null })
       }
-      patch(task.id, { stage: 'Attaching media', progress: null })
+      patch(task.id, { stage: 'Saving media', progress: null })
       const saved = await saveProductFn({ data: { ...task.input, media: media.map(({ type, key }) => ({ type, key })) } })
       if (!saved.ok) throw new Error(saved.error)
     }
   }, [tasks, patch, refresh])
 
   const active = tasks.some((task) => task.status === 'queued' || task.status === 'running')
-  const unfinished = tasks.some((task) => task.status !== 'done')
+  const unfinished = tasks.length > 0
   useEffect(() => {
     if (!unfinished) return
     const warn = (event: BeforeUnloadEvent) => event.preventDefault()

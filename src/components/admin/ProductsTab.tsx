@@ -132,7 +132,7 @@ export function ProductsTab({ data, act, flash, uploads }: TabProps & { uploads:
                   ))}
                   {linked.length === 0 && <span className="chip chip-warn">No buy link</span>}
                 </span>
-                {upload && <span className={upload.status === 'failed' ? 'chip chip-warn' : 'chip chip-tiktok'} role="status">
+                {upload && <span className={`chip adm-upload-chip ${upload.status === 'failed' ? 'chip-warn' : 'chip-tiktok'}`} role="status" title={upload.status === 'failed' ? upload.error : undefined}>
                   {upload.status === 'failed' ? upload.error : `${upload.stage}${upload.progress !== null && upload.status === 'running' ? ` ${Math.round(upload.progress * 100)}%` : ''}`}
                 </span>}
               </button>
