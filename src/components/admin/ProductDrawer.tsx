@@ -49,8 +49,7 @@ export function ProductDrawer({ product, data, act, flash, onClose, onQueue }: P
   })
   const [bigReview, setBigReview] = useState(false)
   const [picking, setPicking] = useState(false)
-  // The ref is read on each pointer move, before React renders again. The state only styles the tile.
-  const dragFrom = useRef<number | null>(null)
+  const drag = useRef<{ from: number; x: number; y: number; key: string; moving: boolean } | null>(null)
   const [dragKey, setDragKey] = useState<string | null>(null)
   const [savingState, setSavingState] = useState(false)
   const [error, setError] = useState('')
@@ -137,18 +136,26 @@ export function ProductDrawer({ product, data, act, flash, onClose, onQueue }: P
   }
 
   const endDrag = () => {
-    dragFrom.current = null
+    drag.current = null
     setDragKey(null)
   }
 
   // Pointer events, not HTML drag and drop: those do not fire for touch on most phones.
   function dragOver(e: React.PointerEvent) {
-    if (saving.current || dragFrom.current === null) return
+    const d = drag.current
+    if (saving.current || !d) return
+    if (!d.moving) {
+      if (Math.hypot(e.clientX - d.x, e.clientY - d.y) < 12) return
+      d.moving = true
+      setDragKey(d.key)
+    }
     const tile = document.elementFromPoint(e.clientX, e.clientY)?.closest<HTMLElement>('[data-index]')
     const to = Number(tile?.dataset.index)
-    if (!tile || to === dragFrom.current) return
-    moveMedia(dragFrom.current, to)
-    dragFrom.current = to
+    if (!tile || to === d.from) return
+    const box = tile.getBoundingClientRect()
+    if (Math.abs(e.clientX - box.left - box.width / 2) > box.width / 4 || Math.abs(e.clientY - box.top - box.height / 2) > box.height / 4) return
+    moveMedia(d.from, to)
+    d.from = to
   }
 
   const setLink = (k: string, patch: Partial<DraftLink>) => set({ links: draft.links.map((l) => (l.k === k ? { ...l, ...patch } : l)) })
@@ -238,8 +245,7 @@ export function ProductDrawer({ product, data, act, flash, onClose, onQueue }: P
                   data-index={i}
                   onPointerDown={(e) => {
                     if ((e.target as HTMLElement).closest('button')) return
-                    dragFrom.current = i
-                    setDragKey(m.key)
+                    drag.current = { from: i, x: e.clientX, y: e.clientY, key: m.key, moving: false }
                     e.currentTarget.setPointerCapture(e.pointerId)
                   }}
                   onPointerMove={dragOver}
