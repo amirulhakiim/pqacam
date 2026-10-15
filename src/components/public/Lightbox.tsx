@@ -8,6 +8,8 @@ type Props = { media: PublicProduct['media']; index: number; onIndex: (i: number
 export function Lightbox({ media, index, onIndex, hidden, onClose }: Props) {
   const ref = useRef<HTMLDialogElement>(null)
   const swipeStart = useRef<number | null>(null)
+  // A swipe also ends in a click. This stops that click from closing the view.
+  const swiped = useRef(false)
   const current = wrap(index, media.length)
   const item = media[current]
   useEffect(() => ref.current?.showModal(), [])
@@ -25,7 +27,13 @@ export function Lightbox({ media, index, onIndex, hidden, onClose }: Props) {
         if (e.key === 'ArrowLeft') go(-1)
         if (e.key === 'ArrowRight') go(1)
       }}
-      onClick={(e) => e.target === ref.current && ref.current.close()}
+      onClick={(e) => {
+        // React passes clicks up its own tree, and the sheet's backdrop closes the product on a click.
+        // Stopping here means ✕ or a click beside the photo closes only this view.
+        e.stopPropagation()
+        if (swiped.current) return void (swiped.current = false)
+        if (e.target === ref.current || e.target === e.currentTarget.querySelector('.pp-lightbox-stage')) ref.current?.close()
+      }}
     >
       <div
         className="pp-lightbox-stage"
@@ -36,6 +44,7 @@ export function Lightbox({ media, index, onIndex, hidden, onClose }: Props) {
         onPointerUp={(e) => {
           const dx = e.clientX - (swipeStart.current ?? e.clientX)
           swipeStart.current = null
+          swiped.current = Math.abs(dx) > 8
           if (Math.abs(dx) > 40) go(dx < 0 ? 1 : -1)
         }}
       >
