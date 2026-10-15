@@ -99,13 +99,13 @@ Source: [`design/Home Finds Links.dc.html`](../design/Home%20Finds%20Links.dc.ht
 | Category tabs | "All", then the categories in admin order |
 | Platform filter | Any, Shopee, TikTok, WhatsApp |
 | Grid | 2 columns. Each card shows the cover photo, media count, name, price if set, and a chip for each platform that has a link |
-| Product sheet | Opens from the bottom. Shows, in order: the media carousel (square, at most 40% of the screen height), category, name, price if set, the buy buttons, then "My honest review". The buttons come before the review so they show without scrolling, down to an iPhone SE screen |
+| Product sheet | Opens from the bottom, and puts `?p=<id>` in the address so the back button closes it and the link can be shared. Shows, in order: the media carousel (square, at most 40% of the screen height, with Share, Close, and a sound button on videos), category, name in bold italic serif, price if set, the buy buttons, then the review text with no heading. The buttons come before the review so they show without scrolling, down to an iPhone SE screen |
 | Carousel | Swipe, arrows, dots, and a counter. Advances automatically: 3.5 s for a photo, 7 s for a video. Stops advancing after the visitor moves it. Videos play muted in a loop |
 | Buy buttons | One per shop. A shop with one link opens it directly; with a label it shows "Shopee · <label>". A shop with several links shows "Buy on Shopee · N options", which opens a list of the links by label. Each link opens `/go/$linkId` in a new tab |
 | WhatsApp button | Round button at the bottom left, shown when the profile has a WhatsApp number. Opens a chat with that number |
 | Empty result | "Nothing here yet" with a link that clears search and filters |
 | Hidden products | The server does not send them to the browser |
-| Share preview | SSR `title`, `description` from the bio, and Open Graph image from the avatar |
+| Share preview | SSR `title`, `description` from the bio, and Open Graph image from the avatar. A `?p=<id>` link previews that product: its name, review, and first photo |
 | Footer | Privacy link |
 
 ### Media protection
@@ -154,9 +154,9 @@ flowchart TB
 | Profile | Avatar upload (400 px), page name, handle, bio (Enter starts a new paragraph) with a text size of Small, Medium or Large, WhatsApp number. Changes save automatically |
 | Watermark | Settings with a live preview: text (default: the handle), font, position (moving bounce or a fixed corner), size, opacity, speed. "+ Add photos & videos" takes many files. The server watermarks them one at a time. Each batch keeps the settings it was added with, and they become the next defaults |
 | Watermark uploads | One upload at a time, with a progress bar. The queue continues while the admin uses other tabs. The page asks before it closes, and keeps the screen awake. The upload stops if the page closes, because a browser cannot upload from a closed page |
-| Watermark library | Each file shows "Waiting", "Watermarking" with a percentage, "Ready" or "Failed". Failed: "Try again", Delete. The list updates every 3 s while work is running |
-| Previewer | Tap a ready file to open it full size: photo, or video with controls. Previous and next by button, arrow key, or swipe, within the open folder. Actions: "Add to product…", move to a folder, "Copy link", Delete. Full screen below 760 px |
-| Folders | Chips filter the library: All, Unfiled, then each folder by name, with counts. "+ New folder", Rename, "Delete folder" (two taps). Uploads go to the open folder. Deleting a folder moves its files to Unfiled and deletes no file. Names are unique, ignoring case. The product editor's library picker has a folder filter |
+| Watermark library | A "Library" section, next to the "Watermark" section. Finished files only, filtered by folder. Each card shows where the file is used ("On <product>") and its actions: add to product (products that already have it are ticked and disabled), folder, "Copy link", Delete. Files still waiting, processing or failed are listed under "In progress" in the Watermark section, with "Try again" and Delete |
+| Previewer | Tap a finished file's thumbnail or name to open it full size. Previous and next by button, arrow key, or swipe. The same actions as the card |
+| Folders | Chips filter the library: All, Unfiled, then each folder. "+ New folder", Rename, "Delete folder" (two taps). New uploads go to the folder chosen in "Save to", next to "+ Add photos & videos". Deleting a folder moves its files to Unfiled |
 | Admin access | List of emails. Add and remove. An admin cannot remove their own email |
 | Layout | Sidebar at 760 px and wider. Below 760 px: header with tab pills that stays at the top |
 | Feedback | A toast confirms each save, as in the design |
@@ -288,7 +288,7 @@ sequenceDiagram
 | Rule | Value |
 |---|---|
 | Photo | JPEG, 1000 px longest side, quality 0.82. Avatar: 400 px |
-| Video | `mp4`, `webm`, or `mov`. 50 MB maximum. The editor checks size and type before upload and names the file in the error, under the media tiles |
+| Video | `mp4` or `webm` up to 50 MB upload directly. A larger video (up to 1 GB), or any `mov`, goes through the server: compressed to H.264 MP4 under 50 MB (a second pass at 720p with a fitted bitrate when needed), and the editor says how much it shrank |
 | Size and type check | The presigned URL signs `Content-Type` and `Content-Length`, so R2 rejects a different file |
 | Object key | Random ID from the server. The file name from the device is not used |
 | Public URL | `MEDIA_BASE_URL` + object key, served through the Cloudflare CDN |
