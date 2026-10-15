@@ -394,6 +394,11 @@ textarea.adm-input { height: auto; padding: 12px 14px; line-height: 1.55; resize
 .adm-table td:last-child, .adm-table th:last-child { text-align: right; }
 .adm-pick-head .adm-wm-attach { margin-right: 4px; }
 .adm-wm-folders { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+.adm-filter-label { flex: none; align-self: center; min-width: 46px; font-size: 12px; font-weight: 600; color: var(--ink-soft); }
+.adm-job-actions .btn-icon { display: inline-flex; align-items: center; justify-content: center; padding: 0; height: 40px; width: 40px; }
+.btn-icon svg { width: 17px; height: 17px; }
+.adm-wm-run { height: 40px; padding: 0 14px; font-size: 13px; }
+.adm-tag { white-space: nowrap; }
 .adm-wm-count { opacity: 0.6; font-weight: 400; margin-left: 2px; }
 .adm-wm-new { border-style: dashed; background: none; }
 .adm-wm-folder-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 2px 4px; }

@@ -70,27 +70,41 @@ export function JobActions({ job, data, act, flash, onDeleted }: Props) {
           </option>
         ))}
       </select>
-      {job.watermark === null && (
-        <button type="button" className="btn btn-soft" onClick={() => act(watermarkJobFn({ data: job.id }), 'Watermarking in the background')}>
-          Add watermark
-        </button>
-      )}
       {job.watermark !== 'app' && (
         <button
           type="button"
-          className="btn btn-soft"
+          className="switch-button adm-tag"
+          role="switch"
+          aria-checked={job.watermark === 'manual'}
+          title="Mark a file that already had a watermark before upload. Nothing changes in the file."
           onClick={() =>
-            act(tagWatermarkFn({ data: { id: job.id, tagged: job.watermark === null } }), job.watermark === null ? 'Tagged as watermarked' : 'Tag removed')
+            act(tagWatermarkFn({ data: { id: job.id, tagged: job.watermark === null } }), job.watermark === null ? 'Marked as already watermarked' : 'Mark removed')
           }
         >
-          {job.watermark === null ? 'Tag as watermarked' : 'Remove tag'}
+          <span className={job.watermark === 'manual' ? 'switch switch-on' : 'switch'} />
+          Already has a watermark
         </button>
       )}
-      <button type="button" className="btn btn-soft" onClick={save}>
-        Save {job.type}
+      {job.watermark === null && (
+        <button
+          type="button"
+          className="btn btn-dark adm-wm-run"
+          title="The server draws your watermark on this file and replaces it."
+          onClick={() => act(watermarkJobFn({ data: job.id }), 'Watermarking in the background')}
+        >
+          Add my watermark
+        </button>
+      )}
+      <button type="button" className="btn-icon" onClick={save} title={`Save ${job.type}`} aria-label={`Save ${job.type}`}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M12 4v11m-5-5 5 5 5-5M5 20h14" />
+        </svg>
       </button>
-      <button type="button" className="btn btn-soft" onClick={copy}>
-        Copy link
+      <button type="button" className="btn-icon" onClick={copy} title="Copy link" aria-label="Copy link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1" />
+          <path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" />
+        </svg>
       </button>
       <button type="button" className={confirmDelete ? 'btn btn-danger btn-danger-on' : 'btn btn-danger'} onClick={remove}>
         {confirmDelete ? 'Tap again' : 'Delete'}

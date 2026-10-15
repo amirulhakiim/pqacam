@@ -6,9 +6,17 @@ import { JobActions } from './JobActions'
 import { MediaViewer } from './MediaViewer'
 import type { TabProps } from './Shell'
 
-export type FolderFilter = 'all' | 'none' | 'unused' | 'plain' | number
+export type FolderFilter = 'all' | 'none' | number
 export const inFolder = (j: AdminJob, filter: FolderFilter) =>
-  filter === 'all' || (filter === 'plain' ? j.watermark === null : filter === 'unused' ? j.productIds.length === 0 : filter === 'none' ? j.folderId === null : j.folderId === filter)
+  filter === 'all' || (filter === 'none' ? j.folderId === null : j.folderId === filter)
+
+type Show = 'all' | 'unused' | 'watermarked' | 'plain'
+const SHOW: [Show, string, (j: AdminJob) => boolean][] = [
+  ['all', 'All', () => true],
+  ['unused', 'Unused', (j) => j.productIds.length === 0],
+  ['watermarked', 'Watermarked', (j) => j.watermark !== null],
+  ['plain', 'No watermark', (j) => j.watermark === null],
+]
 
 const STATUS: Record<AdminJob['status'], string> = { queued: 'Waiting', processing: 'Watermarking', done: 'Ready', failed: 'Failed' }
 
@@ -73,7 +81,10 @@ export function Library({ data, act, flash, filter, onFilter }: Props) {
   const [name, setName] = useState('')
   const [confirm, setConfirm] = useState<string | null>(null)
   const done = data.jobs.filter((j) => j.url)
-  const ready = done.filter((j) => inFolder(j, filter))
+  const [show, setShow] = useState<Show>('all')
+  const inShow = SHOW.find(([key]) => key === show)![2]
+  const folderFiles = done.filter((j) => inFolder(j, filter))
+  const ready = folderFiles.filter(inShow)
   const current = data.folders.find((f) => f.id === filter)
   const unfiled = done.filter((j) => j.folderId === null).length
   const unusedCount = done.filter((j) => j.status === 'done' && j.productIds.length === 0).length
@@ -119,15 +130,22 @@ export function Library({ data, act, flash, filter, onFilter }: Props) {
 
   return (
     <div className="adm-list adm-list-wide">
-      <div className="adm-wm-folders">
+      <div className="adm-wm-folders" role="group" aria-label="Folder">
+        <span className="adm-filter-label">Folder</span>
         <button type="button" className="pill adm-wm-new" onClick={() => startNaming('new')}>
           + New folder
         </button>
         {pill('all', 'All', done.length)}
-        {pill('unused', 'Unused', unusedCount)}
-        {pill('plain', 'No watermark', done.filter((j) => j.watermark === null).length)}
         {pill('none', 'No folder', unfiled)}
         {data.folders.map((f) => pill(f.id, f.name, done.filter((j) => j.folderId === f.id).length))}
+      </div>
+      <div className="adm-wm-folders" role="group" aria-label="Show">
+        <span className="adm-filter-label">Show</span>
+        {SHOW.map(([key, label, match]) => (
+          <button type="button" key={key} className={show === key ? 'pill pill-on' : 'pill'} aria-pressed={show === key} onClick={() => setShow(key)}>
+            {label} <span className="adm-wm-count">{folderFiles.filter(match).length}</span>
+          </button>
+        ))}
       </div>
 
       {naming !== null && (
@@ -172,7 +190,7 @@ export function Library({ data, act, flash, filter, onFilter }: Props) {
         </div>
       )}
 
-      {filter === 'unused' && unusedCount > 0 && naming === null && (
+      {show === 'unused' && unusedCount > 0 && naming === null && (
         <div className="adm-wm-folder-head">
           <span className="adm-sub">Not on any product. Delete them to free space in the bucket.</span>
           <span className="adm-grow" />
@@ -217,7 +235,7 @@ export function Library({ data, act, flash, filter, onFilter }: Props) {
         </div>
       ))}
       {ready.length === 0 && (
-        <div className="adm-none">{done.length ? (filter === 'unused' ? 'Every file is on a product.' : 'No files in this folder.') : 'No media yet. Upload from a product or the Watermark tab.'}</div>
+        <div className="adm-none">{done.length ? (show === 'all' ? 'No files in this folder.' : 'No files match this filter.') : 'No media yet. Upload from a product or the Watermark tab.'}</div>
       )}
 
       {viewing !== null && (
