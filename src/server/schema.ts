@@ -66,6 +66,21 @@ export const click = sqliteTable(
   (t) => [index('click_at').on(t.at)],
 )
 
+// Visits, product views, searches and WhatsApp chats from the public page, for the analytics tab. Nothing about the visitor is stored.
+export const event = sqliteTable(
+  'event',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    type: text('type', { enum: ['visit', 'view', 'search', 'chat'] }).notNull(),
+    productId: integer('product_id'),
+    // A search: the words, and how many products it found.
+    term: text('term'),
+    results: integer('results'),
+    at: integer('at').notNull(),
+  },
+  (t) => [index('event_at').on(t.at)],
+)
+
 export const folder = sqliteTable('folder', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   name: text('name').notNull().unique(),

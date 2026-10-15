@@ -1,5 +1,6 @@
 import { expect, test } from 'bun:test'
-import { getAnalytics } from '../src/server/analytics'
+import { getAnalytics, recordEvent } from '../src/server/analytics'
+import { event } from '../src/server/schema'
 import { toRange } from '../src/server/validate'
 import * as c from '../src/server/catalog'
 import { openDb } from '../src/server/db'
@@ -66,4 +67,25 @@ test('an unknown range falls back to 30 days', () => {
   expect(toRange(7)).toBe(7)
   expect(toRange(365)).toBe(30)
   expect(toRange('7')).toBe(30)
+})
+
+test('events from visitors are checked before they are stored', () => {
+  const { db, tumbler } = setup()
+  expect(recordEvent(db, { type: 'visit' }, NOW)).toBe(true)
+  expect(recordEvent(db, { type: 'chat' }, NOW)).toBe(true)
+  expect(recordEvent(db, { type: 'view', productId: tumbler.id }, NOW)).toBe(true)
+  expect(recordEvent(db, { type: 'view', productId: 999 }, NOW)).toBe(false)
+  expect(recordEvent(db, { type: 'search', term: '  Glass   TUMBLER ', results: 1 }, NOW)).toBe(true)
+  expect(recordEvent(db, { type: 'search', term: 'a', results: 0 }, NOW)).toBe(false)
+  expect(recordEvent(db, { type: 'drop table' }, NOW)).toBe(false)
+  expect(recordEvent(db, null, NOW)).toBe(false)
+  c.setHidden(db, tumbler.id, true)
+  expect(recordEvent(db, { type: 'view', productId: tumbler.id }, NOW)).toBe(false)
+  const rows = db.select().from(event).all()
+  expect(rows.map((r) => [r.type, r.term])).toEqual([
+    ['visit', null],
+    ['chat', null],
+    ['view', null],
+    ['search', 'glass tumbler'],
+  ])
 })

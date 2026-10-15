@@ -132,6 +132,10 @@ button { font: inherit; color: inherit; }
 .pp-review { background: oklch(0.955 0.014 75); border-radius: 18px; padding: 16px 18px; display: flex; flex-direction: column; gap: 8px; }
 .pp-review-title { font-family: var(--serif); font-style: italic; font-size: 18px; color: oklch(0.42 0.04 50); }
 .pp-review p { margin: 0; font-size: 15px; line-height: 1.6; text-wrap: pretty; white-space: pre-line; color: oklch(0.33 0.02 60); }
+/* Bottom left, under the product sheet's backdrop, and clear of the iPhone home bar. */
+.pp-chat { position: fixed; left: 16px; bottom: calc(16px + env(safe-area-inset-bottom)); z-index: 15; width: 54px; height: 54px; border-radius: 50%; background: var(--whatsapp); display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 24px oklch(0.3 0.05 150 / 0.3); }
+.pp-chat svg { width: 28px; height: 28px; fill: var(--surface); }
+.pp-chat:focus-visible { outline: 3px solid oklch(0.7 0.1 150); outline-offset: 3px; }
 .pp-buy { display: flex; flex-direction: column; gap: 10px; }
 .pp-buy-button { height: 54px; border-radius: 16px; color: var(--surface); text-decoration: none; font-weight: 600; font-size: 15.5px; display: flex; align-items: center; justify-content: center; gap: 8px; }
 .buy-shopee { background: var(--shopee); }

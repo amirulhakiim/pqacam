@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminLoginRouteImport } from './routes/admin/login'
+import { Route as ApiEventRouteImport } from './routes/api/event'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as GoLinkIdRouteImport } from './routes/go.$linkId'
 import { Route as ApiAuthGoogleIndexRouteImport } from './routes/api/auth/google/index'
@@ -36,6 +37,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
 const AdminLoginRoute = AdminLoginRouteImport.update({
   id: '/admin/login',
   path: '/admin/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiEventRoute = ApiEventRouteImport.update({
+  id: '/api/event',
+  path: '/api/event',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiHealthRoute = ApiHealthRouteImport.update({
@@ -63,6 +69,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/privacy': typeof PrivacyRoute
   '/admin/login': typeof AdminLoginRoute
+  '/api/event': typeof ApiEventRoute
   '/api/health': typeof ApiHealthRoute
   '/go/$linkId': typeof GoLinkIdRoute
   '/admin/': typeof AdminIndexRoute
@@ -73,6 +80,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/privacy': typeof PrivacyRoute
   '/admin/login': typeof AdminLoginRoute
+  '/api/event': typeof ApiEventRoute
   '/api/health': typeof ApiHealthRoute
   '/go/$linkId': typeof GoLinkIdRoute
   '/admin': typeof AdminIndexRoute
@@ -84,6 +92,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/privacy': typeof PrivacyRoute
   '/admin/login': typeof AdminLoginRoute
+  '/api/event': typeof ApiEventRoute
   '/api/health': typeof ApiHealthRoute
   '/go/$linkId': typeof GoLinkIdRoute
   '/admin/': typeof AdminIndexRoute
@@ -96,6 +105,7 @@ export interface FileRouteTypes {
     | '/'
     | '/privacy'
     | '/admin/login'
+    | '/api/event'
     | '/api/health'
     | '/go/$linkId'
     | '/admin/'
@@ -106,6 +116,7 @@ export interface FileRouteTypes {
     | '/'
     | '/privacy'
     | '/admin/login'
+    | '/api/event'
     | '/api/health'
     | '/go/$linkId'
     | '/admin'
@@ -116,6 +127,7 @@ export interface FileRouteTypes {
     | '/'
     | '/privacy'
     | '/admin/login'
+    | '/api/event'
     | '/api/health'
     | '/go/$linkId'
     | '/admin/'
@@ -127,6 +139,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   PrivacyRoute: typeof PrivacyRoute
   AdminLoginRoute: typeof AdminLoginRoute
+  ApiEventRoute: typeof ApiEventRoute
   ApiHealthRoute: typeof ApiHealthRoute
   GoLinkIdRoute: typeof GoLinkIdRoute
   AdminIndexRoute: typeof AdminIndexRoute
@@ -164,6 +177,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/event': {
+      id: '/api/event'
+      path: '/api/event'
+      fullPath: '/api/event'
+      preLoaderRoute: typeof ApiEventRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/health': {
       id: '/api/health'
       path: '/api/health'
@@ -199,6 +219,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   PrivacyRoute: PrivacyRoute,
   AdminLoginRoute: AdminLoginRoute,
+  ApiEventRoute: ApiEventRoute,
   ApiHealthRoute: ApiHealthRoute,
   GoLinkIdRoute: GoLinkIdRoute,
   AdminIndexRoute: AdminIndexRoute,

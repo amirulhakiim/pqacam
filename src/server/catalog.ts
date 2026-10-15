@@ -24,6 +24,7 @@ export function getPublicPage(db: Db, mediaBase: string) {
       handle: d.profile.handle,
       bio: d.profile.bio,
       bioSize: d.profile.bioSize,
+      whatsapp: d.profile.whatsapp,
       avatarUrl: d.profile.avatarKey ? `${mediaBase}/${d.profile.avatarKey}` : null,
     },
     categories: d.categories.map((c) => c.name),

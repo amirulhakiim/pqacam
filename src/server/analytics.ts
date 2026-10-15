@@ -1,6 +1,6 @@
-import { and, gte, lt } from 'drizzle-orm'
+import { and, eq, gte, lt } from 'drizzle-orm'
 import type { Db } from './db'
-import { click, link, product } from './schema'
+import { click, event, link, product } from './schema'
 import { PLATFORMS, type Range } from './validate'
 
 // ponytail: Malaysia time, fixed UTC+8 (Malaysia has no daylight saving). Make it a setting if the shop moves.
@@ -64,3 +64,29 @@ export function getAnalytics(db: Db, days: Range, now = Date.now()) {
   }
 }
 export type Analytics = ReturnType<typeof getAnalytics>
+
+export const EVENT_TYPES = ['visit', 'view', 'search', 'chat'] as const
+
+// Input from any visitor, so every field is checked. A view must name a live product. A search keeps at most 60 characters.
+// ponytail: no rate limit, so a script could inflate the counts. Add one per IP if the numbers start to look wrong.
+export function recordEvent(db: Db, raw: unknown, at = Date.now()): boolean {
+  const r = (raw ?? {}) as Record<string, unknown>
+  const type = EVENT_TYPES.find((t) => t === r.type)
+  if (!type) return false
+  if (type === 'view') {
+    const id = Number.isInteger(r.productId) ? (r.productId as number) : -1
+    const row = db.select({ hidden: product.hidden }).from(product).where(eq(product.id, id)).get()
+    if (!row || row.hidden) return false
+    db.insert(event).values({ type, productId: id, at }).run()
+    return true
+  }
+  if (type === 'search') {
+    const term = typeof r.term === 'string' ? r.term.trim().toLowerCase().replace(/\s+/g, ' ').slice(0, 60) : ''
+    const results = Number.isInteger(r.results) ? Math.max(0, Math.min(10_000, r.results as number)) : 0
+    if (term.length < 2) return false
+    db.insert(event).values({ type, term, results, at }).run()
+    return true
+  }
+  db.insert(event).values({ type, at }).run()
+  return true
+}

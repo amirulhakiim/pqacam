@@ -1,11 +1,13 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { ChatButton } from '../components/public/ChatButton'
 import { Filters } from '../components/public/Filters'
 import { Header } from '../components/public/Header'
 import { ProductGrid } from '../components/public/ProductGrid'
 import { ProductSheet } from '../components/public/ProductSheet'
 import { type Filter, filterProducts } from '../lib/filter'
 import { useMediaProtection } from '../lib/protect'
+import { track } from '../lib/track'
 import { getPublicPageFn } from '../server/fns'
 
 const NO_FILTER: Filter = { q: '', category: 'All', platform: 'all' }
@@ -41,6 +43,34 @@ function Home() {
   const hidden = useMediaProtection()
   const products = filterProducts(page.products, filter)
   const open = page.products.find((p) => p.id === openId)
+  const searched = useRef('')
+
+  // One visit for each browser tab session, so a reload is not a second visit.
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem('pqacam-visit')) return
+      sessionStorage.setItem('pqacam-visit', '1')
+    } catch {
+      // Private mode can refuse storage. Count the visit anyway.
+    }
+    track({ type: 'visit' })
+  }, [])
+
+  useEffect(() => {
+    if (openId !== null) track({ type: 'view', productId: openId })
+  }, [openId])
+
+  // A search counts once the visitor stops typing, not on each letter.
+  const term = filter.q.trim().toLowerCase()
+  const found = products.length
+  useEffect(() => {
+    if (term.length < 2 || term === searched.current) return
+    const timer = setTimeout(() => {
+      searched.current = term
+      track({ type: 'search', term, results: found })
+    }, 1500)
+    return () => clearTimeout(timer)
+  }, [term, found])
 
   return (
     <div className="pp page-glow">
@@ -64,6 +94,7 @@ function Home() {
           <a href="/privacy">Privacy</a>
         </footer>
       </div>
+      {page.profile.whatsapp && <ChatButton number={page.profile.whatsapp} name={page.profile.name} />}
       {open && <ProductSheet key={open.id} product={open} hidden={hidden} onClose={close} />}
     </div>
   )
