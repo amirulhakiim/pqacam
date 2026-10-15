@@ -58,10 +58,10 @@ test('a new product stays hidden until its selected media is attached', () => {
   expect(c.getPublicPage(db, BASE).products[0].media).toEqual([{ type: 'photo', url: `${BASE}/${key(1)}` }])
 })
 
-test('a new product goes to the top', () => {
+test('a new product goes to the bottom', () => {
   c.saveProduct(db, input({ name: 'A' }))
   c.saveProduct(db, input({ name: 'B' }))
-  expect(names()).toEqual(['B', 'A'])
+  expect(names()).toEqual(['A', 'B'])
 })
 
 test('an edit reports the media keys that were removed', () => {
@@ -95,7 +95,7 @@ test('reorder sets the order, and refuses a list that is out of date', () => {
   expect(() => c.reorderProducts(db, [a, a, b])).toThrow(c.UserError)
   expect(() => c.reorderProducts(db, [a, b, 999])).toThrow(c.UserError)
   c.saveProduct(db, input({ name: 'New' }))
-  expect(names()).toEqual(['New', 'A', 'D', 'B'])
+  expect(names()).toEqual(['A', 'D', 'B', 'New'])
 })
 
 test('category rules', () => {

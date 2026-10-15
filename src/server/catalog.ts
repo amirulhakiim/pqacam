@@ -134,8 +134,8 @@ export function saveProduct(db: Db, input: ProductInput): { id: number; removedK
     let id: number
     let oldKeys: string[] = []
     if (inputId === undefined) {
-      const top = tx.select({ v: sql<number>`coalesce(min(${product.position}), 1)` }).from(product).get()!.v
-      id = tx.insert(product).values({ ...fields, position: top - 1 }).returning({ id: product.id }).get().id
+      const last = tx.select({ v: sql<number>`coalesce(max(${product.position}), -1)` }).from(product).get()!.v
+      id = tx.insert(product).values({ ...fields, position: last + 1 }).returning({ id: product.id }).get().id
     } else {
       const row = tx.update(product).set(fields).where(eq(product.id, inputId)).returning({ id: product.id }).get()
       if (!row) throw new UserError('This product no longer exists.')

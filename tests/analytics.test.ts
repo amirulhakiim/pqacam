@@ -27,7 +27,7 @@ function setup() {
     ],
   })
   c.saveProduct(db, { ...base, categoryId: decor.id, name: 'Vase', links: [{ platform: 'whatsapp', label: '', url: 'https://wa.me/1' }] })
-  const [vase, tumbler] = c.getAdminData(db, '').products
+  const [tumbler, vase] = c.getAdminData(db, '').products
   return { db, tumbler, vase, kitchen, decor }
 }
 
