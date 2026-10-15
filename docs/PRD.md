@@ -276,24 +276,29 @@ sequenceDiagram
     participant B as Admin browser
     participant S as App server
     participant R as Cloudflare R2
+    B->>B: Select media, check size, preview locally
+    B->>S: Save product details
+    S-->>B: Product ID
+    B->>B: Close editor and show upload status on product row
     B->>B: Resize photo on canvas
     B->>S: Request upload URL with type and size
     S->>S: Check session, type, size limit
     S-->>B: Presigned PUT URL and object key
     B->>R: PUT file
-    B->>S: Save product with object keys
+    B->>S: Attach selected media to saved product
     S->>S: Store keys in MEDIA rows
 ```
 
 | Rule | Value |
 |---|---|
 | Photo | JPEG, 1000 px longest side, quality 0.82. Avatar: 400 px |
-| Video | `mp4` or `webm` up to 50 MB upload directly. A larger video (up to 1 GB), or any `mov`, goes through the server: compressed to H.264 MP4 under 50 MB (a second pass at 720p with a fitted bitrate when needed), and the editor says how much it shrank |
+| Video | 50 MB maximum per source file, checked when selected. `mp4` or `webm` upload directly. Any `mov` goes through the server: compressed to H.264 MP4 under 50 MB (a second pass at 720p with a fitted bitrate when needed) |
+| Product selection | Media stays in the browser until Save. Save stores the product, closes the editor, and uploads media while the admin page shows status. A new product is saved hidden first and becomes visible after its selected media is attached. Keep the page open until the browser uploads finish |
 | Size and type check | The presigned URL signs `Content-Type` and `Content-Length`, so R2 rejects a different file |
 | Object key | Random ID from the server. The file name from the device is not used |
 | Public URL | `MEDIA_BASE_URL` + object key, served through the Cloudflare CDN |
 | Delete | When an admin removes media or deletes a product, the server deletes the objects from R2. An object stays while a product or a library item still uses it |
-| Watermark original | `raw/` key, any of JPEG, `mp4`, `webm`, `mov`. 1 GB maximum. Deleted when its result exists. An R2 lifecycle rule deletes any left over after 2 days |
+| Watermark original | `raw/` key, any of JPEG, `mp4`, `webm`, `mov`. 50 MB maximum per video and 100 MB per photo. Deleted when its result exists. An R2 lifecycle rule deletes any left over after 2 days |
 | Watermark result | Video: H.264 `mp4`, long side 1920 px at most, AAC audio, HDR tone mapped to SDR, metadata (GPS) removed. Photo: JPEG, 1000 px. Fonts in `public/fonts` |
 
 ## 10. Deployment

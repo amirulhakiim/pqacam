@@ -1,22 +1,27 @@
 import { useEffect, useRef, useState } from 'react'
-import { resizeImage, uploadFile } from '../../lib/upload'
+import { mediaSizeError } from '../../lib/mediaSelection'
 import { PLATFORM_LABEL } from '../../lib/platforms'
 import type { AdminProduct } from '../../server/catalog'
-import { compressVideoFn, deleteProductFn, saveProductFn, takeJobFn } from '../../server/fns'
-import { PLATFORMS, type Platform, VIDEO_MAX_MB, VIDEO_TYPES } from '../../server/validate'
+import { deleteProductFn, saveProductFn } from '../../server/fns'
+import { PLATFORMS, type Platform, type ProductInput, validateProduct, VIDEO_TYPES } from '../../server/validate'
 import { VideoThumb } from '../VideoThumb'
 import { LibraryPicker } from './LibraryPicker'
 import type { TabProps } from './Shell'
+import type { ProductUploadRequest } from './useProductUploads'
 
-type Props = TabProps & { product: AdminProduct | null; onClose: () => void }
+type Props = TabProps & { product: AdminProduct | null; onClose: () => void; onQueue: (request: ProductUploadRequest) => void }
 // k is a React key. A new link has no id until it is saved.
 type DraftLink = { k: string; id?: number; platform: Platform; label: string; url: string }
-type Draft = Omit<AdminProduct, 'id' | 'links'> & { id?: number; links: DraftLink[] }
+type ReadyMedia = AdminProduct['media'][number]
+type PendingMedia = { type: 'photo' | 'video'; key: string; url: string; file: File }
+type DraftMedia = ReadyMedia | PendingMedia
+type Draft = Omit<AdminProduct, 'id' | 'links' | 'media'> & { id?: number; links: DraftLink[]; media: DraftMedia[] }
+const pending = (media: DraftMedia): media is PendingMedia => 'file' in media
 
 const emptyLink = (platform: Platform): DraftLink => ({ k: crypto.randomUUID(), platform, label: '', url: '' })
 const PLACEHOLDER = { shopee: 'https://shopee.com.my/…', tiktok: 'https://www.tiktok.com/…', whatsapp: 'https://wa.me/…' }
 
-export function ProductDrawer({ product, data, act, flash, onClose }: Props) {
+export function ProductDrawer({ product, data, act, flash, onClose, onQueue }: Props) {
   const [draft, setDraft] = useState<Draft>(() => {
     const links: DraftLink[] = (product?.links ?? []).map(({ clicks, ...l }) => ({ ...l, k: String(l.id) }))
     for (const k of PLATFORMS) if (!links.some((l) => l.platform === k)) links.push(emptyLink(k))
@@ -30,17 +35,15 @@ export function ProductDrawer({ product, data, act, flash, onClose }: Props) {
   // The ref is read on each pointer move, before React renders again. The state only styles the tile.
   const dragFrom = useRef<number | null>(null)
   const [dragKey, setDragKey] = useState<string | null>(null)
-  const [uploads, setUploads] = useState(0)
+  const [savingState, setSavingState] = useState(false)
   const [error, setError] = useState('')
   const [mediaError, setMediaError] = useState('')
-  const [progress, setProgress] = useState<number | null>(null)
-  const [stage, setStage] = useState('')
-  const [notice, setNotice] = useState('')
-  // Polling for a compressed video stops when the drawer closes. The video then stays in the Watermark library.
-  const open = useRef(true)
+  const objectUrls = useRef(new Set<string>())
   useEffect(
-    () => () => {
-      open.current = false
+    () => {
+      return () => {
+        for (const url of objectUrls.current) URL.revokeObjectURL(url)
+      }
     },
     [],
   )
@@ -48,98 +51,45 @@ export function ProductDrawer({ product, data, act, flash, onClose }: Props) {
   // A ref, not state: a second tap arrives before React renders again.
   const saving = useRef(false)
   const set = (patch: Partial<Draft>) => {
+    if (saving.current) return
     setDraft((d) => ({ ...d, ...patch }))
     setError('')
   }
+  const close = () => {
+    if (!saving.current) onClose()
+  }
 
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && (bigReview ? setBigReview(false) : onClose())
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && (bigReview ? setBigReview(false) : close())
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [onClose, bigReview])
 
-  // ponytail: a cancelled draft leaves its uploads in R2. Add a sweep of keys with no media row if storage grows.
   // Shown under the tiles and as a toast: the error box at the end of the drawer is out of sight while adding media.
   function fail(message: string) {
     setMediaError(message)
     flash(message)
   }
 
-  const mb = (bytes: number) => `${Math.max(1, Math.round(bytes / 1024 / 1024))} MB`
-
-  // A video over the limit, or a MOV (usually HEVC from an iPhone, which Android and Windows cannot play), goes to the server.
-  // The server makes an MP4 under the limit, and the drawer waits for it.
-  async function compress(file: File) {
-    setStage(`Uploading ${file.name}`)
-    const uploaded = await uploadFile('raw', file, setProgress)
-    if (!uploaded.ok) return fail(`${file.name}: ${uploaded.error}`)
-    const started = await compressVideoFn({ data: { type: 'video', key: uploaded.value.key, name: file.name } })
-    if (!started.ok) return fail(`${file.name}: ${started.error}`)
-    setStage(`Preparing ${file.name}`)
-    setProgress(null)
-    while (open.current) {
-      await new Promise((r) => setTimeout(r, 2000))
-      const r = await takeJobFn({ data: started.value })
-      if (!r.ok) return fail(`${file.name}: ${r.error}`)
-      const job = r.value
-      if (job.status === 'failed') return fail(`${file.name}: ${job.error}`)
-      if (job.status !== 'done' || !('key' in job)) {
-        setStage(
-          job.status === 'queued'
-            ? job.ahead > 0
-              ? `Waiting for ${job.ahead} earlier file${job.ahead === 1 ? '' : 's'} before ${file.name}`
-              : `Waiting for compression to start: ${file.name}`
-            : job.progress > 0
-              ? `Compressing ${file.name}`
-              : `Preparing ${file.name}`,
-        )
-        setProgress(job.progress > 0 ? job.progress / 100 : null)
-        continue
-      }
-      setDraft((d) => ({ ...d, media: [...d.media, { type: 'video', key: job.key!, url: job.url! }] }))
-      if (file.size > VIDEO_MAX_MB * 1024 * 1024) {
-        const text = `${file.name} was ${mb(file.size)}, so it was compressed to ${mb(job.bytes ?? 0)} to fit the ${VIDEO_MAX_MB} MB limit.`
-        setNotice(text)
-        flash(text)
-      }
-      return
-    }
-  }
-
-  async function addFiles(type: 'photo' | 'video', files: FileList | null) {
+  function addFiles(type: 'photo' | 'video', files: FileList | null) {
     setMediaError('')
-    setNotice('')
     for (const file of Array.from(files ?? [])) {
-      if (type === 'video' && !VIDEO_TYPES.includes(file.type)) {
-        fail(`${file.name} is not an MP4, WebM or MOV video.`)
-        continue
-      }
-      if (type === 'video' && file.size > 1024 * 1024 * 1024) {
-        fail(`${file.name} is ${mb(file.size)}. Videos can be 1 GB at most.`)
-        continue
-      }
-      setUploads((n) => n + 1)
       try {
-        if (type === 'video' && (file.size > VIDEO_MAX_MB * 1024 * 1024 || file.type === 'video/quicktime')) {
-          await compress(file)
-          continue
-        }
-        setStage(`Uploading ${file.name}`)
-        const blob = type === 'photo' ? await resizeImage(file, 1000) : file
-        const result = await uploadFile(type, blob, type === 'video' ? setProgress : undefined)
-        if (result.ok) setDraft((d) => ({ ...d, media: [...d.media, { type, ...result.value }] }))
-        else fail(`${file.name}: ${result.error}`)
-      } catch {
-        fail(`Could not read ${file.name}.`)
-      } finally {
-        setUploads((n) => n - 1)
-        setProgress(null)
-        setStage('')
+        if (saving.current) throw new Error('Wait until the product finishes saving.')
+        if (type === 'video' && !VIDEO_TYPES.includes(file.type)) throw new Error(`${file.name} is not an MP4, WebM or MOV video.`)
+        const sizeError = mediaSizeError(file, type)
+        if (sizeError) throw new Error(sizeError)
+        const url = URL.createObjectURL(file)
+        objectUrls.current.add(url)
+        setDraft((d) => ({ ...d, media: [...d.media, { type, key: `pending:${crypto.randomUUID()}`, url, file }] }))
+      } catch (error) {
+        fail(error instanceof Error ? error.message : `Could not read ${file.name}.`)
       }
     }
   }
 
   function moveMedia(from: number, to: number) {
+    if (saving.current) return
     setDraft((d) => {
       const media = d.media.slice()
       media.splice(to, 0, ...media.splice(from, 1))
@@ -154,7 +104,7 @@ export function ProductDrawer({ product, data, act, flash, onClose }: Props) {
 
   // Pointer events, not HTML drag and drop: those do not fire for touch on most phones.
   function dragOver(e: React.PointerEvent) {
-    if (dragFrom.current === null) return
+    if (saving.current || dragFrom.current === null) return
     const tile = document.elementFromPoint(e.clientX, e.clientY)?.closest<HTMLElement>('[data-index]')
     const to = Number(tile?.dataset.index)
     if (!tile || to === dragFrom.current) return
@@ -174,20 +124,51 @@ export function ProductDrawer({ product, data, act, flash, onClose }: Props) {
   async function save() {
     if (saving.current) return
     saving.current = true
+    setSavingState(true)
+    setError('')
+    setMediaError('')
     try {
-      const input = {
-        ...draft,
-        media: draft.media.map(({ type, key }) => ({ type, key })),
+      const fields: ProductInput = {
+        id: draft.id,
+        name: draft.name,
+        categoryId: draft.categoryId,
+        price: draft.price,
+        review: draft.review,
+        hidden: draft.hidden,
         links: draft.links.map(({ k, ...l }) => l),
+        media: [],
       }
-      const result = await saveProductFn({ data: input })
+      const ready = (items: DraftMedia[]) => items.filter((m): m is ReadyMedia => !pending(m)).map(({ type, key }) => ({ type, key }))
+      const selected = draft.media.filter(pending)
+      const finalInput = { ...fields, media: ready(draft.media) }
+      if (draft.media.length > 20) return setError('A product can have at most 20 photos and videos.')
+      const valid = validateProduct(finalInput)
+      if (!valid.ok) return setError(valid.error)
+      if (selected.length) {
+        const first = await saveProductFn({ data: {
+          ...fields,
+          hidden: product ? draft.hidden : true,
+          media: product ? product.media.map(({ type, key }) => ({ type, key })) : [],
+        } })
+        if (!first.ok) return setError(first.error)
+        onQueue({
+          productId: first.value,
+          name: draft.name,
+          input: { ...finalInput, id: first.value },
+          media: draft.media.map((item) => pending(item) ? { type: item.type, key: item.key, file: item.file } : { type: item.type, key: item.key }),
+        })
+        onClose()
+        void act(Promise.resolve(first), 'Product saved. Media uploading in the background.')
+        return
+      }
+      const result = await saveProductFn({ data: finalInput })
       if (!result.ok) return setError(result.error)
-      await act(Promise.resolve(result), product ? 'Changes saved' : 'Product added')
-      onClose()
-    } catch {
-      setError('Could not save. Check your connection and try again.')
+      if (await act(Promise.resolve(result), product ? 'Changes saved' : 'Product added')) onClose()
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Could not save. Check your connection and try again.')
     } finally {
       saving.current = false
+      setSavingState(false)
     }
   }
 
@@ -197,11 +178,11 @@ export function ProductDrawer({ product, data, act, flash, onClose }: Props) {
   }
 
   return (
-    <div className="adm-backdrop" onClick={onClose}>
+    <div className="adm-backdrop" onClick={close}>
       <div className="adm-drawer" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
         <div className="adm-drawer-head">
           <h3>{product ? 'Edit product' : 'New product'}</h3>
-          <button type="button" className="adm-x" onClick={onClose} aria-label="Close">
+          <button type="button" className="adm-x" onClick={close} aria-label="Close" disabled={savingState}>
             ✕
           </button>
         </div>
@@ -227,17 +208,25 @@ export function ProductDrawer({ product, data, act, flash, onClose }: Props) {
                   onPointerCancel={endDrag}
                 >
                   {m.type === 'photo' ? <img src={m.url} alt="" draggable={false} /> : <VideoThumb url={m.url} />}
-                  {m.type === 'video' && <span className="adm-tile-tag">▶ Video</span>}
+                  {m.type === 'video' && !pending(m) && <span className="adm-tile-tag">▶ Video</span>}
+                  {pending(m) && <span className="adm-tile-tag">Selected</span>}
                   <button
                     type="button"
                     className="adm-tile-button adm-tile-remove"
-                    onClick={() => set({ media: draft.media.filter((_, j) => j !== i) })}
+                    disabled={savingState}
+                    onClick={() => {
+                      if (pending(m)) {
+                        objectUrls.current.delete(m.url)
+                        URL.revokeObjectURL(m.url)
+                      }
+                      set({ media: draft.media.filter((_, j) => j !== i) })
+                    }}
                     title="Remove"
                   >
                     ✕
                   </button>
                   {i > 0 && (
-                    <button type="button" className="adm-tile-button adm-tile-left" onClick={() => moveMedia(i, i - 1)} title="Move earlier">
+                    <button type="button" className="adm-tile-button adm-tile-left" onClick={() => moveMedia(i, i - 1)} title="Move earlier" disabled={savingState}>
                       ←
                     </button>
                   )}
@@ -250,7 +239,7 @@ export function ProductDrawer({ product, data, act, flash, onClose }: Props) {
                   <path d="m4 17 5-5 4 4 3-3 4 4" />
                 </svg>
                 Add photos
-                <input type="file" accept="image/*" multiple hidden onChange={(e) => (addFiles('photo', e.target.files), (e.target.value = ''))} />
+                <input type="file" accept="image/*" multiple hidden disabled={savingState} onChange={(e) => (addFiles('photo', e.target.files), (e.target.value = ''))} />
               </label>
               <label className="adm-tile adm-tile-add">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -264,10 +253,11 @@ export function ProductDrawer({ product, data, act, flash, onClose }: Props) {
                   accept="video/mp4,video/webm,video/quicktime"
                   multiple
                   hidden
+                  disabled={savingState}
                   onChange={(e) => (addFiles('video', e.target.files), (e.target.value = ''))}
                 />
               </label>
-              <button type="button" className="adm-tile adm-tile-add" onClick={() => setPicking(true)}>
+              <button type="button" className="adm-tile adm-tile-add" onClick={() => setPicking(true)} disabled={savingState}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <rect x="3" y="7" width="15" height="14" rx="2" />
                   <path d="M6 7V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2h-1" />
@@ -276,13 +266,8 @@ export function ProductDrawer({ product, data, act, flash, onClose }: Props) {
                 From library
               </button>
             </div>
-            {uploads > 0 && (
-              <span className="adm-hint">
-                {stage || `Uploading ${uploads}`}…{progress !== null && ` ${Math.round(progress * 100)}%`}
-              </span>
-            )}
+            {draft.media.some(pending) && !savingState && <span className="adm-hint">Selected files upload when you save this product.</span>}
             {mediaError && <div className="error-box">{mediaError}</div>}
-            {notice && <div className="notice-box">{notice}</div>}
             {picking && (
               <LibraryPicker
                 jobs={data.jobs}
@@ -395,16 +380,16 @@ export function ProductDrawer({ product, data, act, flash, onClose }: Props) {
         </div>
         <div className="adm-drawer-foot">
           {product && (
-            <button type="button" className={confirmDelete ? 'btn btn-danger btn-danger-on' : 'btn btn-danger'} onClick={remove}>
+            <button type="button" className={confirmDelete ? 'btn btn-danger btn-danger-on' : 'btn btn-danger'} onClick={remove} disabled={savingState}>
               {confirmDelete ? 'Tap again to delete' : 'Delete'}
             </button>
           )}
           <span className="adm-grow" />
-          <button type="button" className="btn btn-light" onClick={onClose}>
+          <button type="button" className="btn btn-light" onClick={close} disabled={savingState}>
             Cancel
           </button>
-          <button type="button" className="btn btn-dark" onClick={save} disabled={uploads > 0}>
-            Save
+          <button type="button" className="btn btn-dark" onClick={save} disabled={savingState}>
+            {savingState ? 'Saving…' : 'Save'}
           </button>
         </div>
       </div>

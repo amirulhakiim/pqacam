@@ -51,6 +51,13 @@ test('a product with no media has an empty media list', () => {
   expect(c.getPublicPage(db, BASE).products[0].media).toEqual([])
 })
 
+test('a new product stays hidden until its selected media is attached', () => {
+  const { id } = c.saveProduct(db, input({ hidden: true, media: [] }))
+  expect(c.getPublicPage(db, BASE).products).toHaveLength(0)
+  c.saveProduct(db, input({ id }))
+  expect(c.getPublicPage(db, BASE).products[0].media).toEqual([{ type: 'photo', url: `${BASE}/${key(1)}` }])
+})
+
 test('a new product goes to the top', () => {
   c.saveProduct(db, input({ name: 'A' }))
   c.saveProduct(db, input({ name: 'B' }))

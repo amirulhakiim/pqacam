@@ -7,6 +7,7 @@ import { ProductsTab } from '../../components/admin/ProductsTab'
 import { ProfileTab } from '../../components/admin/ProfileTab'
 import { type Act, Shell, type Tab } from '../../components/admin/Shell'
 import { useUploads } from '../../components/admin/useUploads'
+import { useProductUploads } from '../../components/admin/useProductUploads'
 import { WatermarkTab } from '../../components/admin/WatermarkTab'
 import { getAdminDataFn, signOutFn } from '../../server/fns'
 
@@ -23,6 +24,8 @@ function Admin() {
   const [toast, setToast] = useState('')
   const refresh = useCallback(() => void router.invalidate(), [router])
   const uploads = useUploads(refresh)
+  const productUploads = useProductUploads(refresh)
+  const failedUploads = productUploads.tasks.some((task) => task.status === 'failed')
   const working = data.jobs.some((j) => j.status === 'queued' || j.status === 'processing')
 
   // The server watermarks in the background. Polling shows progress and finished files without a reload.
@@ -67,7 +70,13 @@ function Admin() {
   const props = { data, act, flash: setToast }
   return (
     <Shell data={data} me={me} tab={tab} onTab={setTab} onSignOut={signOut}>
-      {tab === 'products' && <ProductsTab {...props} />}
+      {(productUploads.active || failedUploads) && (
+        <div className="adm-upload-status" role="status">
+          <span>{failedUploads ? 'Some media failed to upload. Retry or discard it in Products.' : 'Media is uploading. Keep this page open until it finishes.'}</span>
+          {tab !== 'products' && <button type="button" className="btn btn-soft" onClick={() => setTab('products')}>View progress</button>}
+        </div>
+      )}
+      {tab === 'products' && <ProductsTab {...props} uploads={productUploads} />}
       {tab === 'analytics' && <AnalyticsTab {...props} />}
       {tab === 'watermark' && <WatermarkTab {...props} uploads={uploads} />}
       {tab === 'categories' && <CategoriesTab {...props} />}

@@ -5,9 +5,10 @@ import { reorderProductsFn, setHiddenFn } from '../../server/fns'
 import { PLATFORMS } from '../../server/validate'
 import { VideoThumb } from '../VideoThumb'
 import { ProductDrawer } from './ProductDrawer'
+import type { ProductUploads } from './useProductUploads'
 import type { TabProps } from './Shell'
 
-export function ProductsTab({ data, act, flash }: TabProps) {
+export function ProductsTab({ data, act, flash, uploads }: TabProps & { uploads: ProductUploads }) {
   const [q, setQ] = useState('')
   const [editing, setEditing] = useState<AdminProduct | 'new' | null>(null)
   const categoryName = new Map(data.categories.map((c) => [c.id, c.name]))
@@ -72,6 +73,9 @@ export function ProductsTab({ data, act, flash }: TabProps) {
       <div className="adm-list adm-list-wide">
         {needle && rows.length > 1 && <div className="adm-sub">Clear the search to drag products into a new order.</div>}
         {rows.map((p) => {
+          const upload = [...uploads.tasks].reverse().find((task) => task.productId === p.id)
+          const uploading = upload?.status === 'queued' || upload?.status === 'running'
+          const pendingUpload = uploading || upload?.status === 'failed'
           const index = sorted.indexOf(p)
           const cover = p.media.find((m) => m.type === 'photo')
           const firstVideo = cover ? undefined : p.media.find((m) => m.type === 'video')
@@ -80,7 +84,7 @@ export function ProductsTab({ data, act, flash }: TabProps) {
           const linked = PLATFORMS.filter((k) => p.links.some((l) => l.platform === k))
           return (
             <div
-              className={['adm-row', p.hidden && 'adm-row-hidden', order && dragFrom.current === index && 'adm-row-dragging'].filter(Boolean).join(' ')}
+              className={['adm-row', p.hidden && !uploading && 'adm-row-hidden', uploading && 'adm-row-uploading', order && dragFrom.current === index && 'adm-row-dragging'].filter(Boolean).join(' ')}
               key={p.id}
               data-row={index}
             >
@@ -108,11 +112,11 @@ export function ProductsTab({ data, act, flash }: TabProps) {
                   ⠿
                 </button>
               )}
-              <button type="button" className="adm-thumb" onClick={() => setEditing(p)} aria-label={`Edit ${p.name}`}>
+              <button type="button" className="adm-thumb" onClick={() => setEditing(p)} aria-label={`Edit ${p.name}`} disabled={pendingUpload}>
                 {cover && <img src={cover.url} alt="" />}
                 {firstVideo && <VideoThumb url={firstVideo.url} />}
               </button>
-              <button type="button" className="adm-row-text" onClick={() => setEditing(p)}>
+              <button type="button" className="adm-row-text" onClick={() => setEditing(p)} disabled={pendingUpload}>
                 <span className="adm-row-name">{p.name}</span>
                 <span className="adm-row-meta">
                   <span>{categoryName.get(p.categoryId)}</span>
@@ -128,11 +132,15 @@ export function ProductsTab({ data, act, flash }: TabProps) {
                   ))}
                   {linked.length === 0 && <span className="chip chip-warn">No buy link</span>}
                 </span>
+                {upload && <span className={upload.status === 'failed' ? 'chip chip-warn' : 'chip chip-tiktok'} role="status">
+                  {upload.status === 'failed' ? upload.error : `${upload.stage}${upload.progress !== null && upload.status === 'running' ? ` ${Math.round(upload.progress * 100)}%` : ''}`}
+                </span>}
               </button>
               <div className="adm-row-actions">
                 <button
                   type="button"
                   className="switch-button"
+                  disabled={pendingUpload}
                   onClick={() =>
                     act(setHiddenFn({ data: { id: p.id, hidden: !p.hidden } }), p.hidden ? 'Now live on your page' : 'Hidden from your page')
                   }
@@ -140,7 +148,9 @@ export function ProductsTab({ data, act, flash }: TabProps) {
                   <span className={p.hidden ? 'switch' : 'switch switch-on'} />
                   {p.hidden ? 'Hidden' : 'Live'}
                 </button>
-                <button type="button" className="btn btn-soft" onClick={() => setEditing(p)}>
+                {upload?.status === 'failed' && <button type="button" className="btn btn-soft" onClick={() => uploads.retry(upload.id)}>Retry</button>}
+                {upload?.status === 'failed' && <button type="button" className="btn btn-soft" onClick={() => uploads.discard(upload.id)}>Discard</button>}
+                <button type="button" className="btn btn-soft" onClick={() => setEditing(p)} disabled={pendingUpload}>
                   Edit
                 </button>
               </div>
@@ -158,6 +168,7 @@ export function ProductsTab({ data, act, flash }: TabProps) {
           data={data}
           act={act}
           flash={flash}
+          onQueue={uploads.enqueue}
           onClose={() => setEditing(null)}
         />
       )}
