@@ -109,12 +109,6 @@ export function ProductSheet({ product, hidden, onClose }: Props) {
               </svg>
             </button>
           )}
-          <button type="button" className="pp-round pp-share" onClick={share} aria-label="Share this product">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M12 15V4M8 8l4-4 4 4M5 12v7a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-7" />
-            </svg>
-          </button>
-          {copied && <div className="pp-copied">Link copied</div>}
           <button type="button" className="pp-round pp-close" onClick={onClose} aria-label="Close">
             ✕
           </button>
@@ -144,7 +138,15 @@ export function ProductSheet({ product, hidden, onClose }: Props) {
           )}
         </div>
         <div className="pp-title">
-          <div className="eyebrow pp-category">{product.category}</div>
+          <div className="pp-title-top">
+            <div className="eyebrow pp-category">{product.category}</div>
+            <button type="button" className="pp-share" onClick={share}>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M14 9V5l7 7-7 7v-4.1c-5 0-8.5 1.6-11 5.1 1-5 4-10 11-11z" />
+              </svg>
+              {copied ? 'Link copied' : 'Share'}
+            </button>
+          </div>
           <div className="pp-title-row">
             <h2>{product.name}</h2>
             {product.price && <div className="pp-price">{product.price}</div>}

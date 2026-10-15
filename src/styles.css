@@ -91,7 +91,7 @@ button { font: inherit; color: inherit; }
 .pp-cover { position: relative; aspect-ratio: 1 / 1; overflow: hidden; border-radius: 14px; background: repeating-linear-gradient(135deg, oklch(0.9 0.03 70) 0 7px, oklch(0.95 0.01 75) 7px 14px); }
 .pp-count { position: absolute; top: 8px; right: 8px; font-size: 10.5px; font-weight: 600; background: oklch(0.99 0.004 80 / 0.9); color: oklch(0.38 0.02 60); padding: 3px 8px; border-radius: 999px; }
 .pp-card-body { padding: 0 4px; display: flex; flex-direction: column; gap: 6px; }
-.pp-card-name { font-family: var(--serif); font-style: italic; font-weight: 700; font-size: 18px; line-height: 1.15; text-wrap: pretty; }
+.pp-card-name { font-size: 15px; font-weight: 600; line-height: 1.3; text-wrap: pretty; }
 .pp-card-price { font-family: var(--serif); font-size: 19px; line-height: 1; }
 .pp-chips { display: flex; flex-wrap: wrap; gap: 4px; }
 .pp-empty { text-align: center; padding: 40px 20px; display: flex; flex-direction: column; gap: 6px; align-items: center; font-size: 14px; color: var(--ink-soft); }
@@ -121,9 +121,6 @@ button { font: inherit; color: inherit; }
 .pp-counter { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 3; font-size: 11.5px; font-weight: 600; background: oklch(0.99 0.004 80 / 0.85); color: oklch(0.35 0.02 60); padding: 4px 10px; border-radius: 999px; }
 .pp-round { position: absolute; z-index: 5; width: 40px; height: 40px; border-radius: 50%; border: none; background: oklch(0.99 0.004 80 / 0.85); color: oklch(0.35 0.02 60); font-size: 18px; cursor: pointer; }
 .pp-sound { right: 10px; bottom: 10px; }
-.pp-share { top: 10px; right: 58px; }
-.pp-share svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.pp-copied { position: absolute; top: 58px; right: 10px; z-index: 6; padding: 6px 12px; border-radius: 999px; background: oklch(0.3 0.02 60); color: var(--surface); font-size: 12.5px; font-weight: 500; }
 .pp-sound svg { width: 20px; height: 20px; fill: currentColor; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .pp-close { top: 10px; right: 10px; font-size: 16px; background: var(--surface); }
 .pp-prev { left: 10px; top: 50%; transform: translateY(-50%); }
@@ -133,9 +130,12 @@ button { font: inherit; color: inherit; }
 .pp-dot-on { width: 20px; background: var(--surface); }
 .pp-title { display: flex; flex-direction: column; gap: 6px; }
 .pp-category { font-weight: 500; letter-spacing: 0.06em; }
+.pp-title-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.pp-share { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: oklch(0.38 0.02 60); font: inherit; font-size: 13px; font-weight: 500; cursor: pointer; }
+.pp-share svg { width: 16px; height: 16px; fill: currentColor; }
 .pp-title-row { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 12px; }
-/* Instrument Serif has no bold, so the browser thickens the italic. */
-.pp-title-row h2 { margin: 0; font-family: var(--serif); font-style: italic; font-weight: 700; font-size: 34px; line-height: 1.05; text-wrap: pretty; }
+/* The same face as the review text, larger and in the heaviest weight that is loaded. */
+.pp-title-row h2 { margin: 0; font-family: var(--sans); font-weight: 600; font-size: 22px; line-height: 1.25; letter-spacing: -0.01em; text-wrap: pretty; color: var(--ink); }
 .pp-price { font-family: var(--serif); font-size: 24px; white-space: nowrap; }
 .pp-review { background: oklch(0.955 0.014 75); border-radius: 18px; padding: 16px 18px; display: flex; flex-direction: column; gap: 8px; }
 .pp-review p { margin: 0; font-size: 15px; line-height: 1.6; text-wrap: pretty; white-space: pre-line; color: oklch(0.33 0.02 60); }
