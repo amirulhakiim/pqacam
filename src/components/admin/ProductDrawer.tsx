@@ -3,7 +3,7 @@ import { resizeImage, uploadFile } from '../../lib/upload'
 import { PLATFORM_LABEL } from '../../lib/platforms'
 import type { AdminProduct } from '../../server/catalog'
 import { deleteProductFn, saveProductFn } from '../../server/fns'
-import { PLATFORMS, type Platform } from '../../server/validate'
+import { PLATFORMS, type Platform, VIDEO_MAX_MB, VIDEO_TYPES } from '../../server/validate'
 import { LibraryPicker } from './LibraryPicker'
 import type { TabProps } from './Shell'
 
@@ -31,6 +31,8 @@ export function ProductDrawer({ product, data, act, flash, onClose }: Props) {
   const [dragKey, setDragKey] = useState<string | null>(null)
   const [uploads, setUploads] = useState(0)
   const [error, setError] = useState('')
+  const [mediaError, setMediaError] = useState('')
+  const [progress, setProgress] = useState<number | null>(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
   // A ref, not state: a second tap arrives before React renders again.
   const saving = useRef(false)
@@ -46,17 +48,36 @@ export function ProductDrawer({ product, data, act, flash, onClose }: Props) {
   }, [onClose, bigReview])
 
   // ponytail: a cancelled draft leaves its uploads in R2. Add a sweep of keys with no media row if storage grows.
+  // Shown under the tiles and as a toast: the error box at the end of the drawer is out of sight while adding media.
+  function fail(message: string) {
+    setMediaError(message)
+    flash(message)
+  }
+
   async function addFiles(type: 'photo' | 'video', files: FileList | null) {
+    setMediaError('')
     for (const file of Array.from(files ?? [])) {
+      // Checked here as well as on the server, so a phone video over the limit fails at once, with its name, before any upload.
+      if (type === 'video' && !VIDEO_TYPES.includes(file.type)) {
+        fail(`${file.name} is not an MP4, WebM or MOV video.`)
+        continue
+      }
+      if (type === 'video' && file.size > VIDEO_MAX_MB * 1024 * 1024) {
+        const mb = Math.round(file.size / 1024 / 1024)
+        fail(`${file.name} is ${mb} MB. Videos here can be ${VIDEO_MAX_MB} MB at most. The Watermark tab takes videos up to 1 GB and makes them smaller.`)
+        continue
+      }
       setUploads((n) => n + 1)
       try {
-        const result = await uploadFile(type, type === 'photo' ? await resizeImage(file, 1000) : file)
+        const blob = type === 'photo' ? await resizeImage(file, 1000) : file
+        const result = await uploadFile(type, blob, type === 'video' ? setProgress : undefined)
         if (result.ok) setDraft((d) => ({ ...d, media: [...d.media, { type, ...result.value }] }))
-        else setError(result.error)
+        else fail(`${file.name}: ${result.error}`)
       } catch {
-        setError('Could not read this file.')
+        fail(`Could not read ${file.name}.`)
       } finally {
         setUploads((n) => n - 1)
+        setProgress(null)
       }
     }
   }
@@ -182,7 +203,12 @@ export function ProductDrawer({ product, data, act, flash, onClose }: Props) {
                 />
               </label>
             </div>
-            {uploads > 0 && <span className="adm-hint">Uploading {uploads}…</span>}
+            {uploads > 0 && (
+              <span className="adm-hint">
+                Uploading {uploads}…{progress !== null && ` ${Math.round(progress * 100)}%`}
+              </span>
+            )}
+            {mediaError && <div className="error-box">{mediaError}</div>}
             {picking && (
               <LibraryPicker
                 jobs={data.jobs}

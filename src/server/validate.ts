@@ -72,12 +72,14 @@ export function validateEmail(raw: unknown): Result<string> {
 
 export type UploadKind = 'photo' | 'video' | 'avatar' | 'raw'
 const MB = 1024 * 1024
+export const VIDEO_MAX_MB = 50
+export const VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/quicktime']
 const UPLOAD: Record<UploadKind, { max: number; types: Record<string, string> }> = {
   // An original for the watermark worker. Photos arrive already resized to JPEG by the browser.
   raw: { max: 1024 * MB, types: { 'image/jpeg': 'jpg', 'video/mp4': 'mp4', 'video/webm': 'webm', 'video/quicktime': 'mov' } },
   photo: { max: 2 * MB, types: { 'image/jpeg': 'jpg' } },
   avatar: { max: 2 * MB, types: { 'image/jpeg': 'jpg' } },
-  video: { max: 50 * MB, types: { 'video/mp4': 'mp4', 'video/webm': 'webm', 'video/quicktime': 'mov' } },
+  video: { max: VIDEO_MAX_MB * MB, types: { 'video/mp4': 'mp4', 'video/webm': 'webm', 'video/quicktime': 'mov' } },
 }
 
 export function validateUpload(raw: unknown): Result<{ kind: UploadKind; contentType: string; size: number; ext: string }> {

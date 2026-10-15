@@ -31,6 +31,8 @@ async function asAdmin<T>(work: (me: Me) => T | Promise<T>): Promise<Result<T>> 
     return { ok: true, value: await work(me) }
   } catch (error) {
     if (error instanceof catalog.UserError) return { ok: false, error: error.message }
+    // The admin only sees "Something went wrong", so the cause goes to the server log.
+    console.error(`Admin action failed for ${me.email}`, error)
     throw error
   }
 }
