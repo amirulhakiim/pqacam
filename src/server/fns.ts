@@ -6,13 +6,18 @@ import { env } from './env'
 import { deleteObjects, newKey, presignPut } from './r2'
 import {
   AVATAR_KEY,
+  type JobInput,
   type ProductInput,
   type Result,
   type UploadKind,
   validateEmail,
+  validateJobs,
   validateProduct,
   validateUpload,
+  validateWatermark,
+  type WatermarkSettings,
 } from './validate'
+import { kick } from './worker'
 
 type Me = { email: string; name: string }
 const mediaBase = () => env('MEDIA_BASE_URL')
@@ -43,6 +48,8 @@ export const getPublicPageFn = createServerFn({ method: 'GET' }).handler(() => c
 
 export const getAdminDataFn = createServerFn({ method: 'GET' }).handler(async () => {
   const me = await requireAdmin()
+  // Resumes a queue that a restart left behind.
+  kick()
   return { me, ...catalog.getAdminData(getDb(), mediaBase()) }
 })
 
@@ -125,3 +132,29 @@ export const createUploadFn = createServerFn({ method: 'POST' })
 export const signOutFn = createServerFn({ method: 'POST' }).handler(async () => {
   await (await appSession()).clear()
 })
+
+export const addJobsFn = createServerFn({ method: 'POST' })
+  .inputValidator((data: { jobs: JobInput[]; settings: WatermarkSettings }) => data)
+  .handler(({ data }) =>
+    asAdmin(() => {
+      catalog.addJobs(getDb(), need(validateJobs(data?.jobs)), need(validateWatermark(data?.settings)))
+      kick()
+    }),
+  )
+
+export const retryJobFn = createServerFn({ method: 'POST' })
+  .inputValidator((data: number) => data)
+  .handler(({ data }) =>
+    asAdmin(() => {
+      catalog.retryJob(getDb(), int(data))
+      kick()
+    }),
+  )
+
+export const deleteJobFn = createServerFn({ method: 'POST' })
+  .inputValidator((data: number) => data)
+  .handler(({ data }) => asAdmin(() => deleteObjects(catalog.deleteJob(getDb(), int(data)))))
+
+export const attachMediaFn = createServerFn({ method: 'POST' })
+  .inputValidator((data: { productId: number; jobId: number }) => data)
+  .handler(({ data }) => asAdmin(() => catalog.attachMedia(getDb(), int(data?.productId), int(data?.jobId))))

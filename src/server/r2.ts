@@ -38,3 +38,18 @@ export async function deleteObjects(keys: string[]): Promise<void> {
     }),
   )
 }
+
+export async function getToFile(key: string, path: string): Promise<void> {
+  const response = await client().fetch(objectUrl(key))
+  if (!response.ok) throw new Error(`R2 get failed for ${key}: ${response.status}`)
+  await Bun.write(path, response)
+}
+
+export async function putFile(key: string, path: string, contentType: string): Promise<void> {
+  const response = await client().fetch(objectUrl(key), {
+    method: 'PUT',
+    headers: { 'content-type': contentType },
+    body: Bun.file(path),
+  })
+  if (!response.ok) throw new Error(`R2 put failed for ${key}: ${response.status}`)
+}

@@ -1,7 +1,7 @@
-import { and, asc, eq, notInArray, sql } from 'drizzle-orm'
+import { and, asc, desc, eq, notInArray, sql } from 'drizzle-orm'
 import type { Db } from './db'
-import { admin, category, link, media, product, profile } from './schema'
-import { PLATFORMS, type ProductInput } from './validate'
+import { admin, category, job, link, media, product, profile } from './schema'
+import { DEFAULT_WATERMARK, type JobInput, PLATFORMS, type ProductInput, validateWatermark, type WatermarkSettings } from './validate'
 
 export class UserError extends Error {}
 
@@ -43,10 +43,33 @@ export function getPublicPage(db: Db, mediaBase: string) {
 export type PublicPage = ReturnType<typeof getPublicPage>
 export type PublicProduct = PublicPage['products'][number]
 
+function watermarkSettings(p: typeof profile.$inferSelect): WatermarkSettings {
+  const saved = p.watermark ? JSON.parse(p.watermark) : {}
+  const result = validateWatermark({ ...saved, text: saved.text || p.handle || p.name })
+  return result.ok ? result.value : { ...DEFAULT_WATERMARK, text: '' }
+}
+
 export function getAdminData(db: Db, mediaBase: string) {
   const d = load(db)
+  const { watermark: _, ...p } = d.profile
   return {
-    profile: { ...d.profile, avatarUrl: d.profile.avatarKey ? `${mediaBase}/${d.profile.avatarKey}` : null },
+    profile: { ...p, avatarUrl: p.avatarKey ? `${mediaBase}/${p.avatarKey}` : null },
+    watermark: watermarkSettings(d.profile),
+    jobs: db
+      .select()
+      .from(job)
+      .orderBy(desc(job.id))
+      .all()
+      .map((j) => ({
+        id: j.id,
+        type: j.type,
+        name: j.name,
+        status: j.status,
+        progress: j.progress,
+        error: j.error,
+        key: j.outputKey,
+        url: j.outputKey ? `${mediaBase}/${j.outputKey}` : null,
+      })),
     categories: d.categories.map((c) => ({
       id: c.id,
       name: c.name,
@@ -72,9 +95,13 @@ export function getAdminData(db: Db, mediaBase: string) {
 export type AdminData = ReturnType<typeof getAdminData>
 export type AdminProduct = AdminData['products'][number]
 
-// A key can be on more than one row (a double save, or a crafted request). Delete the object only when no row uses it.
+// A key can be on more than one row: a double save, a crafted request, or a library file that is also on a product.
+// Delete the object only when no media row and no library item uses it.
 function unused(db: Pick<Db, 'select'>, keys: string[]): string[] {
-  return keys.filter((key) => !db.select().from(media).where(eq(media.r2Key, key)).get())
+  return keys.filter(
+    (key) =>
+      !db.select().from(media).where(eq(media.r2Key, key)).get() && !db.select().from(job).where(eq(job.outputKey, key)).get(),
+  )
 }
 
 export function saveProduct(db: Db, input: ProductInput): { id: number; removedKeys: string[] } {
@@ -202,4 +229,77 @@ export function recordClick(db: Db, linkId: number): string | null {
   if (!row) return null
   db.update(link).set({ clicks: sql`${link.clicks} + 1` }).where(eq(link.id, linkId)).run()
   return row.url
+}
+
+export type AdminJob = AdminData['jobs'][number]
+
+// The settings used for a batch also become the defaults for the next one.
+export function addJobs(db: Db, jobs: JobInput[], settings: WatermarkSettings) {
+  const json = JSON.stringify(settings)
+  db.transaction((tx) => {
+    tx.update(profile).set({ watermark: json }).where(eq(profile.id, 1)).run()
+    const createdAt = Date.now()
+    tx.insert(job)
+      .values(jobs.map((j) => ({ type: j.type, name: j.name, sourceKey: j.key, settings: json, createdAt })))
+      .run()
+  })
+}
+
+// Claims the oldest queued job. The status check in the UPDATE stops two workers taking the same job.
+export function claimJob(db: Db) {
+  const next = db.select({ id: job.id }).from(job).where(eq(job.status, 'queued')).orderBy(asc(job.id)).get()
+  if (!next) return undefined
+  return db
+    .update(job)
+    .set({ status: 'processing', progress: 0, error: '' })
+    .where(and(eq(job.id, next.id), eq(job.status, 'queued')))
+    .returning()
+    .get()
+}
+
+// A job that was processing when the server stopped has no worker. It goes back in the queue.
+export function requeueStuckJobs(db: Db) {
+  db.update(job).set({ status: 'queued' }).where(eq(job.status, 'processing')).run()
+}
+
+export function setJobProgress(db: Db, id: number, progress: number) {
+  db.update(job).set({ progress }).where(eq(job.id, id)).run()
+}
+
+export function finishJob(db: Db, id: number, outputKey: string) {
+  db.update(job).set({ status: 'done', progress: 100, outputKey, sourceKey: '' }).where(eq(job.id, id)).run()
+}
+
+export function failJob(db: Db, id: number, error: string) {
+  db.update(job).set({ status: 'failed', error }).where(eq(job.id, id)).run()
+}
+
+export function retryJob(db: Db, id: number) {
+  const row = db.select().from(job).where(eq(job.id, id)).get()
+  if (row?.status !== 'failed') throw new UserError('Only a failed file can be tried again.')
+  db.update(job).set({ status: 'queued', progress: 0, error: '' }).where(eq(job.id, id)).run()
+}
+
+// Returns the R2 keys to delete: the original if it is still there, and the result if no product uses it.
+export function deleteJob(db: Db, id: number): string[] {
+  const row = db.select().from(job).where(eq(job.id, id)).get()
+  if (!row) return []
+  if (row.status === 'processing') throw new UserError('Wait until this file is finished.')
+  db.delete(job).where(eq(job.id, id)).run()
+  return [row.sourceKey, ...unused(db, row.outputKey ? [row.outputKey] : [])].filter(Boolean)
+}
+
+// The key comes from the job row, so a request cannot attach a file that is not in the library.
+export function attachMedia(db: Db, productId: number, jobId: number) {
+  const row = db.select().from(job).where(eq(job.id, jobId)).get()
+  if (row?.status !== 'done') throw new UserError('This file is not ready yet.')
+  if (!db.select().from(product).where(eq(product.id, productId)).get()) throw new UserError('This product no longer exists.')
+  const taken = db.select().from(media).where(and(eq(media.productId, productId), eq(media.r2Key, row.outputKey))).get()
+  if (taken) throw new UserError('This file is already on that product.')
+  const last = db
+    .select({ v: sql<number>`coalesce(max(${media.position}), -1)` })
+    .from(media)
+    .where(eq(media.productId, productId))
+    .get()!.v
+  db.insert(media).values({ productId, type: row.type, r2Key: row.outputKey, position: last + 1 }).run()
 }
