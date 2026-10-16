@@ -83,7 +83,7 @@ diagrams/architecture.html
 | Media storage | Cloudflare R2, public bucket on a media subdomain | Dokploy volume, MinIO, AWS S3 | No egress fee. The container holds only the database |
 | Upload path | The browser uploads to R2 with a presigned PUT URL | Upload through the app | Large files do not go through the container |
 | Photo resize | In the browser on a canvas: 1000 px longest side, JPEG quality 0.82, as in the prototype | `sharp` on the server | No image library on the server |
-| Video | Upload to R2. 50 MB limit. `mp4`, `webm`, `mov` | The "Paste a video link" field in the prototype | Owner's choice. The owner does not need a second host for videos |
+| Video | Upload to R2. 350 MB limit. `mp4`, `webm`, `mov` | The "Paste a video link" field in the prototype | Owner's choice. The owner does not need a second host for videos |
 | Click counts | `/go/$productId/$platform` adds 1 to a counter, then redirects | Third-party analytics | One route. No tracking script on the page |
 | Order of items | Up and down buttons, as in the prototype | Drag and drop | Works on phones without a library |
 | Customization | None. Colors, fonts, and layout are fixed from the design | Theme settings | The owner asked for a simple admin |
@@ -292,13 +292,13 @@ sequenceDiagram
 | Rule | Value |
 |---|---|
 | Photo | JPEG, 1000 px longest side, quality 0.82. Avatar: 400 px |
-| Video | 50 MB maximum per source file, checked when selected. `mp4` or `webm` upload directly. Any `mov` goes through the server: compressed to H.264 MP4 under 50 MB (a second pass at 720p with a fitted bitrate when needed) |
+| Video | 350 MB maximum per source file, checked when selected. `mp4` or `webm` upload directly. Any `mov` goes through the server: compressed to H.264 MP4 under 350 MB (a second pass at 720p with a fitted bitrate when needed) |
 | Product selection | Media stays in the browser until Save. Save stores the product, closes the editor, and uploads media while the admin page shows status. A new product is saved hidden first and becomes visible after its selected media is attached. Keep the page open until the browser uploads finish |
 | Size and type check | The presigned URL signs `Content-Type` and `Content-Length`, so R2 rejects a different file |
 | Object key | Random ID from the server. The file name from the device is not used |
 | Public URL | `MEDIA_BASE_URL` + object key, served through the Cloudflare CDN |
 | Delete | When an admin removes media or deletes a product, the server deletes the objects from R2. An object stays while a product or a library item still uses it |
-| Watermark original | `raw/` key, any of JPEG, `mp4`, `webm`, `mov`. 50 MB maximum per video and 100 MB per photo. Deleted when its result exists. An R2 lifecycle rule deletes any left over after 2 days |
+| Watermark original | `raw/` key, any of JPEG, `mp4`, `webm`, `mov`. 350 MB maximum per video and 100 MB per photo. Deleted when its result exists. An R2 lifecycle rule deletes any left over after 2 days |
 | Watermark result | Video: H.264 `mp4`, long side 1920 px at most, AAC audio, HDR tone mapped to SDR, metadata (GPS) removed. Photo: JPEG, 1000 px. Fonts in `public/fonts` |
 
 ## 10. Deployment
@@ -345,4 +345,4 @@ Setup outside the repository: a Google Cloud OAuth client with the callback URL,
 | Full domain name | `pqacam.com`, with media on `media.pqacam.com` |
 | Interface language | English, as in the design |
 | Do visits from bots count as clicks | Yes. Version 1 has no bot filter |
-| Video size limit | 50 MB |
+| Video size limit | 350 MB |

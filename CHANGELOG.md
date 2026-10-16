@@ -27,7 +27,7 @@
 | Share a product | Public page, product view | A Share button, beside the category, opens the phone's share sheet, or copies the link. Each product has its own link, and its preview shows the product's name and photo |
 | Full-screen photos | Public page, product view | Tap a photo or video to see it full screen and uncropped. Swipe or use the arrows; videos play with sound and controls |
 | Video sound | Public page, product view | A sound button on videos. Videos still start muted, as phones require for autoplay |
-| Big videos are compressed | Admin, product editor | A video over 50 MB, or a MOV from an iPhone, is compressed on the server to an MP4 under 50 MB. A notice says how much it shrank |
+| Big videos are compressed | Admin, product editor | A video over 350 MB, or a MOV from an iPhone, is compressed on the server to an MP4 under 350 MB. A notice says how much it shrank |
 | Watermark and Library sections | Admin, Watermark tab | Upload and settings in one section, finished files and folders in the other. Each card shows which products use it, and has its actions on the card |
 
 ### Changed
@@ -40,7 +40,7 @@
 | Dropdown arrows sit inside the box instead of on its edge | Admin |
 | The product photo is centred on phones where it is narrower than the sheet | Public page, product view |
 | The product photo is square and at most 40% of the screen height | Public page, product view |
-| A product video over 50 MB, or not a video, now fails at once with the file name, under the media tiles | Admin, product editor |
+| A product video over 350 MB, or not a video, now fails at once with the file name, under the media tiles | Admin, product editor |
 | Buy buttons sit under the product name, above the review, so they show without scrolling. The photo area is at most half the screen height | Public page, product view |
 | The privacy page says that the time of each tap is recorded | Privacy |
 

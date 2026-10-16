@@ -90,7 +90,7 @@ export function validateEmail(raw: unknown): Result<string> {
 
 export type UploadKind = 'photo' | 'video' | 'avatar' | 'raw'
 const MB = 1024 * 1024
-export const VIDEO_MAX_MB = 50
+export const VIDEO_MAX_MB = 350
 export const MEDIA_MAX_MB = 100
 export const VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/quicktime']
 const UPLOAD: Record<UploadKind, { max: number; types: Record<string, string> }> = {
@@ -112,7 +112,7 @@ export function validateUpload(raw: unknown): Result<{ kind: UploadKind; content
   const max = r.kind === 'raw' && String(r.contentType).startsWith('video/') ? VIDEO_MAX_MB * MB : rule.max
   if (size > max) {
     return fail(r.kind === 'video' || (r.kind === 'raw' && String(r.contentType).startsWith('video/'))
-      ? 'Videos can be 50 MB at most.' : r.kind === 'raw' ? 'Photos can be 100 MB at most.' : 'This photo is too large.')
+      ? `Videos can be ${VIDEO_MAX_MB} MB at most.` : r.kind === 'raw' ? 'Photos can be 100 MB at most.' : 'This photo is too large.')
   }
   return { ok: true, value: { kind: r.kind as UploadKind, contentType: r.contentType as string, size, ext } }
 }

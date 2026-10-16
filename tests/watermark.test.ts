@@ -107,8 +107,8 @@ test('compress only: no drawtext, and the size cap pass is 720p at a fitted bitr
   const plain = vf(videoArgs('in', 'out', 't.txt', null, p))
   expect(plain).toBe('scale=1920:1080')
   const cap = sizeCap(120)
-  // 50 MB, less 10%, over 120 s, less 96 kb/s for audio.
-  expect(cap.videoBitrate).toBe(Math.floor((50 * 1024 * 1024 * 0.9 * 8) / 120) - 96_000)
+  // 350 MB, less 10%, over 120 s, less 96 kb/s for audio.
+  expect(cap.videoBitrate).toBe(Math.floor((350 * 1024 * 1024 * 0.9 * 8) / 120) - 96_000)
   const capped = videoArgs('in', 'out', 't.txt', null, p, cap)
   expect(vf(capped)).toBe('scale=1280:720')
   expect(capped).toContain(String(cap.videoBitrate))

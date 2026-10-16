@@ -179,8 +179,8 @@ No automated test covers these, because they need the real accounts.
 |---|---|
 | Sign in with an account that is not an admin | "does not have admin access" |
 | Add a product with 3 photos from a phone | 3 objects in the bucket, each less than 1 MB |
-| Add a video of less than 50 MB | It plays in the product sheet on `/` |
-| Add a video of more than 50 MB | "Videos can be 50 MB at most." No object in the bucket |
+| Add a video of less than 350 MB | It plays in the product sheet on `/` |
+| Add a video of more than 350 MB | "Videos can be 350 MB at most." No object in the bucket |
 | Remove a photo and save. Delete a product | Their objects are gone from the bucket |
 | Tap a buy button on `/`, then reload `/admin` | The count on that chip is 1 higher |
 | `http://pqacam.com` and `https://www.pqacam.com` | Both redirect to `https://pqacam.com` (step 5) |

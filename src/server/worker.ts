@@ -69,7 +69,7 @@ export async function runJob(db: Db, row: Row) {
       db,
       row.id,
       error instanceof TooLargeError
-        ? 'This video is too long to fit 50 MB, even compressed. Trim it and upload it again.'
+        ? 'This video is too long to fit 350 MB, even compressed. Trim it and upload it again.'
         : 'Could not process this file. Try again, or upload it again.',
     )
   } finally {

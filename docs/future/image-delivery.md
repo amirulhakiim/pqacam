@@ -36,7 +36,7 @@ Every visitor gets the same 2048 px JPEG today, so a phone downloads about 600 K
 | Layer | Today | Gap |
 |---|---|---|
 | Storage | Browser uploads straight to R2 with a presigned URL | Photos are resized to 2048 px at 90% JPEG before upload, so the true original is not kept |
-| Processing | None for photos. Videos are encoded on the server at CRF 18, up to 1080p, at most 50 MB | No resize or format change for each screen |
+| Processing | None for photos. Videos are encoded on the server at CRF 18, up to 1080p, at most 350 MB | No resize or format change for each screen |
 | Edge cache | `media.pqacam.com` is a Cloudflare custom domain on the R2 bucket | None |
 | Frontend | Plain `<img src>` with one URL | No `srcset` or `sizes` |
 
@@ -108,6 +108,6 @@ At RM 21 average revenue per seller, the second scenario lowers the gross margin
 |---|---|---|---|
 | Image processing vendor | Cloudflare Image Transformations | Cloudinary, Imgix, Bunny.net | R2 and the media domain are already on Cloudflare. No new account, no egress between vendors |
 | Frontend integration | Native `srcset` and `sizes` | A framework image component | The app uses TanStack Start, not Next.js. The browser picks the width with no library |
-| Video delivery | Keep 1080p MP4 with `faststart` | Cloudflare Stream adaptive streaming | Stream bills per minute stored and watched, and is several days of work. Product clips are short and already capped at 50 MB |
+| Video delivery | Keep 1080p MP4 with `faststart` | Cloudflare Stream adaptive streaming | Stream bills per minute stored and watched, and is several days of work. Product clips are short and already capped at 350 MB |
 
 Source: [Cloudflare Images pricing](https://developers.cloudflare.com/images/pricing/).
