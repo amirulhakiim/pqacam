@@ -1,5 +1,6 @@
 import { createFileRoute, useRouter } from '@tanstack/react-router'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { BackToTop } from '../components/BackToTop'
 import { Filters } from '../components/public/Filters'
 import { Header } from '../components/public/Header'
 import { ProductGrid } from '../components/public/ProductGrid'
@@ -119,6 +120,7 @@ function Home() {
           <a href="/privacy">Privacy</a>
         </footer>
       </div>
+      <BackToTop />
       {open && <ProductSheet key={open.id} product={open} hidden={hidden} onClose={close} />}
     </div>
   )

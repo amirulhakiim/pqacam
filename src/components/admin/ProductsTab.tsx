@@ -7,6 +7,7 @@ import { VideoThumb } from '../VideoThumb'
 import { ProductDrawer } from './ProductDrawer'
 import type { ProductUploads } from './useProductUploads'
 import type { TabProps } from './Shell'
+import { BackToTop } from '../BackToTop'
 
 export function ProductsTab({ data, act, flash, uploads }: TabProps & { uploads: ProductUploads }) {
   const [q, setQ] = useState('')
@@ -52,6 +53,7 @@ export function ProductsTab({ data, act, flash, uploads }: TabProps & { uploads:
 
   return (
     <>
+      <BackToTop />
       <div className="adm-head">
         <div>
           <h2>Products</h2>
