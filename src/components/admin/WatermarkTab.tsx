@@ -111,36 +111,41 @@ export function WatermarkTab({ data, act, flash, uploads }: TabProps & { uploads
         </div>
       </div>
 
-      {uploads.items.length > 0 && (
-        <div className="adm-list adm-list-wide">
-          <div className="adm-wm-note">Uploading. You can use other tabs, but keep this page open until the uploads finish.</div>
-          {uploads.items.map((u) => (
-            <div className="adm-row adm-row-slim adm-wm-row" key={u.id}>
-              <span className="adm-wm-name">{u.file.name}</span>
-              {u.error ? (
-                <>
-                  <span className="chip chip-warn">{u.error}</span>
-                  <div className="adm-row-actions">
-                    <button type="button" className="btn btn-soft" onClick={() => uploads.retry(u.id)}>
-                      Try again
-                    </button>
-                    <button type="button" className="btn-icon" onClick={() => uploads.remove(u.id)} title="Remove">
-                      ✕
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <span className="adm-bar">
-                  <span style={{ width: `${Math.round(u.progress * 100)}%` }} />
-                </span>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
+      <UploadList uploads={uploads} />
 
       <JobQueue data={data} act={act} />
     </>
+  )
+}
+
+export function UploadList({ uploads }: { uploads: Uploads }) {
+  if (!uploads.items.length) return null
+  return (
+    <div className="adm-list adm-list-wide">
+      <div className="adm-wm-note">Uploading. You can use other tabs, but keep this page open until the uploads finish.</div>
+      {uploads.items.map((u) => (
+        <div className="adm-row adm-row-slim adm-wm-row" key={u.id}>
+          <span className="adm-wm-name">{u.file.name}</span>
+          {u.error ? (
+            <>
+              <span className="chip chip-warn">{u.error}</span>
+              <div className="adm-row-actions">
+                <button type="button" className="btn btn-soft" onClick={() => uploads.retry(u.id)}>
+                  Try again
+                </button>
+                <button type="button" className="btn-icon" onClick={() => uploads.remove(u.id)} title="Remove">
+                  ✕
+                </button>
+              </div>
+            </>
+          ) : (
+            <span className="adm-bar">
+              <span style={{ width: `${Math.round(u.progress * 100)}%` }} />
+            </span>
+          )}
+        </div>
+      ))}
+    </div>
   )
 }
 

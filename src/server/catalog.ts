@@ -275,10 +275,17 @@ export function recordClick(db: Db, linkId: number, at = Date.now()): string | n
 export type AdminJob = AdminData['jobs'][number]
 const PLAIN = JSON.stringify({ compressOnly: true })
 
-export function addMedia(db: Db, input: JobInput) {
+function needFolder(db: Pick<Db, 'select'>, folderId: number | null) {
+  if (folderId !== null && !db.select().from(folder).where(eq(folder.id, folderId)).get()) {
+    throw new UserError('That folder no longer exists.')
+  }
+}
+
+export function addMedia(db: Db, input: JobInput, folderId: number | null = null) {
   if (db.select().from(job).where(eq(job.outputKey, input.key)).get()) return
+  needFolder(db, folderId)
   db.insert(job)
-    .values({ type: input.type, name: input.name, sourceKey: '', outputKey: input.key, settings: PLAIN, status: 'done', progress: 100, createdAt: Date.now(), hash: input.hash ?? '' })
+    .values({ type: input.type, name: input.name, sourceKey: '', outputKey: input.key, settings: PLAIN, status: 'done', progress: 100, createdAt: Date.now(), hash: input.hash ?? '', folderId })
     .run()
 }
 
@@ -291,9 +298,7 @@ export function findMedia(db: Db, hash: string) {
 export function addJobs(db: Db, jobs: JobInput[], settings: WatermarkSettings, folderId: number | null = null) {
   const json = JSON.stringify(settings)
   db.transaction((tx) => {
-    if (folderId !== null && !tx.select().from(folder).where(eq(folder.id, folderId)).get()) {
-      throw new UserError('That folder no longer exists.')
-    }
+    needFolder(tx, folderId)
     tx.update(profile).set({ watermark: json }).where(eq(profile.id, 1)).run()
     const createdAt = Date.now()
     tx.insert(job)
@@ -330,10 +335,11 @@ export function finishJob(db: Db, id: number, outputKey: string, outputBytes = 0
 }
 
 // A product video that the editor sends to the server to compress. It goes through the same queue as watermarks.
-export function addCompressJob(db: Db, input: JobInput): number {
+export function addCompressJob(db: Db, input: JobInput, folderId: number | null = null): number {
+  needFolder(db, folderId)
   return db
     .insert(job)
-    .values({ type: 'video', name: input.name, sourceKey: input.key, settings: PLAIN, createdAt: Date.now(), hash: input.hash ?? '' })
+    .values({ type: 'video', name: input.name, sourceKey: input.key, settings: PLAIN, createdAt: Date.now(), hash: input.hash ?? '', folderId })
     .returning({ id: job.id })
     .get().id
 }
@@ -446,8 +452,6 @@ export function deleteFolder(db: Db, id: number) {
 }
 
 export function moveJob(db: Db, id: number, folderId: number | null) {
-  if (folderId !== null && !db.select().from(folder).where(eq(folder.id, folderId)).get()) {
-    throw new UserError('That folder no longer exists.')
-  }
+  needFolder(db, folderId)
   db.update(job).set({ folderId }).where(eq(job.id, id)).run()
 }

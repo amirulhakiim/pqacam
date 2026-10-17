@@ -197,8 +197,8 @@ export const deleteUnusedJobsFn = createServerFn({ method: 'POST' }).handler(() 
 )
 
 export const addMediaFn = createServerFn({ method: 'POST' })
-  .inputValidator((data: JobInput) => data)
-  .handler(({ data }) => asAdmin(() => catalog.addMedia(getDb(), need(validateLibraryMedia(data)))))
+  .inputValidator((data: JobInput & { folderId?: number | null }) => data)
+  .handler(({ data }) => asAdmin(() => catalog.addMedia(getDb(), need(validateLibraryMedia(data)), folderOrNone(data?.folderId))))
 
 export const findMediaFn = createServerFn({ method: 'POST' })
   .inputValidator((data: string) => data)
@@ -238,11 +238,11 @@ export const getAnalyticsFn = createServerFn({ method: 'GET' })
   )
 
 export const compressVideoFn = createServerFn({ method: 'POST' })
-  .inputValidator((data: JobInput) => data)
+  .inputValidator((data: JobInput & { folderId?: number | null }) => data)
   .handler(({ data }) =>
     asAdmin(() => {
       const [input] = need(validateJobs([{ ...data, type: 'video' }]))
-      const id = catalog.addCompressJob(getDb(), input)
+      const id = catalog.addCompressJob(getDb(), input, folderOrNone(data?.folderId))
       kick()
       return id
     }),

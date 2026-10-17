@@ -7,6 +7,8 @@ import { VideoThumb } from '../VideoThumb'
 import { JobActions } from './JobActions'
 import { MediaViewer } from './MediaViewer'
 import type { TabProps } from './Shell'
+import type { Uploads } from './useUploads'
+import { UploadList } from './WatermarkTab'
 
 export type FolderFilter = 'all' | 'none' | number
 export const inFolder = (j: AdminJob, filter: FolderFilter) =>
@@ -63,7 +65,7 @@ export function JobQueue({ data, act }: Pick<TabProps, 'data' | 'act'>) {
   )
 }
 
-export function MediaTab(props: TabProps) {
+export function MediaTab({ uploads, ...props }: TabProps & { uploads: Uploads }) {
   const [filter, setFilter] = useState<FolderFilter>('all')
   return (
     <>
@@ -72,7 +74,21 @@ export function MediaTab(props: TabProps) {
           <h2>Media</h2>
           <div className="adm-sub">Every photo and video, from products and from Watermark. Deleting a product keeps its files here.</div>
         </div>
+        <label className="btn btn-dark btn-round">
+          + Add photos &amp; videos
+          <input
+            type="file"
+            accept="image/*,video/mp4,video/quicktime,video/webm"
+            multiple
+            hidden
+            onChange={(e) => {
+              if (e.target.files?.length) void uploads.add(e.target.files, null, typeof filter === 'number' ? filter : null, props.flash)
+              e.target.value = ''
+            }}
+          />
+        </label>
       </div>
+      <UploadList uploads={uploads} />
       <Library {...props} filter={filter} onFilter={setFilter} />
     </>
   )
@@ -232,7 +248,7 @@ export function Library({ data, act, flash, filter, onFilter }: Props) {
         </div>
       ))}
       {ready.length === 0 && (
-        <div className="adm-none">{done.length ? (show === 'all' ? 'No files in this folder.' : 'No files match this filter.') : 'No media yet. Upload from a product or the Watermark tab.'}</div>
+        <div className="adm-none">{done.length ? (show === 'all' ? 'No files in this folder.' : 'No files match this filter.') : 'No media yet. Add photos and videos above, or upload from a product or the Watermark tab.'}</div>
       )}
 
       {viewing !== null && (

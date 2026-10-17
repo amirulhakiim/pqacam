@@ -205,3 +205,11 @@ test('a queued product video reports how many jobs are ahead of it', () => {
   c.failJob(db, first.id, 'Failed')
   expect(c.takeJob(db, id, BASE)).toMatchObject({ status: 'queued', ahead: 0 })
 })
+
+test('media added from the library goes into the chosen folder', () => {
+  const trips = c.addFolder(db, 'Trips')
+  c.addMedia(db, { type: 'photo', key: 'photo/00000000-0000-4000-8000-000000000005.jpg', name: 'a.jpg' }, trips)
+  c.addCompressJob(db, { type: 'video', key: raw(3, 'mov'), name: 'IMG_3.MOV' }, trips)
+  expect(jobs().map((j) => j.folderId)).toEqual([trips, trips])
+  expect(() => c.addMedia(db, { type: 'photo', key: 'photo/00000000-0000-4000-8000-000000000004.jpg', name: 'b.jpg' }, 999)).toThrow('That folder no longer exists.')
+})

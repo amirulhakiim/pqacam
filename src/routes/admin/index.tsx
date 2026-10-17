@@ -85,7 +85,7 @@ function Admin() {
       )}
       {tab === 'products' && <ProductsTab {...props} uploads={productUploads} />}
       {tab === 'analytics' && <AnalyticsTab {...props} />}
-      {tab === 'media' && <MediaTab {...props} />}
+      {tab === 'media' && <MediaTab {...props} uploads={uploads} />}
       {tab === 'watermark' && <WatermarkTab {...props} uploads={uploads} />}
       {tab === 'categories' && <CategoriesTab {...props} />}
       {tab === 'profile' && <ProfileTab {...props} />}

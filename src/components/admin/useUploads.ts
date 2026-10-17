@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { mediaHash, resizeImage, uploadFile } from '../../lib/upload'
 import { mediaSizeError } from '../../lib/mediaSelection'
-import { addJobsFn, findMediaFn } from '../../server/fns'
+import { addJobsFn, addMediaFn, compressVideoFn, findMediaFn } from '../../server/fns'
 import type { WatermarkSettings } from '../../server/validate'
 
 export type Upload = {
   id: string
   file: File
   type: 'photo' | 'video'
-  settings: WatermarkSettings
+  settings: WatermarkSettings | null
   folderId: number | null
   progress: number
   error: string
@@ -22,7 +22,7 @@ export function useUploads(onUploaded: () => void, flash: (text: string) => void
   const busy = useRef(false)
   const update = (id: string, patch: Partial<Upload>) => setItems((list) => list.map((i) => (i.id === id ? { ...i, ...patch } : i)))
 
-  const add = useCallback(async (files: FileList | File[], settings: WatermarkSettings, folderId: number | null, onError: (message: string) => void) => {
+  const add = useCallback(async (files: FileList | File[], settings: WatermarkSettings | null, folderId: number | null, onError: (message: string) => void) => {
     for (const file of Array.from(files)) {
       const type = file.type.startsWith('video/') ? 'video' : 'photo'
       const sizeError = mediaSizeError(file, type)
@@ -52,17 +52,22 @@ export function useUploads(onUploaded: () => void, flash: (text: string) => void
 
   async function send(item: Upload): Promise<string> {
     try {
-      const hash = await mediaHash(item.file, JSON.stringify(item.settings))
+      const hash = await mediaHash(item.file, item.settings ? JSON.stringify(item.settings) : 'plain')
       const found = await findMediaFn({ data: hash })
       if (found.ok && found.value) {
-        flash(`${item.file.name} is already in Media with these settings`)
+        flash(`${item.file.name} is already in Media${item.settings ? ' with these settings' : ''}`)
         return ''
       }
       const blob = item.type === 'photo' ? await resizeImage(item.file, 2048, 0.9) : item.file
-      const uploaded = await uploadFile('raw', blob, (progress) => update(item.id, { progress }))
+      const compress = !item.settings && item.type === 'video' && item.file.type === 'video/quicktime'
+      const uploaded = await uploadFile(item.settings || compress ? 'raw' : item.type, blob, (progress) => update(item.id, { progress }))
       if (!uploaded.ok) return uploaded.error
       const job = { type: item.type, key: uploaded.value.key, name: item.file.name, hash }
-      const added = await addJobsFn({ data: { jobs: [job], settings: item.settings, folderId: item.folderId } })
+      const added = item.settings
+        ? await addJobsFn({ data: { jobs: [job], settings: item.settings, folderId: item.folderId } })
+        : compress
+          ? await compressVideoFn({ data: { ...job, folderId: item.folderId } })
+          : await addMediaFn({ data: { ...job, folderId: item.folderId } })
       return added.ok ? '' : added.error
     } catch {
       return 'Upload failed. Check your connection and try again.'
