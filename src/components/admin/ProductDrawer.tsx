@@ -206,7 +206,7 @@ export function ProductDrawer({ product, data, act, flash, onClose, onQueue }: P
       const ready = (items: DraftMedia[]) => items.filter((m): m is ReadyMedia => !pending(m)).map(({ type, key }) => ({ type, key }))
       const selected = draft.media.filter(pending)
       const finalInput = { ...fields, media: ready(draft.media) }
-      if (draft.media.length > 20) return fail('A product can have at most 20 photos and videos.')
+      if (draft.media.length > 50) return fail('A product can have at most 50 photos and videos.')
       const valid = validateProduct(finalInput)
       if (!valid.ok) return fail(valid.error)
       if (selected.length) {

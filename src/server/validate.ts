@@ -62,7 +62,7 @@ export function validateProduct(raw: unknown): Result<ProductInput> {
     value.links.push({ id: Number.isInteger(l.id) ? l.id : undefined, platform: l.platform, label: text(l.label, 60), url: href })
   }
   if (!value.links.length) return fail('Add at least one Shopee, TikTok or WhatsApp link.')
-  for (const m of Array.isArray(r.media) ? r.media.slice(0, 20) : []) {
+  for (const m of Array.isArray(r.media) ? r.media.slice(0, 50) : []) {
     const type = m?.type === 'video' ? 'video' : 'photo'
     if (typeof m?.key !== 'string' || !MEDIA_KEY[type].test(m.key)) return fail('Upload the file again.')
     value.media.push({ type, key: m.key })
