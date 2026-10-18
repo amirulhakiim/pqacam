@@ -109,3 +109,8 @@ test('social links get https, blanks are dropped, and a bad link names its platf
   })
   expect(validateSocials({ youtube: 'not a link' })).toEqual({ ok: false, error: 'Check the YouTube link.' })
 })
+
+test('object replacement characters from pasted iPhone text are removed', () => {
+  const r = validateProduct({ ...good, name: 'Tumbler￼', review: 'Hooga ni lain.￼ Bau dia soft je ￼' })
+  expect(r.ok && [r.value.name, r.value.review]).toEqual(['Tumbler', 'Hooga ni lain. Bau dia soft je'])
+})

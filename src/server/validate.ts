@@ -29,7 +29,8 @@ const UUID = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
 const MEDIA_KEY = { photo: new RegExp(`^photo/${UUID}\\.jpg$`), video: new RegExp(`^video/${UUID}\\.(mp4|webm|mov)$`) }
 export const AVATAR_KEY = new RegExp(`^avatar/${UUID}\\.jpg$`)
 
-const text = (v: unknown, max: number) => (typeof v === 'string' ? v.trim().slice(0, max) : '')
+export const clean = (v: string) => v.replace(/\uFFFC/g, '').trim()
+const text = (v: unknown, max: number) => (typeof v === 'string' ? clean(v).slice(0, max) : '')
 
 // Returns the parsed form. It is percent-encoded, so it is safe in a Location header.
 function httpsLink(link: string): string | null {

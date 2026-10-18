@@ -85,6 +85,13 @@
       "when": 1792328960464,
       "tag": "0011_short_name",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "6",
+      "when": 1792332765559,
+      "tag": "0012_strip_object_char",
+      "breakpoints": true
     }
   ]
 }

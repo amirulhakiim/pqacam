@@ -1,7 +1,7 @@
 import { and, asc, desc, eq, inArray, lt, ne, notInArray, or, sql } from 'drizzle-orm'
 import type { Db } from './db'
 import { admin, category, click, folder, job, link, media, product, profile } from './schema'
-import { type BioSize, DEFAULT_WATERMARK, type JobInput, PLATFORMS, SOCIALS, type Socials, type ProductInput, validateWatermark, type WatermarkSettings } from './validate'
+import { type BioSize, clean, DEFAULT_WATERMARK, type JobInput, PLATFORMS, SOCIALS, type Socials, type ProductInput, validateWatermark, type WatermarkSettings } from './validate'
 
 export class UserError extends Error {}
 
@@ -232,9 +232,9 @@ export function saveProfile(db: Db, input: ProfileInput): string | null {
   const old = db.select().from(profile).get()!.avatarKey
   db.update(profile)
     .set({
-      name: input.name.trim().slice(0, 80),
-      handle: input.handle.trim().slice(0, 80),
-      bio: input.bio.trim().slice(0, 400),
+      name: clean(input.name).slice(0, 80),
+      handle: clean(input.handle).slice(0, 80),
+      bio: clean(input.bio).slice(0, 400),
       ...(input.bioSize ? { bioSize: input.bioSize } : {}),
       whatsapp: input.whatsapp.replace(/\D/g, '').slice(0, 20),
       ...(input.avatarKey ? { avatarKey: input.avatarKey } : {}),
