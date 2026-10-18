@@ -341,7 +341,7 @@ export function ProductDrawer({ product, data, act, flash, onClose, onQueue }: P
                 jobs={data.jobs}
                 folders={data.folders}
                 taken={draft.media.map((m) => m.key)}
-                onPick={(j) => set({ media: [...draft.media, { type: j.type, key: j.key, url: j.url! }] })}
+                onPick={(picked) => set({ media: [...draft.media, ...picked.map((j) => ({ type: j.type, key: j.key, url: j.url! }))] })}
                 onClose={() => setPicking(false)}
               />
             )}

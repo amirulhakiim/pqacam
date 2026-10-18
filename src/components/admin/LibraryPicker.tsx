@@ -3,7 +3,7 @@ import type { AdminData, AdminJob } from '../../server/catalog'
 import { VideoThumb } from '../VideoThumb'
 import { type FolderFilter, inFolder } from './Library'
 
-type Props = { jobs: AdminJob[]; folders: AdminData['folders']; taken: string[]; onPick: (job: AdminJob) => void; onClose: () => void }
+type Props = { jobs: AdminJob[]; folders: AdminData['folders']; taken: string[]; onPick: (jobs: AdminJob[]) => void; onClose: () => void }
 
 // A native dialog: it traps focus and closes on Escape.
 export function LibraryPicker({ jobs, folders, taken, onPick, onClose }: Props) {
@@ -11,6 +11,7 @@ export function LibraryPicker({ jobs, folders, taken, onPick, onClose }: Props) 
   const [filter, setFilter] = useState<FolderFilter>('all')
   useEffect(() => ref.current?.showModal(), [])
   const ready = jobs.filter((j) => j.status === 'done' && j.url && inFolder(j, filter))
+  const free = ready.filter((j) => !taken.includes(j.key))
 
   return (
     <dialog
@@ -40,6 +41,18 @@ export function LibraryPicker({ jobs, folders, taken, onPick, onClose }: Props) 
             ))}
           </select>
         )}
+        {free.length > 0 && (
+          <button
+            type="button"
+            className="btn btn-soft btn-small adm-pick-all"
+            onClick={() => {
+              onPick(free)
+              ref.current?.close()
+            }}
+          >
+            Add all ({free.length})
+          </button>
+        )}
         <button type="button" className="adm-x" onClick={() => ref.current?.close()} aria-label="Close">
           ✕
         </button>
@@ -52,7 +65,7 @@ export function LibraryPicker({ jobs, folders, taken, onPick, onClose }: Props) 
             className="adm-tile adm-tile-pick"
             disabled={taken.includes(j.key)}
             onClick={() => {
-              onPick(j)
+              onPick([j])
               ref.current?.close()
             }}
             title={j.name}

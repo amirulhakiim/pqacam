@@ -402,7 +402,7 @@ textarea.adm-input { height: auto; padding: 12px 14px; line-height: 1.55; resize
 .adm-table { width: 100%; margin-top: 8px; border-collapse: collapse; font-variant-numeric: tabular-nums; }
 .adm-table th, .adm-table td { padding: 6px 4px; border-bottom: 1px solid var(--line); text-align: left; }
 .adm-table td:last-child, .adm-table th:last-child { text-align: right; }
-.adm-pick-head .adm-wm-attach { margin-right: 4px; }
+.adm-pick-head .adm-wm-attach, .adm-pick-all { margin-right: 4px; }
 .adm-wm-folders { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
 .adm-social-row { display: flex; align-items: center; gap: 10px; }
 .adm-social-icon { flex: none; display: flex; width: 40px; height: 40px; }
