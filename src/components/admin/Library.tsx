@@ -8,6 +8,7 @@ import { JobActions } from './JobActions'
 import { MediaViewer } from './MediaViewer'
 import type { TabProps } from './Shell'
 import type { Uploads } from './useUploads'
+import { Select } from './Select'
 import { UploadList } from './WatermarkTab'
 
 export type FolderFilter = 'all' | 'none' | number
@@ -141,30 +142,37 @@ export function Library({ data, act, flash, filter, onFilter }: Props) {
     if (await act(deleteFolderFn({ data: id }), 'Folder deleted. Its files are in No folder')) onFilter('all')
   }
 
-  const pill = (key: FolderFilter, label: string, count: number) => (
-    <button type="button" key={String(key)} className={filter === key ? 'pill pill-on' : 'pill'} onClick={() => onFilter(key)}>
-      {label} <span className="adm-wm-count">{count}</span>
-    </button>
-  )
-
   return (
     <div className="adm-list adm-list-wide">
-      <div className="adm-wm-folders" role="group" aria-label="Folder">
-        <span className="adm-filter-label">Folder</span>
+      <div className="adm-wm-filters">
+        <label className="adm-wm-filter">
+          <span className="adm-filter-label">Folder</span>
+          <Select
+            className="adm-wm-attach"
+            value={String(filter)}
+            onChange={(v) => onFilter(v === 'all' || v === 'none' ? v : Number(v))}
+            options={[
+              { value: 'all', label: `All (${done.length})` },
+              { value: 'none', label: `No folder (${unfiled})` },
+              ...data.folders.map((f) => ({ value: String(f.id), label: `${f.name} (${done.filter((j) => j.folderId === f.id).length})` })),
+            ]}
+          />
+        </label>
+        <label className="adm-wm-filter">
+          <span className="adm-filter-label">Show</span>
+          <Select
+            className="adm-wm-attach"
+            value={show}
+            onChange={(v) => setShow(v as Show)}
+            options={SHOW.filter(([key, , match]) => key !== 'watermarking' || show === key || folderFiles.some(match)).map(([key, label, match]) => ({
+              value: key,
+              label: `${label} (${folderFiles.filter(match).length})`,
+            }))}
+          />
+        </label>
         <button type="button" className="pill adm-wm-new" onClick={() => startNaming('new')}>
           + New folder
         </button>
-        {pill('all', 'All', done.length)}
-        {pill('none', 'No folder', unfiled)}
-        {data.folders.map((f) => pill(f.id, f.name, done.filter((j) => j.folderId === f.id).length))}
-      </div>
-      <div className="adm-wm-folders" role="group" aria-label="Show">
-        <span className="adm-filter-label">Show</span>
-        {SHOW.filter(([key, , match]) => key !== 'watermarking' || show === key || folderFiles.some(match)).map(([key, label, match]) => (
-          <button type="button" key={key} className={show === key ? 'pill pill-on' : 'pill'} aria-pressed={show === key} onClick={() => setShow(key)}>
-            {label} <span className="adm-wm-count">{folderFiles.filter(match).length}</span>
-          </button>
-        ))}
       </div>
 
       {naming !== null && (
