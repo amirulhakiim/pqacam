@@ -12,8 +12,7 @@ import { Select } from './Select'
 import { UploadList } from './WatermarkTab'
 
 export type FolderFilter = 'all' | 'none' | number
-export const inFolder = (j: AdminJob, filter: FolderFilter) =>
-  filter === 'all' || (filter === 'none' ? j.folderId === null : j.folderId === filter)
+export const inFolder = (j: AdminJob, filter: FolderFilter) => filter === 'all' || (filter === 'none' ? j.folderId === null : j.folderId === filter)
 
 type Show = 'all' | 'unused' | 'watermarked' | 'plain' | 'watermarking'
 const SHOW: [Show, string, (j: AdminJob) => boolean][] = [
@@ -256,11 +255,25 @@ export function Library({ data, act, flash, filter, onFilter }: Props) {
         </div>
       ))}
       {ready.length === 0 && (
-        <div className="adm-none">{done.length ? (show === 'all' ? 'No files in this folder.' : 'No files match this filter.') : 'No media yet. Add photos and videos above, or upload from a product or the Watermark tab.'}</div>
+        <div className="adm-none">
+          {done.length
+            ? show === 'all'
+              ? 'No files in this folder.'
+              : 'No files match this filter.'
+            : 'No media yet. Add photos and videos above, or upload from a product or the Watermark tab.'}
+        </div>
       )}
 
       {viewing !== null && (
-        <MediaViewer jobs={ready} id={viewing} onId={setViewing} onClose={() => void withTransition(() => flushSync(() => setViewing(null)))} data={data} act={act} flash={flash} />
+        <MediaViewer
+          jobs={ready}
+          id={viewing}
+          onId={setViewing}
+          onClose={() => void withTransition(() => flushSync(() => setViewing(null)))}
+          data={data}
+          act={act}
+          flash={flash}
+        />
       )}
     </div>
   )

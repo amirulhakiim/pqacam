@@ -13,7 +13,14 @@ export const Route = createFileRoute('/share/$productId')({
         const cover = product && shareCover(product)
         if (!product || !cover) return new Response('Not found', { status: 404 })
         try {
-          const path = await shareImage(product.id, shareVersion(product), cover, product.shortName || product.name, product.price, new URL(env('PUBLIC_URL')).host)
+          const path = await shareImage(
+            product.id,
+            shareVersion(product),
+            cover,
+            product.shortName || product.name,
+            product.price,
+            new URL(env('PUBLIC_URL')).host,
+          )
           return new Response(Bun.file(path), { headers: { 'Content-Type': 'image/jpeg', 'Cache-Control': 'public, max-age=86400' } })
         } catch (error) {
           console.error('Share image failed', { id: product.id, error })

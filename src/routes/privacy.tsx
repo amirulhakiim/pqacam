@@ -27,34 +27,33 @@ function Privacy() {
           <li>This site does not ask for your name, email, or any account.</li>
           <li>This site sets no cookies for visitors and uses no third-party analytics or advertising trackers.</li>
           <li>
-            The site records when a visit starts, which products are opened, what is typed in the search box (and how many finds it
-            showed), and each tap on a buy button or the WhatsApp button, with the time. It also records where the visit came from:
-            a word in the link, such as threads, or the name of the site that sent you. This shows the owner when people shop, what
-            they look for, and which posts bring them. It does not record who you are, your IP address, or your device.
+            The site records when a visit starts, which products are opened, what is typed in the search box (and how many finds it showed), and each tap on a
+            buy button or the WhatsApp button, with the time. It also records where the visit came from: a word in the link, such as threads, or the name of the
+            site that sent you. This shows the owner when people shop, what they look for, and which posts bring them. It does not record who you are, your IP
+            address, or your device.
           </li>
           <li>
-            Photos and videos load from Cloudflare. The server that hosts this site and Cloudflare can keep standard access logs, such
-            as IP address, time, and page, to keep the service secure and working.
+            Photos and videos load from Cloudflare. The server that hosts this site and Cloudflare can keep standard access logs, such as IP address, time, and
+            page, to keep the service secure and working.
           </li>
         </ul>
 
         <h2>Links to other sites</h2>
         <p>
-          Buy buttons open Shopee, TikTok Shop, or WhatsApp. Some are affiliate links, so the owner can earn a commission at no extra
-          cost to you. Those services have their own privacy policies, and this site does not control what they collect.
+          Buy buttons open Shopee, TikTok Shop, or WhatsApp. Some are affiliate links, so the owner can earn a commission at no extra cost to you. Those
+          services have their own privacy policies, and this site does not control what they collect.
         </p>
 
         <h2>Site administrators</h2>
         <p>
-          Administrators sign in with Google. The site receives the Google account email address and name, and uses them only to check
-          access and to show who is signed in. The email address of each approved administrator is stored on the server. The name and
-          email are kept in an encrypted sign-in cookie for up to 30 days, or until sign-out.
+          Administrators sign in with Google. The site receives the Google account email address and name, and uses them only to check access and to show who is
+          signed in. The email address of each approved administrator is stored on the server. The name and email are kept in an encrypted sign-in cookie for up
+          to 30 days, or until sign-out.
         </p>
 
         <h2>Sharing and removal</h2>
         <p>
-          This site does not sell or share personal data. An administrator can ask the owner to remove their email address from the
-          approved list at any time.
+          This site does not sell or share personal data. An administrator can ask the owner to remove their email address from the approved list at any time.
         </p>
 
         <h2>Changes</h2>

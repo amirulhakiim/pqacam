@@ -125,7 +125,12 @@ test('attach adds the library file at the end of the product media, once', () =>
   expect(() => c.attachMedia(db, productId, first)).toThrow('This file is not ready yet.')
   c.finishJob(db, first, out)
   c.attachMedia(db, productId, first)
-  expect(c.getAdminData(db, BASE).products[0].media.map((m) => m.key).at(-1)).toBe(out)
+  expect(
+    c
+      .getAdminData(db, BASE)
+      .products[0].media.map((m) => m.key)
+      .at(-1),
+  ).toBe(out)
   expect(() => c.attachMedia(db, productId, first)).toThrow('This file is already on that product.')
   expect(() => c.attachMedia(db, 999, first)).toThrow('This product no longer exists.')
 })
@@ -184,8 +189,25 @@ test('folder rules: unique names, upload into a folder, move, and delete keeps t
 
 test('a product video compresses without a watermark, and the result stays in the library', async () => {
   const raw = 'raw/00000000-0000-4000-8000-00000000000c.mp4'
-  await Bun.spawn(['ffmpeg', '-v', 'error', '-f', 'lavfi', '-i', 'testsrc=size=640x360:duration=1', '-f', 'lavfi', '-i', 'sine=duration=1',
-    '-shortest', '-c:v', 'libx264', '-c:a', 'aac', at(raw)]).exited
+  await Bun.spawn([
+    'ffmpeg',
+    '-v',
+    'error',
+    '-f',
+    'lavfi',
+    '-i',
+    'testsrc=size=640x360:duration=1',
+    '-f',
+    'lavfi',
+    '-i',
+    'sine=duration=1',
+    '-shortest',
+    '-c:v',
+    'libx264',
+    '-c:a',
+    'aac',
+    at(raw),
+  ]).exited
   const id = c.addCompressJob(db, { type: 'video', key: raw, name: 'IMG_1.MOV' })
   expect(c.takeJob(db, id, BASE)).toMatchObject({ status: 'queued', ahead: 0 })
   expect(jobs()[0]).toMatchObject({ compressOnly: true, status: 'queued' })
@@ -212,5 +234,7 @@ test('media added from the library goes into the chosen folder', () => {
   c.addMedia(db, { type: 'photo', key: 'photo/00000000-0000-4000-8000-000000000005.jpg', name: 'a.jpg' }, trips)
   c.addCompressJob(db, { type: 'video', key: raw(3, 'mov'), name: 'IMG_3.MOV' }, trips)
   expect(jobs().map((j) => j.folderId)).toEqual([trips, trips])
-  expect(() => c.addMedia(db, { type: 'photo', key: 'photo/00000000-0000-4000-8000-000000000004.jpg', name: 'b.jpg' }, 999)).toThrow('That folder no longer exists.')
+  expect(() => c.addMedia(db, { type: 'photo', key: 'photo/00000000-0000-4000-8000-000000000004.jpg', name: 'b.jpg' }, 999)).toThrow(
+    'That folder no longer exists.',
+  )
 })

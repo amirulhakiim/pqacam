@@ -14,9 +14,7 @@ export async function resizeImage(file: Blob, max: number, quality = 0.82): Prom
   canvas.height = Math.round(bitmap.height * scale)
   canvas.getContext('2d')!.drawImage(bitmap, 0, 0, canvas.width, canvas.height)
   bitmap.close()
-  return new Promise((resolve, reject) =>
-    canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error('resize failed'))), 'image/jpeg', quality),
-  )
+  return new Promise((resolve, reject) => canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error('resize failed'))), 'image/jpeg', quality))
 }
 
 // XMLHttpRequest, not fetch: fetch reports no upload progress, and a large video needs a progress bar.
@@ -32,11 +30,7 @@ function put(url: string, blob: Blob, onProgress?: (fraction: number) => void): 
   })
 }
 
-export async function uploadFile(
-  kind: UploadKind,
-  blob: Blob,
-  onProgress?: (fraction: number) => void,
-): Promise<Result<{ key: string; url: string }>> {
+export async function uploadFile(kind: UploadKind, blob: Blob, onProgress?: (fraction: number) => void): Promise<Result<{ key: string; url: string }>> {
   const ticket = await createUploadFn({ data: { kind, contentType: blob.type, size: blob.size } })
   if (!ticket.ok) return ticket
   // The browser sets Content-Length from the blob. It must match the size that the server signed.

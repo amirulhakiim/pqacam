@@ -166,7 +166,13 @@ function Kpis({ a }: { a: Analytics }) {
     ['Visits', n(a.visits.total), <Delta key="v" now={a.visits.total} before={a.visits.previous} period={a.period} />],
     ['Product views', n(a.views.total), <Delta key="p" now={a.views.total} before={a.views.previous} period={a.period} />],
     ['Buy taps', n(a.taps.total), <Delta key="t" now={a.taps.total} before={a.taps.previous} period={a.period} />],
-    ['Taps per visit', a.visits.total ? `${pct(a.taps.total, a.visits.total)}%` : '–', <span key="r" className="adm-stat-delta">Buy taps ÷ visits</span>],
+    [
+      'Taps per visit',
+      a.visits.total ? `${pct(a.taps.total, a.visits.total)}%` : '–',
+      <span key="r" className="adm-stat-delta">
+        Buy taps ÷ visits
+      </span>,
+    ],
     ['WhatsApp chats', n(a.chats.total), <Delta key="c" now={a.chats.total} before={a.chats.previous} period={a.period} />],
   ]
   return (
@@ -384,12 +390,16 @@ function Sources({ a }: { a: Analytics }) {
       <Card title="Buy taps by source">
         <Bars
           total={a.taps.total}
-          rows={[...a.sources].sort((x, y) => y.taps - x.taps).filter((s) => s.taps > 0).map((s) => ({ key: s.source, name: s.source, value: s.taps }))}
+          rows={[...a.sources]
+            .sort((x, y) => y.taps - x.taps)
+            .filter((s) => s.taps > 0)
+            .map((s) => ({ key: s.source, name: s.source, value: s.taps }))}
           empty="No buy taps in this range."
         />
       </Card>
       <p className="adm-sub adm-an-note">
-        Add <code>s=threads</code> (or any word) to links you post, e.g. <code>pqacam.com/?p=34&amp;s=threads</code>. Without it, the source comes from the site the visitor came from. Apps often hide that, so those visits show as direct.
+        Add <code>s=threads</code> (or any word) to links you post, e.g. <code>pqacam.com/?p=34&amp;s=threads</code>. Without it, the source comes from the site
+        the visitor came from. Apps often hide that, so those visits show as direct.
       </p>
     </div>
   )
@@ -539,7 +549,14 @@ function Columns({ items, label, unit = 'taps' }: { items: Column[]; label: stri
         <div className="adm-col" role="listitem" key={item.key} tabIndex={0} aria-label={`${item.tip}: ${item.value} ${unit}`}>
           <div className="adm-col-plot">
             {i === peak && item.value > 0 && <span className="adm-col-peak">{n(item.value)}</span>}
-            <span className={barClass('adm-col-bar', i, items.map((x) => x.value))} style={{ height: `${(item.value / max) * 100}%` }} />
+            <span
+              className={barClass(
+                'adm-col-bar',
+                i,
+                items.map((x) => x.value),
+              )}
+              style={{ height: `${(item.value / max) * 100}%` }}
+            />
             <span className="adm-col-tip" role="tooltip">
               <strong>{n(item.value)}</strong> {item.tip}
             </span>

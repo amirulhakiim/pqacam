@@ -76,7 +76,9 @@ export function Shell({ data, me, tab, onTab, onSignOut, children }: Props) {
           .filter(([key]) => ICON[key])
           .map(([key, label]) => (
             <button type="button" key={key} className={key === tab ? 'adm-tabbar-item adm-tabbar-on' : 'adm-tabbar-item'} onClick={() => onTab(key)}>
-              <svg viewBox="0 0 24 24" aria-hidden="true">{ICON[key]}</svg>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                {ICON[key]}
+              </svg>
               {label}
             </button>
           ))}

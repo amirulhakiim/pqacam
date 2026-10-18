@@ -1,9 +1,7 @@
 import { isAdmin } from './catalog'
 import type { Db } from './db'
 
-export type SignIn =
-  | { ok: true; email: string; name: string }
-  | { ok: false; reason: 'unverified' | 'denied'; email: string }
+export type SignIn = { ok: true; email: string; name: string } | { ok: false; reason: 'unverified' | 'denied'; email: string }
 
 export function checkSignIn(db: Db, claims: unknown): SignIn {
   const c = (claims ?? {}) as Record<string, unknown>

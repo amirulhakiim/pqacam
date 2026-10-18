@@ -14,7 +14,12 @@ Object.assign(process.env, {
 
 test('a new key passes product validation', () => {
   const key = newKey('photo', 'jpg')
-  const result = validateProduct({ name: 'A', categoryId: 1, links: [{ platform: 'shopee', label: '', url: 'https://a.com' }], media: [{ type: 'photo', key }] })
+  const result = validateProduct({
+    name: 'A',
+    categoryId: 1,
+    links: [{ platform: 'shopee', label: '', url: 'https://a.com' }],
+    media: [{ type: 'photo', key }],
+  })
   expect(result.ok).toBe(true)
 })
 
@@ -47,7 +52,13 @@ test('a large R2 response streams completely to disk', async () => {
   try {
     await streamToFile(body, path)
     expect(Bun.file(path).size).toBe(24 * 1024 * 1024)
-    expect(new Uint8Array(await Bun.file(path).slice(23 * 1024 * 1024, 23 * 1024 * 1024 + 1).arrayBuffer())[0]).toBe(23)
+    expect(
+      new Uint8Array(
+        await Bun.file(path)
+          .slice(23 * 1024 * 1024, 23 * 1024 * 1024 + 1)
+          .arrayBuffer(),
+      )[0],
+    ).toBe(23)
   } finally {
     rmSync(dir, { recursive: true, force: true })
   }

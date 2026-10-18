@@ -109,11 +109,7 @@ export function ProductSheet({ product, hidden, onClose }: Props) {
             >
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M4 9h4l5-4v14l-5-4H4z" />
-                {sound ? (
-                  <path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" />
-                ) : (
-                  <path d="M16 9l5 6M21 9l-5 6" fill="none" />
-                )}
+                {sound ? <path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" /> : <path d="M16 9l5 6M21 9l-5 6" fill="none" />}
               </svg>
             </button>
           )}
@@ -167,7 +163,14 @@ export function ProductSheet({ product, hidden, onClose }: Props) {
             if (links.length === 1) {
               const [l] = links
               return (
-                <a key={k} className={`pp-buy-button buy-${k}`} href={`/go/${l.id}`} target="_blank" rel="noopener" onClick={(e) => tagWithSource(e.currentTarget)}>
+                <a
+                  key={k}
+                  className={`pp-buy-button buy-${k}`}
+                  href={`/go/${l.id}`}
+                  target="_blank"
+                  rel="noopener"
+                  onClick={(e) => tagWithSource(e.currentTarget)}
+                >
                   {l.label ? `${PLATFORM_LABEL[k].chip} · ${l.label}` : PLATFORM_LABEL[k].buy} <span>→</span>
                 </a>
               )
@@ -185,7 +188,14 @@ export function ProductSheet({ product, hidden, onClose }: Props) {
                   </summary>
                   <div className="pp-buy-options">
                     {links.map((l, i) => (
-                      <a key={l.id} className="pp-buy-option" href={`/go/${l.id}`} target="_blank" rel="noopener" onClick={(e) => tagWithSource(e.currentTarget)}>
+                      <a
+                        key={l.id}
+                        className="pp-buy-option"
+                        href={`/go/${l.id}`}
+                        target="_blank"
+                        rel="noopener"
+                        onClick={(e) => tagWithSource(e.currentTarget)}
+                      >
                         {l.label || `Option ${i + 1}`} <span>→</span>
                       </a>
                     ))}

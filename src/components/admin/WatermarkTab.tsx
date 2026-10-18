@@ -91,13 +91,11 @@ export function WatermarkTab({ data, act, flash, uploads }: TabProps & { uploads
           <div className="adm-two">
             <Slider label="Size" unit="%" min={2} max={25} value={settings.size} onChange={(size) => set({ size })} />
             <Slider label="Opacity" unit="%" min={10} max={100} value={settings.opacity} onChange={(opacity) => set({ opacity })} />
-            {settings.position === 'move' && (
-              <Slider label="Speed" unit="" min={40} max={400} value={settings.speed} onChange={(speed) => set({ speed })} />
-            )}
+            {settings.position === 'move' && <Slider label="Speed" unit="" min={40} max={400} value={settings.speed} onChange={(speed) => set({ speed })} />}
           </div>
           <span className="adm-hint">
-            {settings.position === 'move' ? 'Photos get the bottom-right corner. ' : ''}Videos are saved at up to 1080p. Each batch uses
-            the settings at the time you add it.
+            {settings.position === 'move' ? 'Photos get the bottom-right corner. ' : ''}Videos are saved at up to 1080p. Each batch uses the settings at the
+            time you add it.
           </span>
         </div>
       </div>
@@ -150,14 +148,7 @@ function Slider(props: { label: string; unit: string; min: number; max: number; 
           {props.unit}
         </em>
       </span>
-      <input
-        type="range"
-        className="adm-range"
-        min={props.min}
-        max={props.max}
-        value={props.value}
-        onChange={(e) => props.onChange(Number(e.target.value))}
-      />
+      <input type="range" className="adm-range" min={props.min} max={props.max} value={props.value} onChange={(e) => props.onChange(Number(e.target.value))} />
     </label>
   )
 }

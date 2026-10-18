@@ -81,7 +81,11 @@ export function useUploads(onUploaded: () => void, flash: (text: string) => void
     let lock: WakeLockSentinel | undefined
     // The browser drops the lock when the page is hidden, so it is asked for again on return.
     const awake = () => {
-      if (document.visibilityState === 'visible') navigator.wakeLock?.request('screen').then((l) => (lock = l), () => {})
+      if (document.visibilityState === 'visible')
+        navigator.wakeLock?.request('screen').then(
+          (l) => (lock = l),
+          () => {},
+        )
     }
     awake()
     window.addEventListener('beforeunload', warn)

@@ -114,7 +114,13 @@ test('events from visitors are checked before they are stored', () => {
   expect(recordEvent(db, null, NOW)).toBe(false)
   c.setHidden(db, tumbler.id, true)
   expect(recordEvent(db, { type: 'view', productId: tumbler.id }, NOW)).toBe(false)
-  expect(db.select().from(event).all().map((r) => [r.type, r.term])).toEqual([
+  expect(
+    db
+      .select()
+      .from(event)
+      .all()
+      .map((r) => [r.type, r.term]),
+  ).toEqual([
     ['visit', null],
     ['chat', null],
     ['view', null],

@@ -68,46 +68,83 @@ test('a photo with the moving position gets the bottom-right corner', () => {
 
 const hasFfmpeg = Bun.which('ffmpeg') && Bun.which('ffprobe')
 
-test.skipIf(!hasFfmpeg)('ffmpeg watermarks a real video and a real photo', async () => {
-  const dir = tempDir()
-  const video = join(dir, 'in.mp4')
-  const photo = join(dir, 'in.jpg')
-  await Bun.spawn(['ffmpeg', '-v', 'error', '-f', 'lavfi', '-i', 'testsrc=size=2560x1440:rate=30:duration=2',
-    '-f', 'lavfi', '-i', 'sine=duration=2', '-shortest', '-c:v', 'libx264', '-c:a', 'aac', video]).exited
-  await Bun.spawn(['ffmpeg', '-v', 'error', '-f', 'lavfi', '-i', 'testsrc=size=1000x800', '-frames:v', '1', photo]).exited
-  const seen: number[] = []
-  await watermarkFile('video', video, join(dir, 'out.mp4'), join(dir, 't.txt'), s, (n) => seen.push(n))
-  await watermarkFile('photo', photo, join(dir, 'out.jpg'), join(dir, 't.txt'), s, () => {})
-  expect(await probe(join(dir, 'out.mp4'))).toMatchObject({ width: 1920, height: 1080 })
-  const streams = await new Response(
-    Bun.spawn(['ffprobe', '-v', 'error', '-show_entries', 'stream=codec_name', '-of', 'csv=p=0', join(dir, 'out.mp4')]).stdout,
-  ).text()
-  expect(streams.split('\n').filter(Boolean).sort()).toEqual(['aac', 'h264'])
-  expect(Math.max(...seen)).toBeGreaterThan(0)
-  expect((await probe(join(dir, 'out.jpg'))).width).toBe(1000)
-}, 60_000)
+test.skipIf(!hasFfmpeg)(
+  'ffmpeg watermarks a real video and a real photo',
+  async () => {
+    const dir = tempDir()
+    const video = join(dir, 'in.mp4')
+    const photo = join(dir, 'in.jpg')
+    await Bun.spawn([
+      'ffmpeg',
+      '-v',
+      'error',
+      '-f',
+      'lavfi',
+      '-i',
+      'testsrc=size=2560x1440:rate=30:duration=2',
+      '-f',
+      'lavfi',
+      '-i',
+      'sine=duration=2',
+      '-shortest',
+      '-c:v',
+      'libx264',
+      '-c:a',
+      'aac',
+      video,
+    ]).exited
+    await Bun.spawn(['ffmpeg', '-v', 'error', '-f', 'lavfi', '-i', 'testsrc=size=1000x800', '-frames:v', '1', photo]).exited
+    const seen: number[] = []
+    await watermarkFile('video', video, join(dir, 'out.mp4'), join(dir, 't.txt'), s, (n) => seen.push(n))
+    await watermarkFile('photo', photo, join(dir, 'out.jpg'), join(dir, 't.txt'), s, () => {})
+    expect(await probe(join(dir, 'out.mp4'))).toMatchObject({ width: 1920, height: 1080 })
+    const streams = await new Response(
+      Bun.spawn(['ffprobe', '-v', 'error', '-show_entries', 'stream=codec_name', '-of', 'csv=p=0', join(dir, 'out.mp4')]).stdout,
+    ).text()
+    expect(streams.split('\n').filter(Boolean).sort()).toEqual(['aac', 'h264'])
+    expect(Math.max(...seen)).toBeGreaterThan(0)
+    expect((await probe(join(dir, 'out.jpg'))).width).toBe(1000)
+  },
+  60_000,
+)
 
 test.skipIf(!hasFfmpeg)('the text, with a % in it, is drawn on the photo', async () => {
   const dir = tempDir()
   const black = join(dir, 'black.jpg')
   await Bun.spawn(['ffmpeg', '-v', 'error', '-f', 'lavfi', '-i', 'color=black:size=400x300', '-frames:v', '1', black]).exited
   await watermarkFile('photo', black, join(dir, 'out.jpg'), join(dir, 't.txt'), { ...s, opacity: 100, position: 'c' }, () => {})
-  const gray = await new Response(
-    Bun.spawn(['ffmpeg', '-v', 'error', '-i', join(dir, 'out.jpg'), '-f', 'rawvideo', '-pix_fmt', 'gray', '-']).stdout,
-  ).bytes()
+  const gray = await new Response(Bun.spawn(['ffmpeg', '-v', 'error', '-i', join(dir, 'out.jpg'), '-f', 'rawvideo', '-pix_fmt', 'gray', '-']).stdout).bytes()
   expect(gray.filter((v) => v > 200).length).toBeGreaterThan(200)
 })
 
-test.skipIf(!hasFfmpeg)('an HLG clip is tone mapped to SDR', async () => {
-  const dir = tempDir()
-  const hlg = join(dir, 'hlg.mp4')
-  await Bun.spawn(['ffmpeg', '-v', 'error', '-f', 'lavfi', '-i', 'testsrc=size=640x360:duration=1',
-    '-vf', 'setparams=color_primaries=bt2020:color_trc=arib-std-b67:colorspace=bt2020nc', '-pix_fmt', 'yuv420p10le', '-c:v', 'libx264', hlg]).exited
-  expect((await probe(hlg)).hdr).toBe('arib-std-b67')
-  const out = join(dir, 'out.mp4')
-  await watermarkFile('video', hlg, out, join(dir, 't.txt'), s, () => {})
-  expect((await probe(out)).hdr).toBe(false)
-}, 60_000)
+test.skipIf(!hasFfmpeg)(
+  'an HLG clip is tone mapped to SDR',
+  async () => {
+    const dir = tempDir()
+    const hlg = join(dir, 'hlg.mp4')
+    await Bun.spawn([
+      'ffmpeg',
+      '-v',
+      'error',
+      '-f',
+      'lavfi',
+      '-i',
+      'testsrc=size=640x360:duration=1',
+      '-vf',
+      'setparams=color_primaries=bt2020:color_trc=arib-std-b67:colorspace=bt2020nc',
+      '-pix_fmt',
+      'yuv420p10le',
+      '-c:v',
+      'libx264',
+      hlg,
+    ]).exited
+    expect((await probe(hlg)).hdr).toBe('arib-std-b67')
+    const out = join(dir, 'out.mp4')
+    await watermarkFile('video', hlg, out, join(dir, 't.txt'), s, () => {})
+    expect((await probe(out)).hdr).toBe(false)
+  },
+  60_000,
+)
 
 test('compress only: no drawtext, and the size cap pass is 720p at a fitted bitrate', () => {
   const p = { width: 3840, height: 2160, hdr: false as const, duration: 120 }
@@ -122,41 +159,85 @@ test('compress only: no drawtext, and the size cap pass is 720p at a fitted bitr
   expect(capped).not.toContain('-crf')
 })
 
-test.skipIf(!hasFfmpeg)('an H.264 video is repackaged without re-encoding, keeping its rotation and dropping its tags', async () => {
-  const dir = tempDir()
-  const mov = join(dir, 'in.mov')
-  await Bun.spawn(['ffmpeg', '-v', 'error', '-f', 'lavfi', '-i', 'testsrc=size=640x360:duration=1', '-f', 'lavfi', '-i', 'sine=duration=1',
-    '-shortest', '-c:v', 'libx264', '-c:a', 'aac', '-metadata', 'location=+03.1390+101.6869/', mov]).exited
-  const rotated = join(dir, 'rotated.mov')
-  await Bun.spawn(['ffmpeg', '-v', 'error', '-display_rotation', '90', '-i', mov, '-c', 'copy', '-metadata', 'location=+03.1390+101.6869/', rotated]).exited
-  const out = join(dir, 'out.mp4')
-  await watermarkFile('video', rotated, out, join(dir, 't.txt'), null, () => {})
-  const before = await Bun.file(rotated).bytes()
-  const info = JSON.parse(await new Response(Bun.spawn(['ffprobe', '-v', 'error', '-show_streams', '-show_format', '-of', 'json', out]).stdout).text())
-  expect(info.streams.map((x: { codec_name: string }) => x.codec_name)).toEqual(['h264', 'aac'])
-  expect(info.format.tags?.location).toBeUndefined()
-  expect((await probe(out)).width).toBe(360)
-  expect(Bun.file(out).size).toBeLessThan(before.length * 1.1)
-}, 60_000)
+test.skipIf(!hasFfmpeg)(
+  'an H.264 video is repackaged without re-encoding, keeping its rotation and dropping its tags',
+  async () => {
+    const dir = tempDir()
+    const mov = join(dir, 'in.mov')
+    await Bun.spawn([
+      'ffmpeg',
+      '-v',
+      'error',
+      '-f',
+      'lavfi',
+      '-i',
+      'testsrc=size=640x360:duration=1',
+      '-f',
+      'lavfi',
+      '-i',
+      'sine=duration=1',
+      '-shortest',
+      '-c:v',
+      'libx264',
+      '-c:a',
+      'aac',
+      '-metadata',
+      'location=+03.1390+101.6869/',
+      mov,
+    ]).exited
+    const rotated = join(dir, 'rotated.mov')
+    await Bun.spawn(['ffmpeg', '-v', 'error', '-display_rotation', '90', '-i', mov, '-c', 'copy', '-metadata', 'location=+03.1390+101.6869/', rotated]).exited
+    const out = join(dir, 'out.mp4')
+    await watermarkFile('video', rotated, out, join(dir, 't.txt'), null, () => {})
+    const before = await Bun.file(rotated).bytes()
+    const info = JSON.parse(await new Response(Bun.spawn(['ffprobe', '-v', 'error', '-show_streams', '-show_format', '-of', 'json', out]).stdout).text())
+    expect(info.streams.map((x: { codec_name: string }) => x.codec_name)).toEqual(['h264', 'aac'])
+    expect(info.format.tags?.location).toBeUndefined()
+    expect((await probe(out)).width).toBe(360)
+    expect(Bun.file(out).size).toBeLessThan(before.length * 1.1)
+  },
+  60_000,
+)
 
-test.skipIf(!hasFfmpeg)('a video over the limit is compressed again until it fits, keeping its sound', async () => {
-  const dir = tempDir()
-  const big = join(dir, 'big.mp4')
-  // Noise does not compress, so the first pass is far over a 300 KB limit.
-  await Bun.spawn(['ffmpeg', '-v', 'error', '-f', 'lavfi', '-i', 'testsrc2=size=1920x1080:rate=30:duration=4,noise=alls=60:allf=t',
-    '-f', 'lavfi', '-i', 'sine=duration=4', '-shortest', '-c:v', 'libx264', '-crf', '18', '-c:a', 'aac', big]).exited
-  const out = join(dir, 'out.mp4')
-  const seen: number[] = []
-  const bytes = await watermarkFile('video', big, out, join(dir, 't.txt'), null, (n) => seen.push(n), 300_000)
-  expect(bytes).toBeLessThanOrEqual(300_000)
-  expect(bytes).toBe(Bun.file(out).size)
-  expect(Math.max(...seen)).toBeGreaterThanOrEqual(50)
-  expect(seen).toEqual([...seen].sort((a, b) => a - b))
-  const streams = await new Response(
-    Bun.spawn(['ffprobe', '-v', 'error', '-show_entries', 'stream=codec_name,width', '-of', 'csv=p=0', out]).stdout,
-  ).text()
-  expect(streams).toContain('aac')
-  expect(streams).toContain('h264,1280')
-  // A limit no video can meet is an error the admin can act on, not a silent oversize file.
-  await expect(watermarkFile('video', big, out, join(dir, 't.txt'), null, () => {}, 10_000)).rejects.toBeInstanceOf(TooLargeError)
-}, 120_000)
+test.skipIf(!hasFfmpeg)(
+  'a video over the limit is compressed again until it fits, keeping its sound',
+  async () => {
+    const dir = tempDir()
+    const big = join(dir, 'big.mp4')
+    // Noise does not compress, so the first pass is far over a 300 KB limit.
+    await Bun.spawn([
+      'ffmpeg',
+      '-v',
+      'error',
+      '-f',
+      'lavfi',
+      '-i',
+      'testsrc2=size=1920x1080:rate=30:duration=4,noise=alls=60:allf=t',
+      '-f',
+      'lavfi',
+      '-i',
+      'sine=duration=4',
+      '-shortest',
+      '-c:v',
+      'libx264',
+      '-crf',
+      '18',
+      '-c:a',
+      'aac',
+      big,
+    ]).exited
+    const out = join(dir, 'out.mp4')
+    const seen: number[] = []
+    const bytes = await watermarkFile('video', big, out, join(dir, 't.txt'), null, (n) => seen.push(n), 300_000)
+    expect(bytes).toBeLessThanOrEqual(300_000)
+    expect(bytes).toBe(Bun.file(out).size)
+    expect(Math.max(...seen)).toBeGreaterThanOrEqual(50)
+    expect(seen).toEqual([...seen].sort((a, b) => a - b))
+    const streams = await new Response(Bun.spawn(['ffprobe', '-v', 'error', '-show_entries', 'stream=codec_name,width', '-of', 'csv=p=0', out]).stdout).text()
+    expect(streams).toContain('aac')
+    expect(streams).toContain('h264,1280')
+    // A limit no video can meet is an error the admin can act on, not a silent oversize file.
+    await expect(watermarkFile('video', big, out, join(dir, 't.txt'), null, () => {}, 10_000)).rejects.toBeInstanceOf(TooLargeError)
+  },
+  120_000,
+)

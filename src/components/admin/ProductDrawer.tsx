@@ -23,20 +23,22 @@ const emptyLink = (platform: Platform): DraftLink => ({ k: crypto.randomUUID(), 
 const PLACEHOLDER = { shopee: 'https://shopee.com.my/…', tiktok: 'https://www.tiktok.com/…', whatsapp: 'https://wa.me/…' }
 
 function EditorVideoThumb({ url }: { url: string }) {
-  return <video
-    src={url}
-    muted
-    autoPlay
-    playsInline
-    preload="auto"
-    onLoadedMetadata={(event) => {
-      if (event.currentTarget.duration > 0.2) event.currentTarget.currentTime = 0.1
-    }}
-    onSeeked={(event) => event.currentTarget.pause()}
-    onTimeUpdate={(event) => {
-      if (event.currentTarget.currentTime >= 0.1) event.currentTarget.pause()
-    }}
-  />
+  return (
+    <video
+      src={url}
+      muted
+      autoPlay
+      playsInline
+      preload="auto"
+      onLoadedMetadata={(event) => {
+        if (event.currentTarget.duration > 0.2) event.currentTarget.currentTime = 0.1
+      }}
+      onSeeked={(event) => event.currentTarget.pause()}
+      onTimeUpdate={(event) => {
+        if (event.currentTarget.currentTime >= 0.1) event.currentTarget.pause()
+      }}
+    />
+  )
 }
 
 function FullView({ media, onClose }: { media: DraftMedia; onClose: () => void }) {
@@ -58,9 +60,7 @@ function FullView({ media, onClose }: { media: DraftMedia; onClose: () => void }
       onKeyDown={(e) => e.stopPropagation()}
       onClick={(e) => (e.target as HTMLElement).closest('img, video') === null && ref.current?.close()}
     >
-      <div className="pp-lightbox-stage">
-        {url && (media.type === 'photo' ? <img src={url} alt="" /> : <video src={url} controls autoPlay playsInline />)}
-      </div>
+      <div className="pp-lightbox-stage">{url && (media.type === 'photo' ? <img src={url} alt="" /> : <video src={url} controls autoPlay playsInline />)}</div>
       <button type="button" className="pp-round pp-lightbox-close" onClick={() => ref.current?.close()} aria-label="Close">
         ✕
       </button>
@@ -84,15 +84,12 @@ export function ProductDrawer({ product, data, act, flash, onClose, onQueue }: P
   const [savingState, setSavingState] = useState(false)
   const objectUrls = useRef(new Set<string>())
   const previewQueue = useRef(Promise.resolve())
-  useEffect(
-    () => {
-      return () => {
-        for (const url of objectUrls.current) URL.revokeObjectURL(url)
-        objectUrls.current.clear()
-      }
-    },
-    [],
-  )
+  useEffect(() => {
+    return () => {
+      for (const url of objectUrls.current) URL.revokeObjectURL(url)
+      objectUrls.current.clear()
+    }
+  }, [])
   const [confirmDelete, setConfirmDelete] = useState(false)
   // A ref, not state: a second tap arrives before React renders again.
   const saving = useRef(false)
@@ -133,7 +130,7 @@ export function ProductDrawer({ product, data, act, flash, onClose, onQueue }: P
               objectUrls.current.add(previewUrl)
               objectUrls.current.delete(url)
               URL.revokeObjectURL(url)
-              setDraft((d) => ({ ...d, media: d.media.map((item) => item.key === key ? { ...item, url: previewUrl } : item) }))
+              setDraft((d) => ({ ...d, media: d.media.map((item) => (item.key === key ? { ...item, url: previewUrl } : item)) }))
             } catch {
               if (!objectUrls.current.delete(url)) return
               URL.revokeObjectURL(url)
@@ -212,17 +209,19 @@ export function ProductDrawer({ product, data, act, flash, onClose, onQueue }: P
       const valid = validateProduct(finalInput)
       if (!valid.ok) return fail(valid.error)
       if (selected.length) {
-        const first = await saveProductFn({ data: {
-          ...fields,
-          hidden: product ? draft.hidden : true,
-          media: product ? product.media.map(({ type, key }) => ({ type, key })) : [],
-        } })
+        const first = await saveProductFn({
+          data: {
+            ...fields,
+            hidden: product ? draft.hidden : true,
+            media: product ? product.media.map(({ type, key }) => ({ type, key })) : [],
+          },
+        })
         if (!first.ok) return fail(first.error)
         onQueue({
           productId: first.value,
           name: draft.name,
           input: { ...finalInput, id: first.value },
-          media: draft.media.map((item) => pending(item) ? { type: item.type, key: item.key, file: item.file } : { type: item.type, key: item.key }),
+          media: draft.media.map((item) => (pending(item) ? { type: item.type, key: item.key, file: item.file } : { type: item.type, key: item.key })),
         })
         onClose()
         void act(Promise.resolve(first), 'Product saved. Media uploading in the background.')
@@ -278,7 +277,12 @@ export function ProductDrawer({ product, data, act, flash, onClose, onQueue }: P
                 >
                   {m.type === 'photo' ? <img src={m.url} alt="" draggable={false} /> : <EditorVideoThumb url={m.url} />}
                   {m.type === 'video' && !pending(m) && <span className="adm-tile-tag">▶ Video</span>}
-                  {pending(m) && <span className="adm-tile-tag" title={m.file.name}>{m.type === 'video' ? '▶ ' : ''}{m.file.name}</span>}
+                  {pending(m) && (
+                    <span className="adm-tile-tag" title={m.file.name}>
+                      {m.type === 'video' ? '▶ ' : ''}
+                      {m.file.name}
+                    </span>
+                  )}
                   <button
                     type="button"
                     className="adm-tile-button adm-tile-remove"
@@ -295,7 +299,13 @@ export function ProductDrawer({ product, data, act, flash, onClose, onQueue }: P
                     ✕
                   </button>
                   {i > 0 && (
-                    <button type="button" className="adm-tile-button adm-tile-left" onClick={() => moveMedia(i, i - 1)} title="Move earlier" disabled={savingState}>
+                    <button
+                      type="button"
+                      className="adm-tile-button adm-tile-left"
+                      onClick={() => moveMedia(i, i - 1)}
+                      title="Move earlier"
+                      disabled={savingState}
+                    >
                       ←
                     </button>
                   )}
@@ -308,7 +318,14 @@ export function ProductDrawer({ product, data, act, flash, onClose, onQueue }: P
                   <path d="m4 17 5-5 4 4 3-3 4 4" />
                 </svg>
                 Add photos
-                <input type="file" accept="image/*" multiple hidden disabled={savingState} onChange={(e) => (addFiles('photo', e.target.files), (e.target.value = ''))} />
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  hidden
+                  disabled={savingState}
+                  onChange={(e) => (addFiles('photo', e.target.files), (e.target.value = ''))}
+                />
               </label>
               <label className="adm-tile adm-tile-add">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -357,7 +374,13 @@ export function ProductDrawer({ product, data, act, flash, onClose, onQueue }: P
             <span className="adm-label">
               Short name <em>(optional, shown on the cover)</em>
             </span>
-            <input className="adm-input" value={draft.shortName} maxLength={40} onChange={(e) => set({ shortName: e.target.value })} placeholder={draft.name || 'e.g. Glass Tumblers'} />
+            <input
+              className="adm-input"
+              value={draft.shortName}
+              maxLength={40}
+              onChange={(e) => set({ shortName: e.target.value })}
+              placeholder={draft.name || 'e.g. Glass Tumblers'}
+            />
           </label>
 
           <div className="adm-two">
@@ -428,12 +451,7 @@ export function ProductDrawer({ product, data, act, flash, onClose, onQueue }: P
                           Use my number
                         </button>
                       )}
-                      <button
-                        type="button"
-                        className="btn-icon"
-                        onClick={() => set({ links: draft.links.filter((x) => x.k !== l.k) })}
-                        title="Remove link"
-                      >
+                      <button type="button" className="btn-icon" onClick={() => set({ links: draft.links.filter((x) => x.k !== l.k) })} title="Remove link">
                         ✕
                       </button>
                     </div>
@@ -449,7 +467,6 @@ export function ProductDrawer({ product, data, act, flash, onClose, onQueue }: P
             <span className={draft.hidden ? 'switch' : 'switch switch-on'} />
             Show on my page
           </button>
-
         </div>
         <div className="adm-drawer-foot">
           {product && (

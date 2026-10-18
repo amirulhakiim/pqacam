@@ -79,8 +79,14 @@ function Admin() {
     <Shell data={data} me={me} tab={tab} onTab={setTab} onSignOut={signOut}>
       {(productUploads.active || failedUploads) && (
         <div className="adm-upload-status" role="status">
-          <span>{failedUploads ? 'Some media failed to upload. Retry or discard it in Products.' : 'Media is uploading. Keep this page open until it finishes.'}</span>
-          {tab !== 'products' && <button type="button" className="btn btn-soft" onClick={() => setTab('products')}>View progress</button>}
+          <span>
+            {failedUploads ? 'Some media failed to upload. Retry or discard it in Products.' : 'Media is uploading. Keep this page open until it finishes.'}
+          </span>
+          {tab !== 'products' && (
+            <button type="button" className="btn btn-soft" onClick={() => setTab('products')}>
+              View progress
+            </button>
+          )}
         </div>
       )}
       {tab === 'products' && <ProductsTab {...props} uploads={productUploads} />}

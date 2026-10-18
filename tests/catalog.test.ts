@@ -66,8 +66,25 @@ test('a new product goes to the bottom', () => {
 })
 
 test('an edit reports the media keys that were removed', () => {
-  const { id } = c.saveProduct(db, input({ media: [{ type: 'photo', key: key(1) }, { type: 'photo', key: key(2) }] }))
-  const result = c.saveProduct(db, input({ id, media: [{ type: 'photo', key: key(2) }, { type: 'photo', key: key(3) }] }))
+  const { id } = c.saveProduct(
+    db,
+    input({
+      media: [
+        { type: 'photo', key: key(1) },
+        { type: 'photo', key: key(2) },
+      ],
+    }),
+  )
+  const result = c.saveProduct(
+    db,
+    input({
+      id,
+      media: [
+        { type: 'photo', key: key(2) },
+        { type: 'photo', key: key(3) },
+      ],
+    }),
+  )
   expect(result.removedKeys).toEqual([key(1)])
   expect(c.getAdminData(db, BASE).products[0].media.map((m) => m.key)).toEqual([key(2), key(3)])
 })
@@ -145,14 +162,20 @@ test('an edit keeps the clicks of a kept link, and saves labels and order', () =
   const { id } = c.saveProduct(db, input())
   const [old] = links()
   c.recordClick(db, old.id)
-  c.saveProduct(db, input({
-    id,
-    links: [
-      { platform: 'shopee', label: 'Size L', url: 'https://shopee.com.my/l' },
-      { id: old.id, platform: 'shopee', label: 'Size M', url: 'https://shopee.com.my/x' },
-    ],
-  }))
-  expect(links().map(({ label, clicks }) => [label, clicks])).toEqual([['Size L', 0], ['Size M', 1]])
+  c.saveProduct(
+    db,
+    input({
+      id,
+      links: [
+        { platform: 'shopee', label: 'Size L', url: 'https://shopee.com.my/l' },
+        { id: old.id, platform: 'shopee', label: 'Size M', url: 'https://shopee.com.my/x' },
+      ],
+    }),
+  )
+  expect(links().map(({ label, clicks }) => [label, clicks])).toEqual([
+    ['Size L', 0],
+    ['Size M', 1],
+  ])
   c.saveProduct(db, input({ id, links: [{ platform: 'tiktok', label: '', url: 'https://www.tiktok.com/t' }] }))
   expect(links().map((l) => l.platform)).toEqual(['tiktok'])
   expect(c.recordClick(db, old.id)).toBeNull()

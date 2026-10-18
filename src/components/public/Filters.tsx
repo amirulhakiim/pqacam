@@ -12,12 +12,7 @@ export function Filters({ filter, categories, onChange }: Props) {
           <circle cx="11" cy="11" r="7" />
           <line x1="16.5" y1="16.5" x2="21" y2="21" />
         </svg>
-        <input
-          value={filter.q}
-          onChange={(e) => onChange({ q: e.target.value })}
-          placeholder="Search my finds…"
-          aria-label="Search my finds"
-        />
+        <input value={filter.q} onChange={(e) => onChange({ q: e.target.value })} placeholder="Search my finds…" aria-label="Search my finds" />
         {filter.q && (
           <button type="button" className="pp-clear" onClick={() => onChange({ q: '' })} aria-label="Clear search">
             ✕
@@ -26,12 +21,7 @@ export function Filters({ filter, categories, onChange }: Props) {
       </div>
       <div className="pp-tabs">
         {['All', ...categories].map((c) => (
-          <button
-            type="button"
-            key={c}
-            className={c === filter.category ? 'pill pill-on' : 'pill'}
-            onClick={() => onChange({ category: c })}
-          >
+          <button type="button" key={c} className={c === filter.category ? 'pill pill-on' : 'pill'} onClick={() => onChange({ category: c })}>
             {c}
           </button>
         ))}

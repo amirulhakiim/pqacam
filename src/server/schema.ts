@@ -5,7 +5,9 @@ export const profile = sqliteTable('profile', {
   name: text('name').notNull().default(''),
   handle: text('handle').notNull().default(''),
   bio: text('bio').notNull().default(''),
-  bioSize: text('bio_size', { enum: ['small', 'medium', 'large'] }).notNull().default('medium'),
+  bioSize: text('bio_size', { enum: ['small', 'medium', 'large'] })
+    .notNull()
+    .default('medium'),
   avatarKey: text('avatar_key'),
   whatsapp: text('whatsapp').notNull().default(''),
   // JSON of WatermarkSettings. Empty means the defaults.
@@ -99,7 +101,9 @@ export const job = sqliteTable('job', {
   outputKey: text('output_key').notNull().default(''),
   outputBytes: integer('output_bytes').notNull().default(0),
   settings: text('settings').notNull(),
-  status: text('status', { enum: ['queued', 'processing', 'done', 'failed'] }).notNull().default('queued'),
+  status: text('status', { enum: ['queued', 'processing', 'done', 'failed'] })
+    .notNull()
+    .default('queued'),
   progress: integer('progress').notNull().default(0),
   error: text('error').notNull().default(''),
   createdAt: integer('created_at').notNull(),

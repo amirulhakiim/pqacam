@@ -26,7 +26,15 @@ export function Header({ profile }: { profile: PublicPage['profile'] }) {
             </a>
           )}
           {profile.socials.map((s) => (
-            <a key={s.platform} className="pp-social" href={s.url} target="_blank" rel="noopener noreferrer" aria-label={SOCIAL_LABEL[s.platform]} title={SOCIAL_LABEL[s.platform]}>
+            <a
+              key={s.platform}
+              className="pp-social"
+              href={s.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={SOCIAL_LABEL[s.platform]}
+              title={SOCIAL_LABEL[s.platform]}
+            >
               <SocialIcon platform={s.platform} />
             </a>
           ))}

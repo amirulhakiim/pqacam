@@ -75,11 +75,7 @@ export function ProductsTab({ data, act, flash, uploads }: TabProps & { uploads:
             options={[{ value: '', label: 'All categories' }, ...data.categories.map((c) => ({ value: String(c.id), label: c.name }))]}
           />
           <input className="adm-input adm-search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search products…" />
-          <button
-            type="button"
-            className="btn btn-dark btn-round"
-            onClick={() => (data.categories.length ? setEditing('new') : flash('Add a category first'))}
-          >
+          <button type="button" className="btn btn-dark btn-round" onClick={() => (data.categories.length ? setEditing('new') : flash('Add a category first'))}>
             + Add product
           </button>
         </div>
@@ -98,7 +94,14 @@ export function ProductsTab({ data, act, flash, uploads }: TabProps & { uploads:
           const linked = PLATFORMS.filter((k) => p.links.some((l) => l.platform === k))
           return (
             <div
-              className={['adm-row', p.hidden && !uploading && 'adm-row-hidden', uploading && 'adm-row-uploading', order && dragFrom.current === index && 'adm-row-dragging'].filter(Boolean).join(' ')}
+              className={[
+                'adm-row',
+                p.hidden && !uploading && 'adm-row-hidden',
+                uploading && 'adm-row-uploading',
+                order && dragFrom.current === index && 'adm-row-dragging',
+              ]
+                .filter(Boolean)
+                .join(' ')}
               key={p.id}
               data-row={index}
             >
@@ -146,30 +149,46 @@ export function ProductsTab({ data, act, flash, uploads }: TabProps & { uploads:
                   ))}
                   {linked.length === 0 && <span className="chip chip-warn">No buy link</span>}
                 </span>
-                {upload && <span className={`chip adm-upload-chip ${upload.status === 'failed' ? 'chip-warn' : 'chip-tiktok'}`} role="status" title={upload.status === 'failed' ? upload.error : undefined}>
-                  {upload.status === 'failed' ? upload.error : `${upload.stage}${upload.progress !== null && upload.status === 'running' ? ` ${Math.round(upload.progress * 100)}%` : ''}`}
-                </span>}
+                {upload && (
+                  <span
+                    className={`chip adm-upload-chip ${upload.status === 'failed' ? 'chip-warn' : 'chip-tiktok'}`}
+                    role="status"
+                    title={upload.status === 'failed' ? upload.error : undefined}
+                  >
+                    {upload.status === 'failed'
+                      ? upload.error
+                      : `${upload.stage}${upload.progress !== null && upload.status === 'running' ? ` ${Math.round(upload.progress * 100)}%` : ''}`}
+                  </span>
+                )}
               </button>
               <div className="adm-row-actions">
                 <button
                   type="button"
                   className="switch-button"
                   disabled={pendingUpload}
-                  onClick={() =>
-                    act(setHiddenFn({ data: { id: p.id, hidden: !p.hidden } }), p.hidden ? 'Now live on your page' : 'Hidden from your page')
-                  }
+                  onClick={() => act(setHiddenFn({ data: { id: p.id, hidden: !p.hidden } }), p.hidden ? 'Now live on your page' : 'Hidden from your page')}
                 >
                   <span className={p.hidden ? 'switch' : 'switch switch-on'} />
                   {p.hidden ? 'Hidden' : 'Live'}
                 </button>
-                {upload?.status === 'failed' && <button type="button" className="btn btn-soft" onClick={() => uploads.retry(upload.id)}>Retry</button>}
-                {upload?.status === 'failed' && <button type="button" className="btn btn-soft" onClick={() => uploads.discard(upload.id)}>Discard</button>}
+                {upload?.status === 'failed' && (
+                  <button type="button" className="btn btn-soft" onClick={() => uploads.retry(upload.id)}>
+                    Retry
+                  </button>
+                )}
+                {upload?.status === 'failed' && (
+                  <button type="button" className="btn btn-soft" onClick={() => uploads.discard(upload.id)}>
+                    Discard
+                  </button>
+                )}
               </div>
             </div>
           )
         })}
         {rows.length === 0 && (
-          <div className="adm-none">{needle ? `No products match "${q}".` : categoryId !== null ? 'No products in this category.' : 'No products yet. Add your first one.'}</div>
+          <div className="adm-none">
+            {needle ? `No products match "${q}".` : categoryId !== null ? 'No products in this category.' : 'No products yet. Add your first one.'}
+          </div>
         )}
       </div>
       {editing && (

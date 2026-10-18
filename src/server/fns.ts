@@ -226,7 +226,9 @@ export const moveJobFn = createServerFn({ method: 'POST' })
   .handler(({ data }) => asAdmin(() => catalog.moveJob(getDb(), int(data?.id), folderOrNone(data?.folderId))))
 
 export const getAnalyticsFn = createServerFn({ method: 'GET' })
-  .inputValidator((data: { days: number; from?: string | null; to?: string | null; categoryId: number | null; productId: number | null; platform: string | null }) => data)
+  .inputValidator(
+    (data: { days: number; from?: string | null; to?: string | null; categoryId: number | null; productId: number | null; platform: string | null }) => data,
+  )
   .handler(({ data }) =>
     asAdmin(() =>
       getAnalytics(getDb(), {

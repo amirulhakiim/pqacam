@@ -17,7 +17,7 @@ export function useProductUploads(refresh: () => void, flash: (text: string) => 
   const [tasks, setTasks] = useState<Task[]>([])
   const busy = useRef(false)
   const patch = useCallback((id: string, change: Partial<Task>) => {
-    setTasks((list) => list.map((task) => task.id === id ? { ...task, ...change } : task))
+    setTasks((list) => list.map((task) => (task.id === id ? { ...task, ...change } : task)))
   }, [])
   const enqueue = useCallback((request: ProductUploadRequest) => {
     setTasks((list) => [...list, { ...request, id: crypto.randomUUID(), status: 'queued', stage: 'Waiting to upload', progress: null, error: '' }])
@@ -30,16 +30,19 @@ export function useProductUploads(refresh: () => void, flash: (text: string) => 
     if (busy.current || !next) return
     busy.current = true
     patch(next.id, { status: 'running' })
-    void process(next).then(() => {
-      setTasks((list) => list.filter((task) => task.id !== next.id))
-      refresh()
-    }).catch((error) => {
-      patch(next.id, { status: 'failed', stage: 'Failed', progress: null, error: error instanceof Error ? error.message : 'Upload failed. Try again.' })
-      refresh()
-    }).finally(() => {
-      busy.current = false
-      setTasks((list) => [...list])
-    })
+    void process(next)
+      .then(() => {
+        setTasks((list) => list.filter((task) => task.id !== next.id))
+        refresh()
+      })
+      .catch((error) => {
+        patch(next.id, { status: 'failed', stage: 'Failed', progress: null, error: error instanceof Error ? error.message : 'Upload failed. Try again.' })
+        refresh()
+      })
+      .finally(() => {
+        busy.current = false
+        setTasks((list) => [...list])
+      })
 
     async function process(task: Task) {
       const media = [...task.media]
@@ -84,9 +87,7 @@ export function useProductUploads(refresh: () => void, flash: (text: string) => 
               break
             }
             patch(task.id, {
-              stage: job.status === 'queued'
-                ? `Waiting${count}`
-                : job.progress > 0 ? `Compressing${count}` : `Preparing${count}`,
+              stage: job.status === 'queued' ? `Waiting${count}` : job.progress > 0 ? `Compressing${count}` : `Preparing${count}`,
               progress: job.progress > 0 ? job.progress / 100 : null,
             })
           }
@@ -95,7 +96,13 @@ export function useProductUploads(refresh: () => void, flash: (text: string) => 
           const added = await addMediaFn({ data: { type: item.type, key, name: file.name, hash } })
           if (!added.ok) throw new Error(`${file.name}: ${added.error}`)
         }
-        console.info('Product media timing', { productId: task.productId, type: item.type, bytes: file.size, uploadMs, queueAndProcessMs: Math.round(performance.now() - startedAt - uploadMs) })
+        console.info('Product media timing', {
+          productId: task.productId,
+          type: item.type,
+          bytes: file.size,
+          uploadMs,
+          queueAndProcessMs: Math.round(performance.now() - startedAt - uploadMs),
+        })
         media[index] = { type: item.type, key }
         patch(task.id, { media: [...media], progress: null })
       }
@@ -113,7 +120,11 @@ export function useProductUploads(refresh: () => void, flash: (text: string) => 
     const warn = (event: BeforeUnloadEvent) => event.preventDefault()
     let lock: WakeLockSentinel | undefined
     const awake = () => {
-      if (document.visibilityState === 'visible') navigator.wakeLock?.request('screen').then((value) => (lock = value), () => {})
+      if (document.visibilityState === 'visible')
+        navigator.wakeLock?.request('screen').then(
+          (value) => (lock = value),
+          () => {},
+        )
     }
     if (active) awake()
     window.addEventListener('beforeunload', warn)

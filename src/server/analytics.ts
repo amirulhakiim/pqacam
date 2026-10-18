@@ -66,12 +66,20 @@ export function getAnalytics(db: Db, f: AnalyticsFilter, now = Date.now()) {
   const links = db.select().from(link).all()
   // A category or product filter limits taps and views to these products. Deleted products drop out of a category filter.
   const inScope = (productId: number | null) =>
-    (f.productId === null || productId === f.productId) &&
-    (f.categoryId === null || products.some((p) => p.id === productId && p.categoryId === f.categoryId))
+    (f.productId === null || productId === f.productId) && (f.categoryId === null || products.some((p) => p.id === productId && p.categoryId === f.categoryId))
   const tapOk = (r: { productId: number; platform: Platform }) => inScope(r.productId) && (f.platform === null || r.platform === f.platform)
 
-  const clicks = db.select().from(click).where(and(gte(click.at, prevStart), lt(click.at, end))).all().filter(tapOk)
-  const events = db.select().from(event).where(and(gte(event.at, prevStart), lt(event.at, end))).all()
+  const clicks = db
+    .select()
+    .from(click)
+    .where(and(gte(click.at, prevStart), lt(click.at, end)))
+    .all()
+    .filter(tapOk)
+  const events = db
+    .select()
+    .from(event)
+    .where(and(gte(event.at, prevStart), lt(event.at, end)))
+    .all()
   const now_ = (r: Timed) => r.at >= start
   const before = (r: Timed) => r.at < start
   const taps = clicks.filter(now_)

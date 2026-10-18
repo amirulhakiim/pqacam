@@ -31,12 +31,9 @@ test('a product needs one buy link', () => {
   expect(error({ ...good, links: [{ platform: 'lazada', label: '', url: 'https://a.com' }] })).toBe('Add at least one Shopee, TikTok or WhatsApp link.')
 })
 
-test.each(['http://shopee.com.my/x', 'javascript:alert(1)', 'shopee.com.my/x', 'https://'])(
-  'link %s is refused',
-  (url) => {
-    expect(error({ ...good, links: [{ platform: 'shopee', label: '', url }] })).toBe('Links must start with https://')
-  },
-)
+test.each(['http://shopee.com.my/x', 'javascript:alert(1)', 'shopee.com.my/x', 'https://'])('link %s is refused', (url) => {
+  expect(error({ ...good, links: [{ platform: 'shopee', label: '', url }] })).toBe('Links must start with https://')
+})
 
 test('a media key that the server did not make is refused', () => {
   expect(error({ ...good, media: [{ type: 'photo', key: '../secret' }] })).toBe('Upload the file again.')

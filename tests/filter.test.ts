@@ -15,8 +15,7 @@ const product = (over: Partial<PublicProduct>): PublicProduct => ({
   ...over,
 })
 const list = [product({}), product({ id: 2, name: 'Bud Vase', category: 'Decor', review: 'Handmade', platforms: ['whatsapp'] })]
-const ids = (f: Partial<Parameters<typeof filterProducts>[1]>) =>
-  filterProducts(list, { q: '', category: 'All', platform: 'all', ...f }).map((p) => p.id)
+const ids = (f: Partial<Parameters<typeof filterProducts>[1]>) => filterProducts(list, { q: '', category: 'All', platform: 'all', ...f }).map((p) => p.id)
 
 test('no filter returns all products', () => expect(ids({})).toEqual([1, 2]))
 test('category filter', () => expect(ids({ category: 'Decor' })).toEqual([2]))

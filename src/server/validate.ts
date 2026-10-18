@@ -8,7 +8,14 @@ const fail = (error: string) => ({ ok: false, error }) as const
 export const SOCIALS = ['instagram', 'tiktok', 'threads', 'facebook', 'youtube', 'x'] as const
 export type Social = (typeof SOCIALS)[number]
 export type Socials = Partial<Record<Social, string>>
-export const SOCIAL_LABEL: Record<Social, string> = { instagram: 'Instagram', tiktok: 'TikTok', threads: 'Threads', facebook: 'Facebook', youtube: 'YouTube', x: 'X' }
+export const SOCIAL_LABEL: Record<Social, string> = {
+  instagram: 'Instagram',
+  tiktok: 'TikTok',
+  threads: 'Threads',
+  facebook: 'Facebook',
+  youtube: 'YouTube',
+  x: 'X',
+}
 
 export type MediaInput = { type: 'photo' | 'video'; key: string }
 // id is set for a link that already exists, so its click count is kept.
@@ -114,8 +121,13 @@ export function validateUpload(raw: unknown): Result<{ kind: UploadKind; content
   if (!Number.isInteger(size) || size <= 0) return fail('This file is empty.')
   const max = r.kind === 'raw' && String(r.contentType).startsWith('video/') ? VIDEO_MAX_MB * MB : rule.max
   if (size > max) {
-    return fail(r.kind === 'video' || (r.kind === 'raw' && String(r.contentType).startsWith('video/'))
-      ? `Videos can be ${VIDEO_MAX_MB} MB at most.` : r.kind === 'raw' ? 'Photos can be 100 MB at most.' : 'This photo is too large.')
+    return fail(
+      r.kind === 'video' || (r.kind === 'raw' && String(r.contentType).startsWith('video/'))
+        ? `Videos can be ${VIDEO_MAX_MB} MB at most.`
+        : r.kind === 'raw'
+          ? 'Photos can be 100 MB at most.'
+          : 'This photo is too large.',
+    )
   }
   return { ok: true, value: { kind: r.kind as UploadKind, contentType: r.contentType as string, size, ext } }
 }

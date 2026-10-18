@@ -70,7 +70,10 @@ export function JobActions({ job, data, act, flash, onDeleted }: Props) {
           disabled={job.watermarking}
           title="Mark a file that already had a watermark before upload. Nothing changes in the file."
           onClick={() =>
-            act(tagWatermarkFn({ data: { id: job.id, tagged: job.watermark === null } }), job.watermark === null ? 'Marked as already watermarked' : 'Mark removed')
+            act(
+              tagWatermarkFn({ data: { id: job.id, tagged: job.watermark === null } }),
+              job.watermark === null ? 'Marked as already watermarked' : 'Mark removed',
+            )
           }
         >
           <span className={job.watermark === 'manual' ? 'switch switch-on' : 'switch'} />
@@ -84,7 +87,12 @@ export function JobActions({ job, data, act, flash, onDeleted }: Props) {
         </button>
       )}
       {job.watermarking && job.status === 'failed' && (
-        <button type="button" className="btn btn-danger btn-danger-on adm-wm-run" title={job.error} onClick={() => act(retryJobFn({ data: job.id }), 'Trying again')}>
+        <button
+          type="button"
+          className="btn btn-danger btn-danger-on adm-wm-run"
+          title={job.error}
+          onClick={() => act(retryJobFn({ data: job.id }), 'Trying again')}
+        >
           Failed. Try again
         </button>
       )}

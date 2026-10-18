@@ -17,11 +17,14 @@ export function parseProbe(json: string): Probe {
   if (!v) throw new Error('no video stream')
   const rotation = Number(v.side_data_list?.find((d: { rotation?: number }) => d.rotation !== undefined)?.rotation ?? v.tags?.rotate ?? 0)
   const turned = Math.abs(rotation) % 180 === 90
-  const [rate, divisor] = String(v.avg_frame_rate ?? '').split('/').map(Number)
-  const frames = Number(v.nb_frames)
-  const duration = [data.format?.duration, v.duration, frames > 0 && rate > 0 && divisor > 0 ? (frames * divisor) / rate : 0]
+  const [rate, divisor] = String(v.avg_frame_rate ?? '')
+    .split('/')
     .map(Number)
-    .find((value) => Number.isFinite(value) && value > 0) ?? 0
+  const frames = Number(v.nb_frames)
+  const duration =
+    [data.format?.duration, v.duration, frames > 0 && rate > 0 && divisor > 0 ? (frames * divisor) / rate : 0]
+      .map(Number)
+      .find((value) => Number.isFinite(value) && value > 0) ?? 0
   return {
     width: turned ? v.height : v.width,
     height: turned ? v.width : v.height,
@@ -72,7 +75,9 @@ export const sizeCap = (duration: number, limit = MAX_VIDEO_BYTES): SizeCap => (
 export function videoArgs(input: string, output: string, textFile: string, s: WatermarkSettings | null, p: Probe, cap?: SizeCap): string[] {
   const out = outputSize(p, cap?.maxEdge)
   const filter = [p.hdr && tonemap(p.hdr), `scale=${out.width}:${out.height}`, s && drawtext(s, out.width, textFile, false)].filter(Boolean).join(',')
-  const rate = cap ? ['-b:v', String(cap.videoBitrate), '-maxrate', String(Math.round(cap.videoBitrate * 1.2)), '-bufsize', String(cap.videoBitrate * 2)] : ['-crf', '18']
+  const rate = cap
+    ? ['-b:v', String(cap.videoBitrate), '-maxrate', String(Math.round(cap.videoBitrate * 1.2)), '-bufsize', String(cap.videoBitrate * 2)]
+    : ['-crf', '18']
   return [
     ...['-hide_banner', '-nostats', '-y', '-i', input, '-vf', filter, '-map', '0:v:0', '-map', '0:a:0?'],
     // -map_metadata -1 drops the phone's GPS location and other tags.
@@ -83,11 +88,46 @@ export function videoArgs(input: string, output: string, textFile: string, s: Wa
 
 export function remuxArgs(input: string, output: string, p: Probe): string[] {
   const audio = p.audioCodec === 'aac' ? ['-c:a', 'copy'] : ['-c:a', 'aac', '-b:a', '192k']
-  return ['-hide_banner', '-nostats', '-y', '-i', input, '-map', '0:v:0', '-map', '0:a:0?', '-map_metadata', '-1', '-c:v', 'copy', ...audio, '-movflags', '+faststart', output]
+  return [
+    '-hide_banner',
+    '-nostats',
+    '-y',
+    '-i',
+    input,
+    '-map',
+    '0:v:0',
+    '-map',
+    '0:a:0?',
+    '-map_metadata',
+    '-1',
+    '-c:v',
+    'copy',
+    ...audio,
+    '-movflags',
+    '+faststart',
+    output,
+  ]
 }
 
 export function photoArgs(input: string, output: string, textFile: string, s: WatermarkSettings, p: Probe): string[] {
-  return ['-hide_banner', '-nostats', '-y', '-i', input, '-vf', drawtext(s, p.width, textFile, true), '-map_metadata', '-1', '-q:v', '3', '-frames:v', '1', '-update', '1', output]
+  return [
+    '-hide_banner',
+    '-nostats',
+    '-y',
+    '-i',
+    input,
+    '-vf',
+    drawtext(s, p.width, textFile, true),
+    '-map_metadata',
+    '-1',
+    '-q:v',
+    '3',
+    '-frames:v',
+    '1',
+    '-update',
+    '1',
+    output,
+  ]
 }
 
 export async function* streamLines(stream: AsyncIterable<Uint8Array>): AsyncGenerator<string> {
@@ -135,8 +175,7 @@ export async function run(cmd: string[], onLine?: (line: string) => void): Promi
   return stdout
 }
 
-export const probe = async (path: string) =>
-  parseProbe(await run(['ffprobe', '-v', 'error', '-show_streams', '-show_format', '-of', 'json', path]))
+export const probe = async (path: string) => parseProbe(await run(['ffprobe', '-v', 'error', '-show_streams', '-show_format', '-of', 'json', path]))
 
 export class TooLargeError extends Error {}
 

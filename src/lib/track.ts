@@ -1,10 +1,6 @@
 import { sourceFrom } from './source'
 
-type Event =
-  | { type: 'visit' }
-  | { type: 'chat' }
-  | { type: 'view'; productId: number }
-  | { type: 'search'; term: string; results: number }
+type Event = { type: 'visit' } | { type: 'chat' } | { type: 'view'; productId: number } | { type: 'search'; term: string; results: number }
 
 const landing = typeof window === 'undefined' ? null : { search: window.location.search, referrer: document.referrer, host: window.location.hostname }
 const SOURCE_KEY = 'pqacam-source'
