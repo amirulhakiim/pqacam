@@ -17,7 +17,7 @@ export const Route = createFileRoute('/admin/')({
   validateSearch: (search: Record<string, unknown>): { tab?: Tab } =>
     TABS.includes(search.tab as Tab) && search.tab !== 'products' ? { tab: search.tab as Tab } : {},
   loader: () => getAdminDataFn(),
-  head: () => ({ meta: [{ title: 'Admin' }, { name: 'robots', content: 'noindex' }] }),
+  head: () => ({ meta: [{ title: 'Admin' }, { name: 'robots', content: 'noindex' }], links: [{ rel: 'manifest', href: '/manifest.json?v=2' }] }),
   component: Admin,
 })
 

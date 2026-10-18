@@ -1,8 +1,8 @@
 {
-  "id": "/",
+  "id": "/admin",
   "name": "Pqacam",
   "short_name": "Pqacam",
-  "start_url": "/",
+  "start_url": "/admin",
   "scope": "/",
   "display": "standalone",
   "background_color": "#f9f4ee",

@@ -19,7 +19,6 @@ export const Route = createRootRoute({
       { name: 'theme-color', content: '#f9f4ee' },
     ],
     links: [
-      { rel: 'manifest', href: `/manifest.json?v=${ICON_VERSION}` },
       { rel: 'icon', href: `/favicon.ico?v=${ICON_VERSION}`, sizes: '48x48' },
       { rel: 'icon', href: `/favicon.svg?v=${ICON_VERSION}`, type: 'image/svg+xml' },
       { rel: 'apple-touch-icon', href: `/apple-touch-icon.png?v=${ICON_VERSION}` },

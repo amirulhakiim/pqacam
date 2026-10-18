@@ -8,7 +8,7 @@ export const Route = createFileRoute('/admin/login')({
     ...(typeof search.denied === 'string' ? { denied: search.denied } : {}),
     ...(search.failed ? { failed: true as const } : {}),
   }),
-  head: () => ({ meta: [{ title: 'Admin sign-in' }, { name: 'robots', content: 'noindex' }] }),
+  head: () => ({ meta: [{ title: 'Admin sign-in' }, { name: 'robots', content: 'noindex' }], links: [{ rel: 'manifest', href: '/manifest.json?v=2' }] }),
   loader: async () => (await getPublicPageFn()).profile.name,
   component: Login,
 })
