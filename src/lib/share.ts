@@ -2,7 +2,7 @@ type Shareable = { id: number; name: string; shortName: string; price: string; m
 
 export const SHARE_WIDTH = 1200
 export const SHARE_HEIGHT = 630
-const SHARE_DESIGN = 2
+const SHARE_DESIGN = 3
 
 export const shareCover = (p: Shareable) => p.media.find((m) => m.type === 'photo')?.url ?? null
 

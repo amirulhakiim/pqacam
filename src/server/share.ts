@@ -6,8 +6,8 @@ import { SHARE_HEIGHT, SHARE_WIDTH } from '../lib/share'
 import { fontFile, run } from './watermark'
 
 const CACHE = join(tmpdir(), 'pqacam-share')
-const NAME_SIZE = 60
-const NAME_LINE = 70
+const NAME_SIZE = 54
+const NAME_LINE = 66
 const PRICE_SIZE = 46
 const PRICE_GAP = 34
 const TEXT_X = 620
@@ -37,7 +37,7 @@ export function shareArgs(input: string, output: string, files: { lines: string[
   const text = (file: string, font: string, size: number, y: number, color = 'white') =>
     `drawtext=fontfile='${font}':textfile='${file}':expansion=none:fontsize=${size}:fontcolor=${color}:x=${TEXT_X}:y=${y}`
   const draw = [
-    ...files.lines.map((file, i) => text(file, fontFile('serif'), NAME_SIZE, top + i * NAME_LINE)),
+    ...files.lines.map((file, i) => text(file, fontFile('sans'), NAME_SIZE, top + i * NAME_LINE)),
     ...(files.price ? [text(files.price, fontFile('sans'), PRICE_SIZE, top + files.lines.length * NAME_LINE + PRICE_GAP)] : []),
     text(files.site, fontFile('sans'), 26, SHARE_HEIGHT - 66, 'white@0.75'),
   ]
