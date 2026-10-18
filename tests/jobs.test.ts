@@ -1,5 +1,5 @@
-import { beforeEach, expect, mock, test } from 'bun:test'
-import { copyFileSync, existsSync, mkdtempSync } from 'node:fs'
+import { afterAll, beforeEach, expect, mock, test } from 'bun:test'
+import { copyFileSync, existsSync, mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import * as c from '../src/server/catalog'
@@ -9,6 +9,7 @@ import { DEFAULT_WATERMARK, type JobInput } from '../src/server/validate'
 // R2 is a local folder here: the worker reads and writes files by key.
 const bucket = mkdtempSync(join(tmpdir(), 'bucket-'))
 const deleted: string[] = []
+afterAll(() => rmSync(bucket, { recursive: true, force: true }))
 const at = (key: string) => join(bucket, key.replaceAll('/', '_'))
 // Bun shares module mocks across test files, so the real exports stay for tests/r2.test.ts.
 const real = await import('../src/server/r2')
