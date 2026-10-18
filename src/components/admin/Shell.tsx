@@ -7,6 +7,25 @@ export type Tab = (typeof TABS)[number]
 export type Act = (work: Promise<Result<unknown>>, done?: string) => Promise<boolean>
 export type TabProps = { data: AdminData; act: Act; flash: (text: string, error?: boolean) => void }
 
+const ICON: Partial<Record<Tab, ReactNode>> = {
+  products: (
+    <>
+      <path d="M5 8h14l-1 12H6z" />
+      <path d="M9 8V6a3 3 0 0 1 6 0v2" />
+    </>
+  ),
+  media: (
+    <>
+      <rect x="3" y="4" width="18" height="16" rx="2" />
+      <circle cx="9" cy="10" r="2" />
+      <path d="m21 16-5-5-9 9" />
+    </>
+  ),
+  analytics: <path d="M5 20v-8M12 20V5M19 20v-6" />,
+  watermark: <path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z" />,
+}
+const MORE: Tab[] = ['categories', 'profile', 'admins']
+
 type Props = {
   data: AdminData
   me: { email: string; name: string }
@@ -51,14 +70,40 @@ export function Shell({ data, me, tab, onTab, onSignOut, children }: Props) {
             </button>
           </div>
         </div>
-        <nav className="adm-pills">
-          {nav.map(([key, label]) => (
-            <button type="button" key={key} className={key === tab ? 'adm-nav adm-nav-on' : 'adm-nav'} onClick={() => onTab(key)}>
+      </header>
+      <nav className="adm-tabbar">
+        {nav
+          .filter(([key]) => ICON[key])
+          .map(([key, label]) => (
+            <button type="button" key={key} className={key === tab ? 'adm-tabbar-item adm-tabbar-on' : 'adm-tabbar-item'} onClick={() => onTab(key)}>
+              <svg viewBox="0 0 24 24" aria-hidden="true">{ICON[key]}</svg>
               {label}
             </button>
           ))}
-        </nav>
-      </header>
+        <button type="button" className={MORE.includes(tab) ? 'adm-tabbar-item adm-tabbar-on' : 'adm-tabbar-item'} popoverTarget="more-menu">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M5 12h.01M12 12h.01M19 12h.01" />
+          </svg>
+          More
+        </button>
+        <div id="more-menu" popover="auto" className="adm-menu adm-more">
+          {nav
+            .filter(([key]) => MORE.includes(key))
+            .map(([key, label]) => (
+              <button
+                type="button"
+                key={key}
+                className={key === tab ? 'adm-nav adm-nav-on' : 'adm-nav'}
+                onClick={(e) => {
+                  e.currentTarget.closest<HTMLElement>('[popover]')?.hidePopover()
+                  onTab(key)
+                }}
+              >
+                {label}
+              </button>
+            ))}
+        </div>
+      </nav>
       <aside className="adm-side">
         <div className="adm-brand">
           <span className="adm-brand-name">{name}</span>
