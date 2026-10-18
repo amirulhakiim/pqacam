@@ -183,6 +183,9 @@ function Kpis({ a }: { a: Analytics }) {
 }
 
 const most = (list: number[]) => list.indexOf(Math.max(...list))
+const least = (list: number[]) => list.indexOf(Math.min(...list))
+const barClass = (base: string, i: number, list: number[]) =>
+  Math.max(...list) === Math.min(...list) ? base : i === most(list) ? `${base} ${base}-high` : i === least(list) ? `${base} ${base}-low` : base
 const dates = (a: Analytics) =>
   Array.from({ length: a.days }, (_, i) => new Date(Date.parse(`${a.firstDate}T00:00:00Z`) + i * 86_400_000).toISOString().slice(0, 10))
 
@@ -198,7 +201,7 @@ function Overview({ a }: { a: Analytics }) {
           {a.taps.total ? (
             <>
               <span className="adm-tile-value">{hourLabel(hour)}</span>
-              <Spark values={a.taps.byHour} peak={hour} />
+              <Spark values={a.taps.byHour} />
               <span className="adm-stat-delta">{pct(a.taps.byHour[hour], a.taps.total)}% of taps</span>
             </>
           ) : (
@@ -209,7 +212,7 @@ function Overview({ a }: { a: Analytics }) {
           {a.taps.total ? (
             <>
               <span className="adm-tile-value">{WEEKDAYS[weekday]}</span>
-              <Spark values={a.taps.byWeekday} peak={weekday} labels={WEEKDAYS.map((d) => d[0])} />
+              <Spark values={a.taps.byWeekday} labels={WEEKDAYS.map((d) => d[0])} />
               <span className="adm-stat-delta">{pct(a.taps.byWeekday[weekday], a.taps.total)}% of taps</span>
             </>
           ) : (
@@ -463,14 +466,14 @@ function Table({ head, rows }: { head: string[]; rows: string[][] }) {
   )
 }
 
-// A small column chart in a tile. The peak is in ink, the rest in a light step of it, so the busiest slot reads at a glance.
-function Spark({ values, peak, labels }: { values: number[]; peak: number; labels?: string[] }) {
+// A small column chart in a tile. The peak is green and the low is red, the rest a light step of ink, so the busiest and quietest slots read at a glance.
+function Spark({ values, labels }: { values: number[]; labels?: string[] }) {
   const max = Math.max(1, ...values)
   return (
     <div className="adm-spark" style={{ '--cols': values.length } as CSSProperties} aria-hidden="true">
       {values.map((v, i) => (
         <span key={i} className="adm-spark-col">
-          <span className={i === peak ? 'adm-spark-bar adm-spark-peak' : 'adm-spark-bar'} style={{ height: `${(v / max) * 100}%` }} />
+          <span className={barClass('adm-spark-bar', i, values)} style={{ height: `${(v / max) * 100}%` }} />
           {labels && <span className="adm-spark-label">{labels[i]}</span>}
         </span>
       ))}
@@ -536,7 +539,7 @@ function Columns({ items, label, unit = 'taps' }: { items: Column[]; label: stri
         <div className="adm-col" role="listitem" key={item.key} tabIndex={0} aria-label={`${item.tip}: ${item.value} ${unit}`}>
           <div className="adm-col-plot">
             {i === peak && item.value > 0 && <span className="adm-col-peak">{n(item.value)}</span>}
-            <span className="adm-col-bar" style={{ height: `${(item.value / max) * 100}%` }} />
+            <span className={barClass('adm-col-bar', i, items.map((x) => x.value))} style={{ height: `${(item.value / max) * 100}%` }} />
             <span className="adm-col-tip" role="tooltip">
               <strong>{n(item.value)}</strong> {item.tip}
             </span>

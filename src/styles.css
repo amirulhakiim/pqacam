@@ -18,6 +18,8 @@
   --chart-shopee: #a8441f;
   --chart-tiktok: #3d6fb5;
   --chart-whatsapp: #4c9a62;
+  --chart-high: oklch(0.55 0.1 150);
+  --chart-low: oklch(0.55 0.12 30);
 }
 body {
   /* Long links and long product names break instead of widening the page on a phone. */
@@ -370,7 +372,8 @@ textarea.adm-input { height: auto; padding: 12px 14px; line-height: 1.55; resize
 .adm-spark { display: grid; grid-template-columns: repeat(var(--cols), minmax(0, 1fr)); gap: 2px; height: 44px; }
 .adm-spark-col { display: flex; flex-direction: column; justify-content: flex-end; align-items: center; min-width: 0; }
 .adm-spark-bar { width: 100%; max-width: 14px; border-radius: 2px 2px 0 0; background: oklch(0.86 0.02 65); }
-.adm-spark-peak { background: var(--chart-ink); }
+.adm-spark-bar-high { background: var(--chart-high); }
+.adm-spark-bar-low { background: var(--chart-low); }
 .adm-spark-label { font-size: 9.5px; color: var(--ink-soft); line-height: 1.4; }
 /* A 2px surface gap between the parts, not a border. */
 .adm-stack { display: flex; gap: 2px; height: 14px; border-radius: 4px; overflow: hidden; }
@@ -406,7 +409,9 @@ textarea.adm-input { height: auto; padding: 12px 14px; line-height: 1.55; resize
 .adm-col { display: flex; flex-direction: column; min-width: 0; outline: none; }
 .adm-col-plot { position: relative; flex: 1; display: flex; align-items: flex-end; justify-content: center; border-bottom: 1px solid var(--line); }
 .adm-col-bar { width: 100%; max-width: 24px; min-height: 0; border-radius: 4px 4px 0 0; background: var(--chart-ink); }
-.adm-col:hover .adm-col-bar, .adm-col:focus-visible .adm-col-bar { background: oklch(0.32 0.03 60); }
+.adm-col-bar-high { background: var(--chart-high); }
+.adm-col-bar-low { background: var(--chart-low); }
+.adm-col:hover .adm-col-bar, .adm-col:focus-visible .adm-col-bar { filter: brightness(0.75); }
 .adm-col-peak { position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); margin-bottom: 2px; font-size: 11.5px; font-weight: 600; white-space: nowrap; }
 .adm-col-axis { height: 18px; padding-top: 4px; font-size: 10.5px; color: var(--ink-soft); white-space: nowrap; overflow: visible; }
 .adm-col-tip { position: absolute; bottom: calc(100% + 4px); left: 50%; transform: translateX(-50%); z-index: 2; display: none; padding: 6px 10px; border-radius: 10px; background: oklch(0.3 0.02 60); color: oklch(0.98 0.005 80); font-size: 12px; white-space: nowrap; pointer-events: none; }
