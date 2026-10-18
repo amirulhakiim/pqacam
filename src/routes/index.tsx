@@ -7,6 +7,7 @@ import { ProductGrid } from '../components/public/ProductGrid'
 import { ProductSheet } from '../components/public/ProductSheet'
 import { type Filter, filterProducts } from '../lib/filter'
 import { useMediaProtection } from '../lib/protect'
+import { SHARE_HEIGHT, SHARE_WIDTH, shareCover, sharePath } from '../lib/share'
 import { track } from '../lib/track'
 import { getPublicPageFn } from '../server/fns'
 
@@ -28,16 +29,27 @@ export const Route = createFileRoute('/')({
     const title = shared ? `${shared.name} · ${name}` : name
     // A share preview shows one line, so paragraphs are joined.
     const description = ((shared ? shared.review : loaderData?.profile.bio) ?? '').replace(/\s+/g, ' ').trim().slice(0, 200)
-    const image = (shared && shared.media.find((m) => m.type === 'photo')?.url) || loaderData?.profile.avatarUrl
+    const site = loaderData?.site ?? ''
+    const large = shared && shareCover(shared) ? `${site}${sharePath(shared)}` : null
+    const image = large || loaderData?.profile.avatarUrl
     return {
       meta: [
         { title },
         { name: 'description', content: description },
         { property: 'og:type', content: 'website' },
+        { property: 'og:site_name', content: name },
+        { property: 'og:url', content: shared ? `${site}/?p=${shared.id}` : `${site}/` },
         { property: 'og:title', content: title },
         { property: 'og:description', content: description },
         ...(image ? [{ property: 'og:image', content: image }] : []),
-        { name: 'twitter:card', content: 'summary' },
+        ...(large
+          ? [
+              { property: 'og:image:width', content: String(SHARE_WIDTH) },
+              { property: 'og:image:height', content: String(SHARE_HEIGHT) },
+              { property: 'og:image:alt', content: shared?.name ?? name },
+            ]
+          : []),
+        { name: 'twitter:card', content: large ? 'summary_large_image' : 'summary' },
       ],
     }
   },

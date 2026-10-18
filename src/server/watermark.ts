@@ -106,7 +106,7 @@ export async function* streamLines(stream: AsyncIterable<Uint8Array>): AsyncGene
   if (pending) yield pending
 }
 
-async function run(cmd: string[], onLine?: (line: string) => void): Promise<string> {
+export async function run(cmd: string[], onLine?: (line: string) => void): Promise<string> {
   const proc = Bun.spawn(cmd, { stdout: 'pipe', stderr: 'pipe' })
   const stderr = new Response(proc.stderr).text()
   let stdout = ''

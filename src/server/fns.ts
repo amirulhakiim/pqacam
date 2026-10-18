@@ -55,7 +55,7 @@ function int(value: unknown): number {
 const dir = (value: unknown): -1 | 1 => (value === -1 ? -1 : 1)
 const folderOrNone = (value: unknown): number | null => (value === null || value === undefined ? null : int(value))
 
-export const getPublicPageFn = createServerFn({ method: 'GET' }).handler(() => catalog.getPublicPage(getDb(), mediaBase()))
+export const getPublicPageFn = createServerFn({ method: 'GET' }).handler(() => ({ ...catalog.getPublicPage(getDb(), mediaBase()), site: env('PUBLIC_URL') }))
 
 export const getAdminDataFn = createServerFn({ method: 'GET' }).handler(async () => {
   const me = await requireAdmin()
