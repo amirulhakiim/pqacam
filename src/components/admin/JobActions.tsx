@@ -109,8 +109,17 @@ export function JobActions({ job, data, act, flash, onDeleted }: Props) {
           <path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" />
         </svg>
       </button>
-      <button type="button" className={confirmDelete ? 'btn btn-delete btn-delete-on' : 'btn btn-delete'} onClick={remove} disabled={busy}>
-        {confirmDelete ? 'Tap again' : 'Delete'}
+      <button
+        type="button"
+        className={confirmDelete ? 'btn-icon btn-icon-delete btn-icon-delete-on' : 'btn-icon btn-icon-delete'}
+        onClick={remove}
+        disabled={busy}
+        title={confirmDelete ? 'Tap again to delete' : 'Delete'}
+        aria-label={confirmDelete ? 'Tap again to delete' : 'Delete'}
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3" />
+        </svg>
       </button>
     </div>
   )
