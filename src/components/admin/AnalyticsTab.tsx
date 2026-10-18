@@ -9,7 +9,7 @@ import { Select } from './Select'
 
 const n = (v: number) => v.toLocaleString('en-MY')
 const pct = (part: number, whole: number) => (whole ? Math.round((part / whole) * 100) : 0)
-const SECTIONS = ['Overview', 'Visits', 'Taps', 'Products', 'Shops', 'Searches'] as const
+const SECTIONS = ['Overview', 'Visits', 'Taps', 'Products', 'Shops', 'Sources', 'Searches'] as const
 type Section = (typeof SECTIONS)[number]
 type Filter = { days: Range; categoryId: number | null; productId: number | null; platform: Platform | null }
 
@@ -103,6 +103,7 @@ export function AnalyticsTab({ data, flash }: TabProps) {
           {section === 'Taps' && <Taps a={report} />}
           {section === 'Products' && <Products a={report} />}
           {section === 'Shops' && <Shops a={report} />}
+          {section === 'Sources' && <Sources a={report} />}
           {section === 'Searches' && <Searches a={report} />}
         </>
       )}
@@ -323,6 +324,30 @@ function Shops({ a }: { a: Analytics }) {
           }))}
         />
       </Card>
+    </div>
+  )
+}
+
+function Sources({ a }: { a: Analytics }) {
+  return (
+    <div className="adm-card-pair">
+      <Card title="Visits by source">
+        <Bars
+          total={a.visits.total}
+          rows={a.sources.filter((s) => s.visits > 0).map((s) => ({ key: s.source, name: s.source, value: s.visits }))}
+          empty="No visits in this range."
+        />
+      </Card>
+      <Card title="Buy taps by source">
+        <Bars
+          total={a.taps.total}
+          rows={[...a.sources].sort((x, y) => y.taps - x.taps).filter((s) => s.taps > 0).map((s) => ({ key: s.source, name: s.source, value: s.taps }))}
+          empty="No buy taps in this range."
+        />
+      </Card>
+      <p className="adm-sub adm-an-note">
+        Add <code>s=threads</code> (or any word) to links you post, e.g. <code>pqacam.com/?p=34&amp;s=threads</code>. Without it, the source comes from the site the visitor came from. Apps often hide that, so those visits show as direct.
+      </p>
     </div>
   )
 }

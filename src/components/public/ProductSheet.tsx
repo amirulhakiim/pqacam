@@ -4,6 +4,7 @@ import { PLATFORM_LABEL } from '../../lib/platforms'
 import type { PublicProduct } from '../../server/catalog'
 import { PLATFORMS } from '../../server/validate'
 import { Lightbox } from './Lightbox'
+import { tagWithSource } from '../../lib/track'
 
 type Props = { product: PublicProduct; hidden: boolean; onClose: () => void }
 
@@ -166,7 +167,7 @@ export function ProductSheet({ product, hidden, onClose }: Props) {
             if (links.length === 1) {
               const [l] = links
               return (
-                <a key={k} className={`pp-buy-button buy-${k}`} href={`/go/${l.id}`} target="_blank" rel="noopener">
+                <a key={k} className={`pp-buy-button buy-${k}`} href={`/go/${l.id}`} target="_blank" rel="noopener" onClick={(e) => tagWithSource(e.currentTarget)}>
                   {l.label ? `${PLATFORM_LABEL[k].chip} · ${l.label}` : PLATFORM_LABEL[k].buy} <span>→</span>
                 </a>
               )
@@ -184,7 +185,7 @@ export function ProductSheet({ product, hidden, onClose }: Props) {
                   </summary>
                   <div className="pp-buy-options">
                     {links.map((l, i) => (
-                      <a key={l.id} className="pp-buy-option" href={`/go/${l.id}`} target="_blank" rel="noopener">
+                      <a key={l.id} className="pp-buy-option" href={`/go/${l.id}`} target="_blank" rel="noopener" onClick={(e) => tagWithSource(e.currentTarget)}>
                         {l.label || `Option ${i + 1}`} <span>→</span>
                       </a>
                     ))}

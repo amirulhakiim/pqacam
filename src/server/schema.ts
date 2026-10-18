@@ -63,6 +63,7 @@ export const click = sqliteTable(
     linkId: integer('link_id').notNull(),
     productId: integer('product_id').notNull(),
     platform: text('platform', { enum: ['shopee', 'tiktok', 'whatsapp'] }).notNull(),
+    source: text('source'),
     at: integer('at').notNull(),
   },
   (t) => [index('click_at').on(t.at)],
@@ -78,6 +79,7 @@ export const event = sqliteTable(
     // A search: the words, and how many products it found.
     term: text('term'),
     results: integer('results'),
+    source: text('source'),
     at: integer('at').notNull(),
   },
   (t) => [index('event_at').on(t.at)],

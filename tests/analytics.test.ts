@@ -121,3 +121,17 @@ test('events from visitors are checked before they are stored', () => {
     ['search', 'glass tumbler'],
   ])
 })
+
+test('visits and taps are counted by source, with no source shown as direct', () => {
+  const { db, tumbler } = setup()
+  recordEvent(db, { type: 'visit', source: 'threads' }, NOW)
+  recordEvent(db, { type: 'visit', source: 'Threads' }, NOW)
+  recordEvent(db, { type: 'visit' }, NOW)
+  recordEvent(db, { type: 'visit', source: 'bad source!' }, NOW)
+  c.recordClick(db, tumbler.links[0].id!, NOW, 'threads')
+  c.recordClick(db, tumbler.links[0].id!, NOW)
+  expect(getAnalytics(db, all, NOW).sources).toEqual([
+    { source: 'threads', visits: 2, taps: 1 },
+    { source: 'direct', visits: 2, taps: 1 },
+  ])
+})

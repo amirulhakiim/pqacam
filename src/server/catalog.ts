@@ -259,7 +259,7 @@ export function removeAdmin(db: Db, email: string, self: string) {
   db.delete(admin).where(eq(admin.email, email)).run()
 }
 
-export function recordClick(db: Db, linkId: number, at = Date.now()): string | null {
+export function recordClick(db: Db, linkId: number, at = Date.now(), source: string | null = null): string | null {
   const row = db
     .select({ url: link.url, productId: link.productId, platform: link.platform })
     .from(link)
@@ -269,7 +269,7 @@ export function recordClick(db: Db, linkId: number, at = Date.now()): string | n
   if (!row) return null
   db.transaction((tx) => {
     tx.update(link).set({ clicks: sql`${link.clicks} + 1` }).where(eq(link.id, linkId)).run()
-    tx.insert(click).values({ linkId, productId: row.productId, platform: row.platform, at }).run()
+    tx.insert(click).values({ linkId, productId: row.productId, platform: row.platform, source, at }).run()
   })
   return row.url
 }
