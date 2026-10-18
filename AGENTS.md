@@ -2,6 +2,16 @@
 
 Do not put any comments in the code
 
+## Disk full
+
+The video tests write files to the temp folder. If a command fails with `ENOSPC` or `no space left on device`, delete the test files without asking, then run the command again:
+
+```bash
+rm -rf "${TMPDIR:-/tmp}"/wm-* "${TMPDIR:-/tmp}"/bucket-* "${TMPDIR:-/tmp}"/pqacam-jobs
+```
+
+If the command still fails, tell the user how much space `df -h /` shows as free.
+
 ## Commits
 
 Commit each feature or fix when it is done and the checks pass. Do not leave finished work uncommitted.
