@@ -152,9 +152,6 @@ export function ProductsTab({ data, act, flash, uploads }: TabProps & { uploads:
                 </button>
                 {upload?.status === 'failed' && <button type="button" className="btn btn-soft" onClick={() => uploads.retry(upload.id)}>Retry</button>}
                 {upload?.status === 'failed' && <button type="button" className="btn btn-soft" onClick={() => uploads.discard(upload.id)}>Discard</button>}
-                <button type="button" className="btn btn-soft" onClick={() => setEditing(p)} disabled={pendingUpload}>
-                  Edit
-                </button>
               </div>
             </div>
           )
