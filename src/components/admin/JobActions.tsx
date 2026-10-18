@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { AdminJob } from '../../server/catalog'
 import { attachMediaFn, deleteJobFn, downloadUrlFn, moveJobFn, retryJobFn, tagWatermarkFn, watermarkJobFn } from '../../server/fns'
 import type { TabProps } from './Shell'
+import { Select } from './Select'
 
 type Props = Pick<TabProps, 'data' | 'act' | 'flash'> & { job: AdminJob; onDeleted?: () => void }
 
@@ -37,41 +38,29 @@ export function JobActions({ job, data, act, flash, onDeleted }: Props) {
 
   return (
     <div className="adm-job-actions">
-      <select
-        className="adm-input adm-wm-attach"
+      <Select
+        className="adm-wm-attach"
         value=""
         aria-label="Add to product"
         disabled={job.watermarking}
-        onChange={(e) => {
-          const product = data.products.find((p) => p.id === Number(e.target.value))
+        placeholder={used.size ? 'Add to another product…' : 'Add to product…'}
+        onChange={(v) => {
+          const product = data.products.find((p) => p.id === Number(v))
           if (product) act(attachMediaFn({ data: { productId: product.id, jobId: job.id } }), `Added to ${product.name}`)
         }}
-      >
-        <option value="">{used.size ? 'Add to another product…' : 'Add to product…'}</option>
-        {data.products.map((p) => (
-          // A product that already has the file is ticked and cannot be picked again.
-          <option key={p.id} value={p.id} disabled={used.has(p.id)}>
-            {used.has(p.id) ? `✓ ${p.name}` : p.name}
-          </option>
-        ))}
-      </select>
-      <select
-        className="adm-input adm-wm-attach"
-        value={job.folderId ?? ''}
+        options={data.products.map((p) => ({ value: String(p.id), label: used.has(p.id) ? `✓ ${p.name}` : p.name, disabled: used.has(p.id) }))}
+      />
+      <Select
+        className="adm-wm-attach"
+        value={String(job.folderId ?? '')}
         aria-label="Folder"
-        onChange={(e) => {
-          const folderId = e.target.value ? Number(e.target.value) : null
+        onChange={(v) => {
+          const folderId = v ? Number(v) : null
           const name = data.folders.find((f) => f.id === folderId)?.name ?? 'No folder'
           act(moveJobFn({ data: { id: job.id, folderId } }), `Moved to ${name}`)
         }}
-      >
-        <option value="">No folder</option>
-        {data.folders.map((f) => (
-          <option key={f.id} value={f.id}>
-            {f.name}
-          </option>
-        ))}
-      </select>
+        options={[{ value: '', label: 'No folder' }, ...data.folders.map((f) => ({ value: String(f.id), label: f.name }))]}
+      />
       {job.watermark !== 'app' && (
         <button
           type="button"

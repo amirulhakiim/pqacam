@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { AdminData, AdminJob } from '../../server/catalog'
 import { VideoThumb } from '../VideoThumb'
 import { type FolderFilter, inFolder } from './Library'
+import { Select } from './Select'
 
 type Props = { jobs: AdminJob[]; folders: AdminData['folders']; taken: string[]; onPick: (jobs: AdminJob[]) => void; onClose: () => void }
 
@@ -26,20 +27,17 @@ export function LibraryPicker({ jobs, folders, taken, onPick, onClose }: Props) 
         <h3>Media</h3>
         <span className="adm-grow" />
         {folders.length > 0 && (
-          <select
-            className="adm-input adm-wm-attach"
+          <Select
+            className="adm-wm-attach"
             value={String(filter)}
             aria-label="Folder"
-            onChange={(e) => setFilter(e.target.value === 'all' || e.target.value === 'none' ? e.target.value : Number(e.target.value))}
-          >
-            <option value="all">All folders</option>
-            <option value="none">No folder</option>
-            {folders.map((f) => (
-              <option key={f.id} value={f.id}>
-                {f.name}
-              </option>
-            ))}
-          </select>
+            onChange={(v) => setFilter(v === 'all' || v === 'none' ? v : Number(v))}
+            options={[
+              { value: 'all', label: 'All folders' },
+              { value: 'none', label: 'No folder' },
+              ...folders.map((f) => ({ value: String(f.id), label: f.name })),
+            ]}
+          />
         )}
         {free.length > 0 && (
           <button

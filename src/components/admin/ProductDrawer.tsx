@@ -8,6 +8,7 @@ import { PLATFORMS, type Platform, type ProductInput, validateProduct, VIDEO_TYP
 import { LibraryPicker } from './LibraryPicker'
 import type { TabProps } from './Shell'
 import type { ProductUploadRequest } from './useProductUploads'
+import { Select } from './Select'
 
 type Props = TabProps & { product: AdminProduct | null; onClose: () => void; onQueue: (request: ProductUploadRequest) => void }
 // k is a React key. A new link has no id until it is saved.
@@ -362,13 +363,11 @@ export function ProductDrawer({ product, data, act, flash, onClose, onQueue }: P
           <div className="adm-two">
             <label className="adm-field">
               <span className="adm-label">Category</span>
-              <select className="adm-input" value={draft.categoryId} onChange={(e) => set({ categoryId: Number(e.target.value) })}>
-                {data.categories.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
+              <Select
+                value={String(draft.categoryId)}
+                onChange={(v) => set({ categoryId: Number(v) })}
+                options={data.categories.map((c) => ({ value: String(c.id), label: c.name }))}
+              />
             </label>
             <label className="adm-field">
               <span className="adm-label">

@@ -5,6 +5,7 @@ import type { Analytics } from '../../server/analytics'
 import { getAnalyticsFn } from '../../server/fns'
 import { type Platform, PLATFORMS, RANGES, type Range } from '../../server/validate'
 import type { TabProps } from './Shell'
+import { Select } from './Select'
 
 const n = (v: number) => v.toLocaleString('en-MY')
 const pct = (part: number, whole: number) => (whole ? Math.round((part / whole) * 100) : 0)
@@ -47,45 +48,27 @@ export function AnalyticsTab({ data, flash }: TabProps) {
             </button>
           ))}
         </div>
-        <select
-          className="adm-input adm-an-select"
+        <Select
+          className="adm-an-select"
           aria-label="Category"
-          value={filter.categoryId ?? ''}
-          onChange={(e) => set({ categoryId: pick(e.target.value), productId: null })}
-        >
-          <option value="">All categories</option>
-          {data.categories.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </select>
-        <select
-          className="adm-input adm-an-select"
+          value={String(filter.categoryId ?? '')}
+          onChange={(v) => set({ categoryId: pick(v), productId: null })}
+          options={[{ value: '', label: 'All categories' }, ...data.categories.map((c) => ({ value: String(c.id), label: c.name }))]}
+        />
+        <Select
+          className="adm-an-select"
           aria-label="Product"
-          value={filter.productId ?? ''}
-          onChange={(e) => set({ productId: pick(e.target.value) })}
-        >
-          <option value="">All products</option>
-          {products.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.name}
-            </option>
-          ))}
-        </select>
-        <select
-          className="adm-input adm-an-select"
+          value={String(filter.productId ?? '')}
+          onChange={(v) => set({ productId: pick(v) })}
+          options={[{ value: '', label: 'All products' }, ...products.map((p) => ({ value: String(p.id), label: p.name }))]}
+        />
+        <Select
+          className="adm-an-select"
           aria-label="Shop"
           value={filter.platform ?? ''}
-          onChange={(e) => set({ platform: (e.target.value || null) as Platform | null })}
-        >
-          <option value="">All shops</option>
-          {PLATFORMS.map((k) => (
-            <option key={k} value={k}>
-              {PLATFORM_LABEL[k].chip}
-            </option>
-          ))}
-        </select>
+          onChange={(v) => set({ platform: (v || null) as Platform | null })}
+          options={[{ value: '', label: 'All shops' }, ...PLATFORMS.map((k) => ({ value: k, label: PLATFORM_LABEL[k].chip }))]}
+        />
         {(filter.categoryId !== null || filter.productId !== null || filter.platform !== null) && (
           <button type="button" className="link" onClick={() => set({ categoryId: null, productId: null, platform: null })}>
             Clear filters

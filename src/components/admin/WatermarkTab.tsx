@@ -3,6 +3,7 @@ import type { WatermarkSettings } from '../../server/validate'
 import { JobQueue } from './Library'
 import type { TabProps } from './Shell'
 import type { Uploads } from './useUploads'
+import { Select } from './Select'
 
 const FONT_LABEL: Record<WatermarkSettings['font'], string> = {
   sans: 'Standard',
@@ -53,14 +54,12 @@ export function WatermarkTab({ data, act, flash, uploads }: TabProps & { uploads
         </label>
         <label className="adm-wm-target">
           <span className="adm-sub">Save to</span>
-          <select className="adm-input adm-wm-attach" value={uploadFolder ?? ''} onChange={(e) => setUploadFolder(e.target.value ? Number(e.target.value) : null)}>
-            <option value="">No folder</option>
-            {data.folders.map((f) => (
-              <option key={f.id} value={f.id}>
-                {f.name}
-              </option>
-            ))}
-          </select>
+          <Select
+            className="adm-wm-attach"
+            value={String(uploadFolder ?? '')}
+            onChange={(v) => setUploadFolder(v ? Number(v) : null)}
+            options={[{ value: '', label: 'No folder' }, ...data.folders.map((f) => ({ value: String(f.id), label: f.name }))]}
+          />
         </label>
       </div>
 
@@ -74,27 +73,19 @@ export function WatermarkTab({ data, act, flash, uploads }: TabProps & { uploads
           <div className="adm-two">
             <label className="adm-field">
               <span className="adm-label">Font</span>
-              <select className="adm-input" value={settings.font} onChange={(e) => set({ font: e.target.value as WatermarkSettings['font'] })}>
-                {Object.entries(FONT_LABEL).map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </select>
+              <Select
+                value={settings.font}
+                onChange={(v) => set({ font: v as WatermarkSettings['font'] })}
+                options={Object.entries(FONT_LABEL).map(([value, label]) => ({ value, label }))}
+              />
             </label>
             <label className="adm-field">
               <span className="adm-label">Position</span>
-              <select
-                className="adm-input"
+              <Select
                 value={settings.position}
-                onChange={(e) => set({ position: e.target.value as WatermarkSettings['position'] })}
-              >
-                {Object.entries(POSITION_LABEL).map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </select>
+                onChange={(v) => set({ position: v as WatermarkSettings['position'] })}
+                options={Object.entries(POSITION_LABEL).map(([value, label]) => ({ value, label }))}
+              />
             </label>
           </div>
           <div className="adm-two">
