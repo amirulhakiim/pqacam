@@ -55,12 +55,13 @@ const count = <K>(keys: K[]) => {
 }
 
 export function getAnalytics(db: Db, f: AnalyticsFilter, now = Date.now()) {
-  const { firstDay, lastDay } = dayRange(f, localDay(now))
+  const rolling = f.days === 1 && !(f.from && f.to)
+  const { firstDay, lastDay } = rolling ? { firstDay: localDay(now - DAY), lastDay: localDay(now) } : dayRange(f, localDay(now))
   const days = lastDay - firstDay + 1
-  // The range is whole local days. The previous period is the same length just before it.
-  const start = firstDay * DAY - TZ_OFFSET
-  const end = (lastDay + 1) * DAY - TZ_OFFSET
-  const prevStart = start - days * DAY
+  // The range is whole local days, or the last 24 hours. The previous period is the same length just before it.
+  const start = rolling ? now - DAY : firstDay * DAY - TZ_OFFSET
+  const end = rolling ? now + 1 : (lastDay + 1) * DAY - TZ_OFFSET
+  const prevStart = start - (rolling ? DAY : days * DAY)
   const products = db.select({ id: product.id, name: product.name, hidden: product.hidden, categoryId: product.categoryId }).from(product).all()
   const links = db.select().from(link).all()
   // A category or product filter limits taps and views to these products. Deleted products drop out of a category filter.
@@ -92,6 +93,7 @@ export function getAnalytics(db: Db, f: AnalyticsFilter, now = Date.now()) {
 
   return {
     days,
+    period: rolling ? '24 hours' : `${days} days`,
     firstDate: isoDate(firstDay),
     lastDate: isoDate(lastDay),
     filtered: f.categoryId !== null || f.productId !== null || f.platform !== null,

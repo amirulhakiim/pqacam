@@ -52,13 +52,13 @@ export function AnalyticsTab({ data, flash }: TabProps) {
               className={r === filter.days && !custom ? 'pill pill-on' : 'pill'}
               onClick={() => set({ days: r, from: null, to: null })}
             >
-              {r} days
+              {r === 1 ? '24 hours' : `${r} days`}
             </button>
           ))}
           <button
             type="button"
             className={custom ? 'pill pill-on' : 'pill'}
-            onClick={() => custom || set({ from: mytDate(-(filter.days - 1)), to: mytDate() })}
+            onClick={() => custom || set({ from: mytDate(-Math.max(0, filter.days - 1)), to: mytDate() })}
           >
             Custom
           </button>
@@ -151,23 +151,23 @@ export function AnalyticsTab({ data, flash }: TabProps) {
   )
 }
 
-function Delta({ now, before, days }: { now: number; before: number; days: number }) {
+function Delta({ now, before, period }: { now: number; before: number; period: string }) {
   if (!before) return <span className="adm-stat-delta">{now ? 'New this period' : 'None in the previous period'}</span>
   const change = Math.round(((now - before) / before) * 100)
   return (
     <span className="adm-stat-delta">
-      {change > 0 ? '▲' : change < 0 ? '▼' : '='} {Math.abs(change)}% vs previous {days} days
+      {change > 0 ? '▲' : change < 0 ? '▼' : '='} {Math.abs(change)}% vs previous {period}
     </span>
   )
 }
 
 function Kpis({ a }: { a: Analytics }) {
   const tiles: [string, string, ReactNode][] = [
-    ['Visits', n(a.visits.total), <Delta key="v" now={a.visits.total} before={a.visits.previous} days={a.days} />],
-    ['Product views', n(a.views.total), <Delta key="p" now={a.views.total} before={a.views.previous} days={a.days} />],
-    ['Buy taps', n(a.taps.total), <Delta key="t" now={a.taps.total} before={a.taps.previous} days={a.days} />],
+    ['Visits', n(a.visits.total), <Delta key="v" now={a.visits.total} before={a.visits.previous} period={a.period} />],
+    ['Product views', n(a.views.total), <Delta key="p" now={a.views.total} before={a.views.previous} period={a.period} />],
+    ['Buy taps', n(a.taps.total), <Delta key="t" now={a.taps.total} before={a.taps.previous} period={a.period} />],
     ['Taps per visit', a.visits.total ? `${pct(a.taps.total, a.visits.total)}%` : '–', <span key="r" className="adm-stat-delta">Buy taps ÷ visits</span>],
-    ['WhatsApp chats', n(a.chats.total), <Delta key="c" now={a.chats.total} before={a.chats.previous} days={a.days} />],
+    ['WhatsApp chats', n(a.chats.total), <Delta key="c" now={a.chats.total} before={a.chats.previous} period={a.period} />],
   ]
   return (
     <div className="adm-stats">

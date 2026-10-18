@@ -158,3 +158,17 @@ test('a custom range stops at today and keeps at most a year', () => {
   const long = getAnalytics(db, { ...all, from: '2020-01-01', to: '2026-10-15' }, NOW)
   expect(long.days).toBe(366)
 })
+
+test('the 24 hour range counts the last 24 hours and compares with the 24 before', () => {
+  const { db, tumbler } = setup()
+  const link = tumbler.links[0].id!
+  c.recordClick(db, link, NOW - 3600_000)
+  c.recordClick(db, link, NOW - 23 * 3600_000)
+  c.recordClick(db, link, NOW - 25 * 3600_000)
+  recordEvent(db, { type: 'visit' }, NOW - 47 * 3600_000)
+  recordEvent(db, { type: 'visit' }, NOW - 49 * 3600_000)
+  const a = getAnalytics(db, { ...all, days: 1 }, NOW)
+  expect(a.period).toBe('24 hours')
+  expect([a.taps.total, a.taps.previous, a.visits.total, a.visits.previous]).toEqual([2, 1, 0, 1])
+  expect(a.taps.byHour[11] + a.taps.byHour[13]).toBe(2)
+})
