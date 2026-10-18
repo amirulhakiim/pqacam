@@ -58,7 +58,7 @@ export function ProductsTab({ data, act, flash, uploads }: TabProps & { uploads:
 
   return (
     <>
-      <BackToTop />
+      <BackToTop bottom />
       <div className="adm-head">
         <div>
           <h2>Products</h2>
