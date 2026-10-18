@@ -16,6 +16,10 @@ If the command still fails, tell the user how much space `df -h /` shows as free
 
 Apps keep a link preview image by its address. When you change how `src/server/share.ts` draws the image, add 1 to `SHARE_DESIGN` in `src/lib/share.ts`. The address then changes, and apps fetch the new image.
 
+## Icons
+
+Browsers keep a favicon for a long time. When you change a file in `public/` named `favicon.*` or `apple-touch-icon.png`, add 1 to `ICON_VERSION` in `src/routes/__root.tsx`.
+
 ## Commits
 
 Commit each feature or fix when it is done and the checks pass. Do not leave finished work uncommitted.
