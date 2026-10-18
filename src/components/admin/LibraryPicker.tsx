@@ -25,37 +25,40 @@ export function LibraryPicker({ jobs, folders, taken, onPick, onClose }: Props) 
     >
       <div className="adm-pick-head">
         <h3>Media</h3>
-        <span className="adm-grow" />
-        {folders.length > 0 && (
-          <Select
-            className="adm-wm-attach"
-            value={String(filter)}
-            aria-label="Folder"
-            onChange={(v) => setFilter(v === 'all' || v === 'none' ? v : Number(v))}
-            options={[
-              { value: 'all', label: 'All folders' },
-              { value: 'none', label: 'No folder' },
-              ...folders.map((f) => ({ value: String(f.id), label: f.name })),
-            ]}
-          />
-        )}
-        {free.length > 0 && (
-          <button
-            type="button"
-            className="btn btn-soft btn-small adm-pick-all"
-            onClick={() => {
-              onPick(free)
-              ref.current?.close()
-            }}
-          >
-            Add all ({free.length})
-          </button>
-        )}
         <button type="button" className="adm-x" onClick={() => ref.current?.close()} aria-label="Close">
           ✕
         </button>
       </div>
-      <div className="adm-media">
+      {(folders.length > 0 || free.length > 0) && (
+        <div className="adm-pick-tools">
+          {folders.length > 0 && (
+            <Select
+              className="adm-wm-attach adm-pick-folder"
+              value={String(filter)}
+              aria-label="Folder"
+              onChange={(v) => setFilter(v === 'all' || v === 'none' ? v : Number(v))}
+              options={[
+                { value: 'all', label: 'All folders' },
+                { value: 'none', label: 'No folder' },
+                ...folders.map((f) => ({ value: String(f.id), label: f.name })),
+              ]}
+            />
+          )}
+          {free.length > 0 && (
+            <button
+              type="button"
+              className="btn btn-soft btn-small adm-pick-all"
+              onClick={() => {
+                onPick(free)
+                ref.current?.close()
+              }}
+            >
+              Add all ({free.length})
+            </button>
+          )}
+        </div>
+      )}
+      <div className="adm-media adm-pick-grid">
         {ready.map((j) => (
           <button
             type="button"

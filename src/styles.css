@@ -352,6 +352,7 @@ textarea.adm-input { height: auto; padding: 12px 14px; line-height: 1.55; resize
 .adm-wm-thumb { cursor: default; }
 .adm-wm-actions { flex-wrap: wrap; justify-content: flex-end; }
 .adm-wm-attach { width: auto; max-width: 180px; height: 32px; padding: 0 10px; border-radius: 10px; font-size: 13px; }
+.adm-select.adm-wm-attach { padding-right: 30px; background-position: right 11px center; }
 .adm-pills-row { display: flex; flex-wrap: wrap; gap: 8px; }
 .adm-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
 .adm-an-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
@@ -417,7 +418,6 @@ textarea.adm-input { height: auto; padding: 12px 14px; line-height: 1.55; resize
 .adm-table { width: 100%; margin-top: 8px; border-collapse: collapse; font-variant-numeric: tabular-nums; }
 .adm-table th, .adm-table td { padding: 6px 4px; border-bottom: 1px solid var(--line); text-align: left; }
 .adm-table td:last-child, .adm-table th:last-child { text-align: right; }
-.adm-pick-head .adm-wm-attach, .adm-pick-all { margin-right: 4px; }
 .adm-wm-folders { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
 .adm-wm-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
 .adm-wm-filter { display: flex; align-items: center; gap: 8px; min-width: 0; }
@@ -462,6 +462,10 @@ textarea.adm-input { height: auto; padding: 12px 14px; line-height: 1.55; resize
 .adm-pick::backdrop { background: oklch(0.3 0.02 60 / 0.35); }
 .adm-pick-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
 .adm-pick-head h3 { margin: 0; font-family: var(--serif); font-weight: 400; font-size: 26px; }
+.adm-pick-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 14px; }
+.adm-pick-tools .adm-pick-folder { flex: 1 1 160px; max-width: 260px; }
+.adm-pick-all { flex: none; margin-left: auto; }
+.adm-pick-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 0; }
 .adm-tile-pick { border: none; padding: 0; cursor: pointer; }
 .adm-tile-pick:disabled { opacity: 0.35; cursor: default; }
 @media (max-width: 759px) {
