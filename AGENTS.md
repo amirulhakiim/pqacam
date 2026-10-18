@@ -24,7 +24,14 @@ Browsers keep a favicon for a long time. When you change a file in `public/` nam
 
 Commit each feature or fix when it is done and the checks pass. Do not leave finished work uncommitted.
 
-1. Run `bun run typecheck` and `bun test`. Commit only when both pass.
+1. Run these checks. Commit only when all pass.
+   ```bash
+   bun run format
+   bun run lint
+   bun run typecheck
+   bun test
+   ```
+   `format` changes files in place. Add those changes to the same commit.
 2. Make one commit per change. Do not put unrelated changes in the same commit.
 3. Write the message as a conventional commit: `<type>: <description>`.
 4. Keep the description short, lower case, and in the imperative mood. Do not add a body unless the change needs a reason that the code does not show.
