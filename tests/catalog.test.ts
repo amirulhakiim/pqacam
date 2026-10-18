@@ -36,6 +36,7 @@ test('the public page has no hidden product and no buy link', () => {
   expect(page.products[0]).toEqual({
     id: expect.any(Number),
     name: 'Tumbler',
+    shortName: '',
     category: 'Kitchen',
     price: 'RM 24.90',
     review: 'Nice',

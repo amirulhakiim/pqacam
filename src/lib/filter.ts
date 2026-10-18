@@ -10,7 +10,7 @@ export function filterProducts(products: PublicProduct[], filter: Filter): Publi
     (p) =>
       (filter.category === 'All' || p.category === filter.category) &&
       (platform === 'all' || p.platforms.includes(platform)) &&
-      (!q || `${p.name} ${p.category} ${p.review}`.toLowerCase().includes(q)),
+      (!q || `${p.name} ${p.shortName} ${p.category} ${p.review}`.toLowerCase().includes(q)),
   )
 }
 

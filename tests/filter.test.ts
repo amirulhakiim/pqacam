@@ -5,6 +5,7 @@ import type { PublicProduct } from '../src/server/catalog'
 const product = (over: Partial<PublicProduct>): PublicProduct => ({
   id: 1,
   name: 'Glass Tumbler',
+  shortName: '',
   category: 'Kitchen',
   price: '',
   review: 'Great for iced coffee',

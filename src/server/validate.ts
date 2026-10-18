@@ -16,6 +16,7 @@ export type LinkInput = { id?: number; platform: Platform; label: string; url: s
 export type ProductInput = {
   id?: number
   name: string
+  shortName?: string
   categoryId: number
   price: string
   review: string
@@ -46,6 +47,7 @@ export function validateProduct(raw: unknown): Result<ProductInput> {
   const value: ProductInput = {
     id: Number.isInteger(r.id) ? (r.id as number) : undefined,
     name: text(r.name, 200),
+    shortName: text(r.shortName, 40),
     categoryId: Number.isInteger(r.categoryId) ? (r.categoryId as number) : 0,
     price: text(r.price, 40),
     review: text(r.review, 5000),

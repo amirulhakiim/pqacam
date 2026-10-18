@@ -1,0 +1,1 @@
+ALTER TABLE `product` ADD `short_name` text DEFAULT '' NOT NULL;

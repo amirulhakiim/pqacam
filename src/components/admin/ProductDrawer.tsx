@@ -71,7 +71,7 @@ export function ProductDrawer({ product, data, act, flash, onClose, onQueue }: P
   const [draft, setDraft] = useState<Draft>(() => {
     const links: DraftLink[] = (product?.links ?? []).map(({ clicks, ...l }) => ({ ...l, k: String(l.id) }))
     return {
-      ...(product ?? { name: '', categoryId: data.categories[0].id, price: '', review: '', hidden: false, media: [] }),
+      ...(product ?? { name: '', shortName: '', categoryId: data.categories[0].id, price: '', review: '', hidden: false, media: [] }),
       links,
     }
   })
@@ -196,6 +196,7 @@ export function ProductDrawer({ product, data, act, flash, onClose, onQueue }: P
       const fields: ProductInput = {
         id: draft.id,
         name: draft.name,
+        shortName: draft.shortName,
         categoryId: draft.categoryId,
         price: draft.price,
         review: draft.review,
@@ -349,6 +350,13 @@ export function ProductDrawer({ product, data, act, flash, onClose, onQueue }: P
           <label className="adm-field">
             <span className="adm-label">Product name</span>
             <input className="adm-input" value={draft.name} onChange={(e) => set({ name: e.target.value })} placeholder="e.g. Ribbed Glass Tumbler Set" />
+          </label>
+
+          <label className="adm-field">
+            <span className="adm-label">
+              Short name <em>(optional, shown on the cover)</em>
+            </span>
+            <input className="adm-input" value={draft.shortName} maxLength={40} onChange={(e) => set({ shortName: e.target.value })} placeholder={draft.name || 'e.g. Glass Tumblers'} />
           </label>
 
           <div className="adm-two">

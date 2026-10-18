@@ -25,6 +25,7 @@ export const product = sqliteTable('product', {
     .notNull()
     .references(() => category.id, { onDelete: 'restrict' }),
   name: text('name').notNull(),
+  shortName: text('short_name').notNull().default(''),
   price: text('price').notNull().default(''),
   review: text('review').notNull().default(''),
   hidden: integer('hidden', { mode: 'boolean' }).notNull().default(false),

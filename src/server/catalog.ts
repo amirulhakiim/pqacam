@@ -45,6 +45,7 @@ export function getPublicPage(db: Db, mediaBase: string) {
       .map((p) => ({
         id: p.id,
         name: p.name,
+        shortName: p.shortName,
         category: categoryName.get(p.categoryId) ?? '',
         price: p.price,
         review: p.review,
@@ -103,6 +104,7 @@ export function getAdminData(db: Db, mediaBase: string) {
     products: d.products.map((p) => ({
       id: p.id,
       name: p.name,
+      shortName: p.shortName,
       categoryId: p.categoryId,
       price: p.price,
       review: p.review,
