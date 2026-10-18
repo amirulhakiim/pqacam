@@ -39,7 +39,7 @@ export function JobActions({ job, data, act, flash, onDeleted }: Props) {
   return (
     <div className="adm-job-actions">
       <Select
-        className="adm-wm-attach"
+        className="adm-wm-attach adm-job-product"
         value=""
         aria-label="Add to product"
         disabled={job.watermarking}
@@ -109,7 +109,7 @@ export function JobActions({ job, data, act, flash, onDeleted }: Props) {
           <path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" />
         </svg>
       </button>
-      <button type="button" className={confirmDelete ? 'btn btn-danger btn-danger-on' : 'btn btn-danger'} onClick={remove} disabled={busy}>
+      <button type="button" className={confirmDelete ? 'btn btn-delete btn-delete-on' : 'btn btn-delete'} onClick={remove} disabled={busy}>
         {confirmDelete ? 'Tap again' : 'Delete'}
       </button>
     </div>

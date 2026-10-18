@@ -183,6 +183,9 @@ button { font: inherit; color: inherit; }
 .btn-round { border-radius: 999px; padding: 0 20px; }
 .btn-danger { padding: 0 14px; font-size: 13.5px; background: transparent; color: var(--danger); }
 .btn-danger-on { background: oklch(0.55 0.14 30); color: var(--surface); }
+.btn-delete { height: 40px; padding: 0 16px; font-size: 13.5px; background: oklch(0.55 0.14 30); color: var(--surface); }
+.btn-delete-on { background: oklch(0.42 0.13 30); }
+.btn-delete:disabled { opacity: 0.5; cursor: default; }
 .btn-icon { width: 32px; height: 32px; border-radius: 10px; border: 1px solid oklch(0.91 0.01 70); background: var(--surface); color: oklch(0.4 0.02 60); cursor: pointer; }
 .switch-button { display: flex; align-items: center; gap: 8px; border: none; background: transparent; padding: 6px; font-size: 12.5px; color: oklch(0.45 0.02 60); cursor: pointer; align-self: flex-start; }
 .switch { position: relative; width: 36px; height: 22px; border-radius: 999px; background: oklch(0.86 0.01 70); transition: background 0.2s; }
@@ -453,6 +456,8 @@ textarea.adm-input { height: auto; padding: 12px 14px; line-height: 1.55; resize
   .adm-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
   .adm-job-actions { width: 100%; }
   .adm-job-actions .adm-wm-attach { flex: 1 1 140px; max-width: none; }
+  .adm-job-actions .adm-job-product { flex-basis: 100%; }
+  .adm-job-actions .btn-delete { margin-left: auto; }
   .adm-an-select { flex: 1 1 140px; max-width: none; }
   .adm-stat { padding: 12px; }
   .adm-stat-value { font-size: 24px; }
