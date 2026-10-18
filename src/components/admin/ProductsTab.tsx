@@ -8,9 +8,11 @@ import { ProductDrawer } from './ProductDrawer'
 import type { ProductUploads } from './useProductUploads'
 import type { TabProps } from './Shell'
 import { BackToTop } from '../BackToTop'
+import { Select } from './Select'
 
 export function ProductsTab({ data, act, flash, uploads }: TabProps & { uploads: ProductUploads }) {
   const [q, setQ] = useState('')
+  const [categoryId, setCategoryId] = useState<number | null>(null)
   const [editing, setEditing] = useState<AdminProduct | 'new' | null>(null)
   const categoryName = new Map(data.categories.map((c) => [c.id, c.name]))
   const needle = q.trim().toLowerCase()
@@ -19,7 +21,10 @@ export function ProductsTab({ data, act, flash, uploads }: TabProps & { uploads:
   const dragFrom = useRef<number | null>(null)
   const byId = new Map(data.products.map((p) => [p.id, p]))
   const sorted = order ? order.flatMap((id) => byId.get(id) ?? []) : data.products
-  const rows = sorted.filter((p) => !needle || `${p.name} ${categoryName.get(p.categoryId)}`.toLowerCase().includes(needle))
+  const rows = sorted.filter(
+    (p) => (categoryId === null || p.categoryId === categoryId) && (!needle || `${p.name} ${categoryName.get(p.categoryId)}`.toLowerCase().includes(needle)),
+  )
+  const filtered = needle !== '' || categoryId !== null
   const live = data.products.filter((p) => !p.hidden).length
   const ids = () => order ?? data.products.map((p) => p.id)
 
@@ -62,6 +67,13 @@ export function ProductsTab({ data, act, flash, uploads }: TabProps & { uploads:
           </div>
         </div>
         <div className="adm-head-actions">
+          <Select
+            className="adm-cat-select"
+            aria-label="Category"
+            value={String(categoryId ?? '')}
+            onChange={(v) => setCategoryId(v ? Number(v) : null)}
+            options={[{ value: '', label: 'All categories' }, ...data.categories.map((c) => ({ value: String(c.id), label: c.name }))]}
+          />
           <input className="adm-input adm-search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search products…" />
           <button
             type="button"
@@ -73,7 +85,7 @@ export function ProductsTab({ data, act, flash, uploads }: TabProps & { uploads:
         </div>
       </div>
       <div className="adm-list adm-list-wide">
-        {needle && rows.length > 1 && <div className="adm-sub">Clear the search to drag products into a new order.</div>}
+        {filtered && rows.length > 1 && <div className="adm-sub">Clear the search and category to drag products into a new order.</div>}
         {rows.map((p) => {
           const upload = [...uploads.tasks].reverse().find((task) => task.productId === p.id)
           const uploading = upload?.status === 'queued' || upload?.status === 'running'
@@ -90,7 +102,7 @@ export function ProductsTab({ data, act, flash, uploads }: TabProps & { uploads:
               key={p.id}
               data-row={index}
             >
-              {!needle && (
+              {!filtered && (
                 <button
                   type="button"
                   className="adm-handle"
@@ -157,7 +169,7 @@ export function ProductsTab({ data, act, flash, uploads }: TabProps & { uploads:
           )
         })}
         {rows.length === 0 && (
-          <div className="adm-none">{needle ? `No products match "${q}".` : 'No products yet. Add your first one.'}</div>
+          <div className="adm-none">{needle ? `No products match "${q}".` : categoryId !== null ? 'No products in this category.' : 'No products yet. Add your first one.'}</div>
         )}
       </div>
       {editing && (
