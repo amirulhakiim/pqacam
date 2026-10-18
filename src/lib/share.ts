@@ -14,3 +14,9 @@ export function shareVersion(p: Shareable): string {
 }
 
 export const sharePath = (p: Shareable) => `/share/${p.id}?v=${shareVersion(p)}`
+
+export function previewText(text: string, max: number): string {
+  const flat = text.replace(/\s+/g, ' ').trim()
+  const parts = [...new Intl.Segmenter(undefined, { granularity: 'grapheme' }).segment(flat)].map((s) => s.segment)
+  return parts.length <= max ? flat : `${parts.slice(0, max - 1).join('').trimEnd()}…`
+}

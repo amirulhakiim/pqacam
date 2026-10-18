@@ -2,7 +2,7 @@ import { afterAll, expect, test } from 'bun:test'
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { shareVersion } from '../src/lib/share'
+import { previewText, shareVersion } from '../src/lib/share'
 import { drawable, shareArgs, wrapLines } from '../src/server/share'
 import { probe } from '../src/server/watermark'
 
@@ -40,4 +40,13 @@ test.skipIf(!hasFfmpeg)('ffmpeg draws a 1200 by 630 share image from a portrait 
   const output = join(dir, 'out.jpg')
   expect(await Bun.spawn(['ffmpeg', ...shareArgs(input, output, files)]).exited).toBe(0)
   expect(await probe(output)).toMatchObject({ width: 1200, height: 630 })
+})
+
+test('preview text is cut between characters, never inside an emoji', () => {
+  const text = `${'a'.repeat(198)} 🫶🏻 tail`
+  const cut = previewText(text, 200)
+  expect(cut).toBe(`${'a'.repeat(198)}…`)
+  expect(cut).not.toContain('�')
+  expect(previewText('Hi! 👨‍👩‍👧 ok', 6)).toBe('Hi! 👨‍👩‍👧…')
+  expect(previewText('short\n\ntext', 200)).toBe('short text')
 })

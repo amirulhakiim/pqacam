@@ -7,7 +7,7 @@ import { ProductGrid } from '../components/public/ProductGrid'
 import { ProductSheet } from '../components/public/ProductSheet'
 import { type Filter, filterProducts } from '../lib/filter'
 import { useMediaProtection } from '../lib/protect'
-import { SHARE_HEIGHT, SHARE_WIDTH, shareCover, sharePath } from '../lib/share'
+import { previewText, SHARE_HEIGHT, SHARE_WIDTH, shareCover, sharePath } from '../lib/share'
 import { track } from '../lib/track'
 import { getPublicPageFn } from '../server/fns'
 
@@ -28,7 +28,7 @@ export const Route = createFileRoute('/')({
     const shared = loaderData?.products.find((p) => p.id === match.search.p)
     const title = shared ? `${shared.name} · ${name}` : name
     // A share preview shows one line, so paragraphs are joined.
-    const description = ((shared ? shared.review : loaderData?.profile.bio) ?? '').replace(/\s+/g, ' ').trim().slice(0, 200)
+    const description = previewText((shared ? shared.review : loaderData?.profile.bio) ?? '', 200)
     const site = loaderData?.site ?? ''
     const large = shared && shareCover(shared) ? `${site}${sharePath(shared)}` : null
     const image = large || loaderData?.profile.avatarUrl
