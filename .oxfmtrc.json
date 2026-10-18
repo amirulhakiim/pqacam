@@ -1,0 +1,7 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "printWidth": 160,
+  "semi": false,
+  "singleQuote": true,
+  "ignorePatterns": ["*.css", "src/routeTree.gen.ts", "drizzle/**", "design/**", "*.md", "docs/**"]
+}
