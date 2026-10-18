@@ -11,10 +11,12 @@ const n = (v: number) => v.toLocaleString('en-MY')
 const pct = (part: number, whole: number) => (whole ? Math.round((part / whole) * 100) : 0)
 const SECTIONS = ['Overview', 'Visits', 'Taps', 'Products', 'Shops', 'Sources', 'Searches'] as const
 type Section = (typeof SECTIONS)[number]
-type Filter = { days: Range; categoryId: number | null; productId: number | null; platform: Platform | null }
+type Filter = { days: Range; from: string | null; to: string | null; categoryId: number | null; productId: number | null; platform: Platform | null }
+const DAY = 86_400_000
+const mytDate = (offsetDays = 0) => new Date(Date.now() + 8 * 3600_000 + offsetDays * DAY).toISOString().slice(0, 10)
 
 export function AnalyticsTab({ data, flash }: TabProps) {
-  const [filter, setFilter] = useState<Filter>({ days: 30, categoryId: null, productId: null, platform: null })
+  const [filter, setFilter] = useState<Filter>({ days: 30, from: null, to: null, categoryId: null, productId: null, platform: null })
   const [section, setSection] = useState<Section>('Overview')
   const [report, setReport] = useState<Analytics | null>(null)
   const set = (patch: Partial<Filter>) => setFilter((f) => ({ ...f, ...patch }))
@@ -31,6 +33,7 @@ export function AnalyticsTab({ data, flash }: TabProps) {
   }, [filter, flash])
 
   const pick = (value: string) => (value ? Number(value) : null)
+  const custom = filter.from !== null && filter.to !== null
   return (
     <>
       <div className="adm-head">
@@ -43,11 +46,48 @@ export function AnalyticsTab({ data, flash }: TabProps) {
       <div className="adm-an-filters">
         <div className="adm-pills-row" role="group" aria-label="Range">
           {RANGES.map((r) => (
-            <button type="button" key={r} className={r === filter.days ? 'pill pill-on' : 'pill'} onClick={() => set({ days: r })}>
+            <button
+              type="button"
+              key={r}
+              className={r === filter.days && !custom ? 'pill pill-on' : 'pill'}
+              onClick={() => set({ days: r, from: null, to: null })}
+            >
               {r} days
             </button>
           ))}
+          <button
+            type="button"
+            className={custom ? 'pill pill-on' : 'pill'}
+            onClick={() => custom || set({ from: mytDate(-(filter.days - 1)), to: mytDate() })}
+          >
+            Custom
+          </button>
         </div>
+        {custom && (
+          <div className="adm-an-dates">
+            <label>
+              <span className="adm-filter-label">From</span>
+              <input
+                type="date"
+                className="adm-input adm-an-date"
+                value={filter.from ?? ''}
+                max={filter.to ?? mytDate()}
+                onChange={(e) => e.target.value && set({ from: e.target.value })}
+              />
+            </label>
+            <label>
+              <span className="adm-filter-label">To</span>
+              <input
+                type="date"
+                className="adm-input adm-an-date"
+                value={filter.to ?? ''}
+                min={filter.from ?? undefined}
+                max={mytDate()}
+                onChange={(e) => e.target.value && set({ to: e.target.value })}
+              />
+            </label>
+          </div>
+        )}
         <Select
           className="adm-an-select"
           aria-label="Category"
@@ -112,7 +152,7 @@ export function AnalyticsTab({ data, flash }: TabProps) {
 }
 
 function Delta({ now, before, days }: { now: number; before: number; days: number }) {
-  if (!before) return <span className="adm-stat-delta">{now ? 'New this period' : `None in the last ${days} days`}</span>
+  if (!before) return <span className="adm-stat-delta">{now ? 'New this period' : 'None in the previous period'}</span>
   const change = Math.round(((now - before) / before) * 100)
   return (
     <span className="adm-stat-delta">

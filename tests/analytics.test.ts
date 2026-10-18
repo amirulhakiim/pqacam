@@ -135,3 +135,26 @@ test('visits and taps are counted by source, with no source shown as direct', ()
     { source: 'direct', visits: 2, taps: 1 },
   ])
 })
+
+test('a custom range counts whole Malaysia days from start to end, and compares with the same length before', () => {
+  const { db, tumbler } = setup()
+  const link = tumbler.links[0].id!
+  c.recordClick(db, link, myt('2026-10-02T23:59:00'))
+  c.recordClick(db, link, myt('2026-10-03T00:00:00'))
+  c.recordClick(db, link, myt('2026-10-05T23:59:00'))
+  c.recordClick(db, link, myt('2026-10-06T00:00:00'))
+  c.recordClick(db, link, myt('2026-09-30T12:00:00'))
+  const a = getAnalytics(db, { ...all, from: '2026-10-05', to: '2026-10-03' }, NOW)
+  expect([a.days, a.firstDate, a.lastDate]).toEqual([3, '2026-10-03', '2026-10-05'])
+  expect(a.taps.total).toBe(2)
+  expect(a.taps.byDay).toEqual([1, 0, 1])
+  expect(a.taps.previous).toBe(2)
+})
+
+test('a custom range stops at today and keeps at most a year', () => {
+  const { db } = setup()
+  const future = getAnalytics(db, { ...all, from: '2026-10-10', to: '2027-01-01' }, NOW)
+  expect([future.firstDate, future.lastDate, future.days]).toEqual(['2026-10-10', '2026-10-15', 6])
+  const long = getAnalytics(db, { ...all, from: '2020-01-01', to: '2026-10-15' }, NOW)
+  expect(long.days).toBe(366)
+})

@@ -1,4 +1,4 @@
-import { eq, gte } from 'drizzle-orm'
+import { and, eq, gte, lt } from 'drizzle-orm'
 import { cleanSource, sourceLabel } from '../lib/source'
 import type { Db } from './db'
 import { click, event, link, product } from './schema'
@@ -11,7 +11,25 @@ const DAY = 86_400_000
 const localDay = (at: number) => Math.floor((at + TZ_OFFSET) / DAY)
 const isoDate = (day: number) => new Date(day * DAY).toISOString().slice(0, 10)
 
-export type AnalyticsFilter = { days: Range; categoryId: number | null; productId: number | null; platform: Platform | null }
+export type AnalyticsFilter = {
+  days: Range
+  from?: string | null
+  to?: string | null
+  categoryId: number | null
+  productId: number | null
+  platform: Platform | null
+}
+
+const MAX_DAYS = 366
+const isoDay = (iso: string) => Math.floor(Date.parse(`${iso}T00:00:00Z`) / DAY)
+
+function dayRange(f: AnalyticsFilter, today: number) {
+  if (!f.from || !f.to) return { firstDay: today - f.days + 1, lastDay: today }
+  let [firstDay, lastDay] = [isoDay(f.from), isoDay(f.to)].sort((x, y) => x - y)
+  lastDay = Math.min(lastDay, today)
+  firstDay = Math.max(Math.min(firstDay, lastDay), lastDay - MAX_DAYS + 1)
+  return { firstDay, lastDay }
+}
 
 type Timed = { at: number }
 
@@ -37,11 +55,12 @@ const count = <K>(keys: K[]) => {
 }
 
 export function getAnalytics(db: Db, f: AnalyticsFilter, now = Date.now()) {
-  const today = localDay(now)
-  const firstDay = today - f.days + 1
-  // The range is whole local days, today included. The previous period is the same length just before it.
+  const { firstDay, lastDay } = dayRange(f, localDay(now))
+  const days = lastDay - firstDay + 1
+  // The range is whole local days. The previous period is the same length just before it.
   const start = firstDay * DAY - TZ_OFFSET
-  const prevStart = start - f.days * DAY
+  const end = (lastDay + 1) * DAY - TZ_OFFSET
+  const prevStart = start - days * DAY
   const products = db.select({ id: product.id, name: product.name, hidden: product.hidden, categoryId: product.categoryId }).from(product).all()
   const links = db.select().from(link).all()
   // A category or product filter limits taps and views to these products. Deleted products drop out of a category filter.
@@ -50,8 +69,8 @@ export function getAnalytics(db: Db, f: AnalyticsFilter, now = Date.now()) {
     (f.categoryId === null || products.some((p) => p.id === productId && p.categoryId === f.categoryId))
   const tapOk = (r: { productId: number; platform: Platform }) => inScope(r.productId) && (f.platform === null || r.platform === f.platform)
 
-  const clicks = db.select().from(click).where(gte(click.at, prevStart)).all().filter(tapOk)
-  const events = db.select().from(event).where(gte(event.at, prevStart)).all()
+  const clicks = db.select().from(click).where(and(gte(click.at, prevStart), lt(click.at, end))).all().filter(tapOk)
+  const events = db.select().from(event).where(and(gte(event.at, prevStart), lt(event.at, end))).all()
   const now_ = (r: Timed) => r.at >= start
   const before = (r: Timed) => r.at < start
   const taps = clicks.filter(now_)
@@ -72,12 +91,13 @@ export function getAnalytics(db: Db, f: AnalyticsFilter, now = Date.now()) {
   const terms = [...termCount].sort((a, b) => b[1] - a[1]).map(([term, n]) => ({ term, searches: n, found: lastResults.get(term) ?? 0 }))
 
   return {
-    days: f.days,
+    days,
     firstDate: isoDate(firstDay),
+    lastDate: isoDate(lastDay),
     filtered: f.categoryId !== null || f.productId !== null || f.platform !== null,
-    taps: { ...series(taps, firstDay, f.days), previous: clicks.filter(before).length },
+    taps: { ...series(taps, firstDay, days), previous: clicks.filter(before).length },
     views: { total: views.filter(now_).length, previous: views.filter(before).length },
-    visits: { ...series(visits.filter(now_), firstDay, f.days), previous: visits.filter(before).length },
+    visits: { ...series(visits.filter(now_), firstDay, days), previous: visits.filter(before).length },
     chats: { total: chats.filter(now_).length, previous: chats.filter(before).length },
     allTimeTaps: links.filter((l) => inScope(l.productId) && (f.platform === null || l.platform === f.platform)).reduce((n, l) => n + l.clicks, 0),
     sources: [...new Set([...visitsBySource.keys(), ...tapsBySource.keys()])]

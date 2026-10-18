@@ -21,6 +21,7 @@ import {
   isPlatform,
   type Platform,
   toBioSize,
+  toIsoDate,
   toRange,
   validateWatermark,
   type WatermarkSettings,
@@ -225,11 +226,13 @@ export const moveJobFn = createServerFn({ method: 'POST' })
   .handler(({ data }) => asAdmin(() => catalog.moveJob(getDb(), int(data?.id), folderOrNone(data?.folderId))))
 
 export const getAnalyticsFn = createServerFn({ method: 'GET' })
-  .inputValidator((data: { days: number; categoryId: number | null; productId: number | null; platform: string | null }) => data)
+  .inputValidator((data: { days: number; from?: string | null; to?: string | null; categoryId: number | null; productId: number | null; platform: string | null }) => data)
   .handler(({ data }) =>
     asAdmin(() =>
       getAnalytics(getDb(), {
         days: toRange(data?.days),
+        from: toIsoDate(data?.from),
+        to: toIsoDate(data?.to),
         categoryId: Number.isInteger(data?.categoryId) ? data.categoryId : null,
         productId: Number.isInteger(data?.productId) ? data.productId : null,
         platform: isPlatform(String(data?.platform)) ? (data.platform as Platform) : null,

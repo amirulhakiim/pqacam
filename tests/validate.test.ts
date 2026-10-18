@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test'
-import { validateEmail, validateJobs, validateProduct, validateSocials, validateUpload, validateWatermark } from '../src/server/validate'
+import { toIsoDate, validateEmail, validateJobs, validateProduct, validateSocials, validateUpload, validateWatermark } from '../src/server/validate'
 
 const KEY = 'photo/0b9f6c1e-1c2d-4e3f-8a4b-5c6d7e8f9a0b.jpg'
 const good = {
@@ -113,4 +113,11 @@ test('social links get https, blanks are dropped, and a bad link names its platf
 test('object replacement characters from pasted iPhone text are removed', () => {
   const r = validateProduct({ ...good, name: 'Tumbler￼', review: 'Hooga ni lain.￼ Bau dia soft je ￼' })
   expect(r.ok && [r.value.name, r.value.review]).toEqual(['Tumbler', 'Hooga ni lain. Bau dia soft je'])
+})
+
+test('a date filter must be a real calendar date', () => {
+  expect(toIsoDate('2026-10-15')).toBe('2026-10-15')
+  expect(toIsoDate('2026-02-30')).toBeNull()
+  expect(toIsoDate('15/10/2026')).toBeNull()
+  expect(toIsoDate(20261015)).toBeNull()
 })

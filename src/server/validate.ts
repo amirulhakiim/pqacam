@@ -177,6 +177,8 @@ export function validateJobs(raw: unknown): Result<JobInput[]> {
 export const RANGES = [7, 30, 90] as const
 export type Range = (typeof RANGES)[number]
 export const toRange = (v: unknown): Range => (RANGES.includes(v as Range) ? (v as Range) : 30)
+export const toIsoDate = (v: unknown): string | null =>
+  typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v) && new Date(`${v}T00:00:00Z`).toISOString().startsWith(v) ? v : null
 
 export function validateLibraryMedia(raw: unknown): Result<JobInput> {
   const r = (raw ?? {}) as Record<string, unknown>

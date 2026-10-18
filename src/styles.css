@@ -360,6 +360,9 @@ textarea.adm-input { height: auto; padding: 12px 14px; line-height: 1.55; resize
 .adm-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
 .adm-an-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .adm-an-select { width: auto; max-width: 220px; height: 36px; border-radius: 999px; font-size: 13.5px; }
+.adm-an-dates { display: flex; flex-wrap: wrap; gap: 8px 14px; flex-basis: 100%; }
+.adm-an-dates label { display: flex; align-items: center; gap: 8px; }
+.adm-an-date { width: auto; height: 36px; border-radius: 999px; font-size: 13.5px; padding: 0 14px; }
 .adm-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
 .adm-tile-an { gap: 8px; }
 .adm-tile-value { font-size: 26px; font-weight: 600; line-height: 1.1; }
@@ -475,7 +478,7 @@ textarea.adm-input { height: auto; padding: 12px 14px; line-height: 1.55; resize
 .adm-tile-pick:disabled { opacity: 0.35; cursor: default; }
 @media (max-width: 759px) {
   .adm-wm-settings { grid-template-columns: minmax(0, 1fr); padding: 14px; }
-  .adm-wm-attach { height: 40px; font-size: 16px; }
+  .adm-wm-attach, .adm-an-date { height: 40px; font-size: 16px; }
 }
 
 .adm-menu { inset: 64px 16px auto auto; margin: 0; box-sizing: border-box; max-width: calc(100vw - 32px); padding: 14px; border: 1px solid oklch(0.91 0.01 70); border-radius: 16px; background: var(--surface); box-shadow: 0 10px 30px oklch(0.3 0.02 60 / 0.15); color: var(--ink); }
