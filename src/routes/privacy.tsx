@@ -28,8 +28,9 @@ function Privacy() {
           <li>This site sets no cookies for visitors and uses no third-party analytics or advertising trackers.</li>
           <li>
             The site records when a visit starts, which products are opened, what is typed in the search box (and how many finds it
-            showed), and each tap on a buy button or the WhatsApp button, with the time. This shows the owner when people shop and
-            what they look for. It does not record who you are, your IP address, or your device.
+            showed), and each tap on a buy button or the WhatsApp button, with the time. It also records where the visit came from:
+            a word in the link, such as threads, or the name of the site that sent you. This shows the owner when people shop, what
+            they look for, and which posts bring them. It does not record who you are, your IP address, or your device.
           </li>
           <li>
             Photos and videos load from Cloudflare. The server that hosts this site and Cloudflare can keep standard access logs, such
