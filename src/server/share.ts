@@ -12,6 +12,9 @@ const PRICE_SIZE = 46
 const PRICE_GAP = 34
 const TEXT_X = 620
 const rendering = new Map<string, Promise<string>>()
+const RADIUS = 28
+const corner = (pos: string, size: string) => `(${RADIUS}-(${size}/2-abs(${size}/2-${pos})))`
+const ROUND = `geq=r='r(X,Y)':g='g(X,Y)':b='b(X,Y)':a='if(lte(hypot(max(0,${corner('X', 'W')}),max(0,${corner('Y', 'H')})),${RADIUS}),255,0)'`
 
 export const drawable = (text: string) => text.replace(/[^\p{L}\p{N}\p{P}\p{Zs}\p{Sc}\p{Sm}]/gu, '').replace(/\s+/g, ' ').trim()
 
@@ -42,7 +45,7 @@ export function shareArgs(input: string, output: string, files: { lines: string[
     '-y', '-v', 'error', '-i', input,
     '-filter_complex',
     `[0:v]scale=${SHARE_WIDTH}:${SHARE_HEIGHT}:force_original_aspect_ratio=increase,crop=${SHARE_WIDTH}:${SHARE_HEIGHT},gblur=sigma=40,eq=brightness=-0.28[bg];` +
-      `[0:v]scale=500:550:force_original_aspect_ratio=decrease[fg];` +
+      `[0:v]scale=500:550:force_original_aspect_ratio=decrease,format=rgba,${ROUND}[fg];` +
       `[bg][fg]overlay=x=60+(500-w)/2:y=(H-h)/2,${draw.join(',')}`,
     '-frames:v', '1', '-q:v', '3', output,
   ]
