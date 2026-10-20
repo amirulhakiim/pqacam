@@ -3,13 +3,13 @@ import { PLATFORM_LABEL } from '../../lib/platforms'
 import { dayLabel, hourLabel, WEEKDAYS } from '../../lib/time'
 import type { Analytics } from '../../server/analytics'
 import { getAnalyticsFn } from '../../server/fns'
-import { type Platform, PLATFORMS, RANGES, type Range } from '../../server/validate'
+import { type Platform, PLATFORMS, type Range } from '../../server/validate'
 import type { TabProps } from './Shell'
 import { Select } from './Select'
 
 const n = (v: number) => v.toLocaleString('en-MY')
 const pct = (part: number, whole: number) => (whole ? Math.round((part / whole) * 100) : 0)
-const SECTIONS = ['Overview', 'Visits', 'Taps', 'Products', 'Shops', 'Sources', 'Searches'] as const
+const SECTIONS = ['Overview', 'Visits', 'Clicks', 'Products', 'Shops', 'Sources', 'Searches'] as const
 type Section = (typeof SECTIONS)[number]
 type Filter = { days: Range; from: string | null; to: string | null; categoryId: number | null; productId: number | null; platform: Platform | null }
 const DAY = 86_400_000
@@ -33,37 +33,55 @@ export function AnalyticsTab({ data, flash }: TabProps) {
   }, [filter, flash])
 
   const pick = (value: string) => (value ? Number(value) : null)
-  const custom = filter.from !== null && filter.to !== null
+  const [customOpen, setCustomOpen] = useState(false)
+  const today = mytDate()
+  const yesterday = mytDate(-1)
+  const oneDay = (d: string) => !customOpen && filter.from === d && filter.to === d
+  const presets = [
+    { label: 'Today', on: oneDay(today), apply: () => set({ from: today, to: today }) },
+    { label: 'Yesterday', on: oneDay(yesterday), apply: () => set({ from: yesterday, to: yesterday }) },
+    ...([7, 30, 90] as const).map((r) => ({
+      label: `${r} days`,
+      on: !customOpen && filter.from === null && filter.days === r,
+      apply: () => set({ days: r, from: null, to: null }),
+    })),
+  ]
   return (
     <>
       <div className="adm-head">
         <div>
           <h2>Analytics</h2>
-          <div className="adm-sub">Visits and taps from your page, in Malaysia time.</div>
+          <div className="adm-sub">Visits and clicks from your page, in Malaysia time.</div>
         </div>
       </div>
 
       <div className="adm-an-filters">
         <div className="adm-pills-row" role="group" aria-label="Range">
-          {RANGES.map((r) => (
+          {presets.map((p) => (
             <button
               type="button"
-              key={r}
-              className={r === filter.days && !custom ? 'pill pill-on' : 'pill'}
-              onClick={() => set({ days: r, from: null, to: null })}
+              key={p.label}
+              className={p.on ? 'pill pill-on' : 'pill'}
+              onClick={() => {
+                setCustomOpen(false)
+                p.apply()
+              }}
             >
-              {r === 1 ? '24 hours' : `${r} days`}
+              {p.label}
             </button>
           ))}
           <button
             type="button"
-            className={custom ? 'pill pill-on' : 'pill'}
-            onClick={() => custom || set({ from: mytDate(-Math.max(0, filter.days - 1)), to: mytDate() })}
+            className={customOpen ? 'pill pill-on' : 'pill'}
+            onClick={() => {
+              setCustomOpen(true)
+              if (filter.from === null) set({ from: mytDate(-Math.max(0, filter.days - 1)), to: today })
+            }}
           >
             Custom
           </button>
         </div>
-        {custom && (
+        {customOpen && (
           <div className="adm-an-dates">
             <label>
               <span className="adm-filter-label">From</span>
@@ -122,7 +140,7 @@ export function AnalyticsTab({ data, flash }: TabProps) {
         <>
           <Kpis a={report} />
           {report.filtered && (
-            <div className="adm-wm-note">Filters apply to product views and buy taps. Visits, searches and chats always count the whole page.</div>
+            <div className="adm-wm-note">Filters apply to product views and buy clicks. Visits, searches and chats always count the whole page.</div>
           )}
           <div className="adm-wm-folders" role="tablist" aria-label="Section">
             {SECTIONS.map((s) => (
@@ -140,7 +158,7 @@ export function AnalyticsTab({ data, flash }: TabProps) {
           </div>
           {section === 'Overview' && <Overview a={report} />}
           {section === 'Visits' && <Visits a={report} />}
-          {section === 'Taps' && <Taps a={report} />}
+          {section === 'Clicks' && <Clicks a={report} />}
           {section === 'Products' && <Products a={report} />}
           {section === 'Shops' && <Shops a={report} />}
           {section === 'Sources' && <Sources a={report} />}
@@ -165,12 +183,12 @@ function Kpis({ a }: { a: Analytics }) {
   const tiles: [string, string, ReactNode][] = [
     ['Visits', n(a.visits.total), <Delta key="v" now={a.visits.total} before={a.visits.previous} period={a.period} />],
     ['Product views', n(a.views.total), <Delta key="p" now={a.views.total} before={a.views.previous} period={a.period} />],
-    ['Buy taps', n(a.taps.total), <Delta key="t" now={a.taps.total} before={a.taps.previous} period={a.period} />],
+    ['Buy clicks', n(a.taps.total), <Delta key="t" now={a.taps.total} before={a.taps.previous} period={a.period} />],
     [
-      'Taps per visit',
+      'Clicks per visit',
       a.visits.total ? `${pct(a.taps.total, a.visits.total)}%` : '–',
       <span key="r" className="adm-stat-delta">
-        Buy taps ÷ visits
+        Buy clicks ÷ visits
       </span>,
     ],
     ['WhatsApp chats', n(a.chats.total), <Delta key="c" now={a.chats.total} before={a.chats.previous} period={a.period} />],
@@ -199,16 +217,16 @@ function Overview({ a }: { a: Analytics }) {
   const hour = most(a.taps.byHour)
   const weekday = most(a.taps.byWeekday)
   const [top] = a.products
-  const empty = <div className="adm-sub">No taps in this range yet.</div>
+  const empty = <div className="adm-sub">No clicks in this range yet.</div>
   return (
     <>
       <div className="adm-tiles">
-        <Tile title="Busiest hour">
+        <Tile title="Golden hour">
           {a.taps.total ? (
             <>
               <span className="adm-tile-value">{hourLabel(hour)}</span>
               <Spark values={a.taps.byHour} />
-              <span className="adm-stat-delta">{pct(a.taps.byHour[hour], a.taps.total)}% of taps</span>
+              <span className="adm-stat-delta">{pct(a.taps.byHour[hour], a.taps.total)}% of clicks</span>
             </>
           ) : (
             empty
@@ -219,19 +237,19 @@ function Overview({ a }: { a: Analytics }) {
             <>
               <span className="adm-tile-value">{WEEKDAYS[weekday]}</span>
               <Spark values={a.taps.byWeekday} labels={WEEKDAYS.map((d) => d[0])} />
-              <span className="adm-stat-delta">{pct(a.taps.byWeekday[weekday], a.taps.total)}% of taps</span>
+              <span className="adm-stat-delta">{pct(a.taps.byWeekday[weekday], a.taps.total)}% of clicks</span>
             </>
           ) : (
             empty
           )}
         </Tile>
-        <Tile title="Taps by shop">{a.taps.total ? <Stacked a={a} /> : empty}</Tile>
-        <Tile title="From visit to tap">
+        <Tile title="Clicks by shop">{a.taps.total ? <Stacked a={a} /> : empty}</Tile>
+        <Tile title="From visit to click">
           <Funnel
             steps={[
               ['Visits', a.visits.total],
               ['Product views', a.views.total],
-              ['Buy taps', a.taps.total],
+              ['Buy clicks', a.taps.total],
             ]}
           />
         </Tile>
@@ -241,7 +259,7 @@ function Overview({ a }: { a: Analytics }) {
               <span className="adm-tile-name">{top.name}</span>
               <Meter value={pct(top.taps, a.taps.total)} />
               <span className="adm-stat-delta">
-                {n(top.taps)} taps, {pct(top.taps, a.taps.total)}% of all
+                {n(top.taps)} clicks, {pct(top.taps, a.taps.total)}% of all
               </span>
             </>
           ) : (
@@ -258,7 +276,7 @@ function Overview({ a }: { a: Analytics }) {
                 : 'No searches yet'}
           </span>
         </Tile>
-        <Tile title="Live products with no taps">
+        <Tile title="Live products with no clicks">
           <span className="adm-tile-value">{a.quiet.length}</span>
           {a.quiet.length > 0 && (
             <span className="adm-stat-delta">
@@ -268,8 +286,8 @@ function Overview({ a }: { a: Analytics }) {
           )}
         </Tile>
       </div>
-      <Card title="Buy taps by day">
-        <Columns items={byDay(a, a.taps.byDay)} label="Buy taps by day" />
+      <Card title="Buy clicks by day">
+        <Columns items={byDay(a, a.taps.byDay)} label="Buy clicks by day" />
       </Card>
     </>
   )
@@ -302,19 +320,19 @@ function Visits({ a }: { a: Analytics }) {
   )
 }
 
-function Taps({ a }: { a: Analytics }) {
+function Clicks({ a }: { a: Analytics }) {
   return (
     <>
-      <Card title="Buy taps by day">
-        <Columns items={byDay(a, a.taps.byDay)} label="Buy taps by day" />
-        <Table head={['Day', 'Taps']} rows={dates(a).map((d, i) => [dayLabel(d), n(a.taps.byDay[i])])} />
+      <Card title="Buy clicks by day">
+        <Columns items={byDay(a, a.taps.byDay)} label="Buy clicks by day" />
+        <Table head={['Day', 'Clicks']} rows={dates(a).map((d, i) => [dayLabel(d), n(a.taps.byDay[i])])} />
       </Card>
       <div className="adm-card-pair">
-        <Card title="Buy taps by hour of day">
-          <Columns items={byHour(a.taps.byHour)} label="Buy taps by hour of day" />
+        <Card title="Buy clicks by hour of day">
+          <Columns items={byHour(a.taps.byHour)} label="Buy clicks by hour of day" />
         </Card>
-        <Card title="Buy taps by day of week">
-          <Columns items={byWeekday(a.taps.byWeekday)} label="Buy taps by day of week" />
+        <Card title="Buy clicks by day of week">
+          <Columns items={byWeekday(a.taps.byWeekday)} label="Buy clicks by day of week" />
         </Card>
       </div>
     </>
@@ -322,16 +340,16 @@ function Taps({ a }: { a: Analytics }) {
 }
 
 function Products({ a }: { a: Analytics }) {
-  if (!a.products.length) return <Card title="Products">{<div className="adm-sub">No product was opened or tapped in this range.</div>}</Card>
+  if (!a.products.length) return <Card title="Products">{<div className="adm-sub">No product was opened or clicked in this range.</div>}</Card>
   const max = Math.max(1, ...a.products.map((p) => Math.max(p.views, p.taps)))
   return (
-    <Card title="Products opened and tapped">
+    <Card title="Products opened and clicked">
       <div className="adm-an-legend">
         <span>
           <i className="adm-key adm-key-views" /> Views
         </span>
         <span>
-          <i className="adm-key adm-key-taps" /> Buy taps
+          <i className="adm-key adm-key-taps" /> Buy clicks
         </span>
       </div>
       <div className="adm-an-products">
@@ -343,9 +361,9 @@ function Products({ a }: { a: Analytics }) {
               <span className="adm-an-bar adm-key-taps" style={{ width: `${(p.taps / max) * 100}%` }} />
             </span>
             <span className="adm-bars-value">
-              {n(p.views)} views · {n(p.taps)} taps
-              {/* Taps recorded before views were tracked can outnumber views. A rate over 100% would mislead, so it is left out. */}
-              {p.views >= p.taps && p.views > 0 && <em>{pct(p.taps, p.views)}% tap</em>}
+              {n(p.views)} views · {n(p.taps)} clicks
+              {/* Clicks recorded before views were tracked can outnumber views. A rate over 100% would mislead, so it is left out. */}
+              {p.views >= p.taps && p.views > 0 && <em>{pct(p.taps, p.views)}% click</em>}
             </span>
           </div>
         ))}
@@ -357,7 +375,7 @@ function Products({ a }: { a: Analytics }) {
 function Shops({ a }: { a: Analytics }) {
   return (
     <div className="adm-card-pair">
-      <Card title="Buy taps by shop">
+      <Card title="Buy clicks by shop">
         <Bars
           total={a.taps.total}
           rows={PLATFORMS.map((k) => ({ key: k, name: PLATFORM_LABEL[k].chip, value: a.byPlatform[k], color: `var(--chart-${k})` }))}
@@ -387,14 +405,14 @@ function Sources({ a }: { a: Analytics }) {
           empty="No visits in this range."
         />
       </Card>
-      <Card title="Buy taps by source">
+      <Card title="Buy clicks by source">
         <Bars
           total={a.taps.total}
           rows={[...a.sources]
             .sort((x, y) => y.taps - x.taps)
             .filter((s) => s.taps > 0)
             .map((s) => ({ key: s.source, name: s.source, value: s.taps }))}
-          empty="No buy taps in this range."
+          empty="No buy clicks in this range."
         />
       </Card>
       <p className="adm-sub adm-an-note">
@@ -491,7 +509,7 @@ function Spark({ values, labels }: { values: number[]; labels?: string[] }) {
   )
 }
 
-// Shares of taps by shop in one bar, with a legend that names each part.
+// Shares of clicks by shop in one bar, with a legend that names each part.
 function Stacked({ a }: { a: Analytics }) {
   const parts = PLATFORMS.filter((k) => a.byPlatform[k] > 0)
   return (
@@ -540,7 +558,7 @@ function Meter({ value }: { value: number }) {
 type Column = { key: string; axis: string; tip: string; value: number }
 
 // One series, so no legend: the card title names it. The highest column carries its value, the rest show on hover or focus.
-function Columns({ items, label, unit = 'taps' }: { items: Column[]; label: string; unit?: string }) {
+function Columns({ items, label, unit = 'clicks' }: { items: Column[]; label: string; unit?: string }) {
   const max = Math.max(1, ...items.map((i) => i.value))
   const peak = items.findIndex((i) => i.value === max)
   return (
@@ -571,7 +589,7 @@ function Columns({ items, label, unit = 'taps' }: { items: Column[]; label: stri
 type Row = { key: string; name: string; value: number; color?: string }
 
 // Each row names itself, so a color is never the only way to tell rows apart.
-function Bars({ rows, total, empty = 'No taps in this range.' }: { rows: Row[]; total: number; empty?: string }) {
+function Bars({ rows, total, empty = 'No clicks in this range.' }: { rows: Row[]; total: number; empty?: string }) {
   if (!rows.length || total === 0) return <div className="adm-sub">{empty}</div>
   const max = Math.max(1, ...rows.map((r) => r.value))
   return (

@@ -48,7 +48,7 @@ export function Shell({ data, me, tab, onTab, onSignOut, children }: Props) {
   const initial = (me.name || me.email)[0].toUpperCase()
   const name = data.profile.name || 'pqacam'
   return (
-    <div className="adm">
+    <div className="adm page-glow">
       <header className="adm-top">
         <div className="adm-top-row">
           <div className="adm-brand">

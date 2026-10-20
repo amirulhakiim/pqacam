@@ -109,10 +109,12 @@ export function ProductDrawer({ product, data, act, flash, onClose, onQueue }: P
 
   const fail = (message: string) => flash(message, true)
 
-  function addFiles(type: 'photo' | 'video', files: FileList | null) {
+  function addFiles(files: FileList | null) {
     for (const file of Array.from(files ?? [])) {
+      const type = file.type.startsWith('video/') ? 'video' : 'photo'
       try {
         if (saving.current) throw new Error('Wait until the product finishes saving.')
+        if (type === 'photo' && !file.type.startsWith('image/')) throw new Error(`${file.name} is not a photo or video.`)
         if (type === 'video' && !VIDEO_TYPES.includes(file.type)) throw new Error(`${file.name} is not an MP4, WebM or MOV video.`)
         const sizeError = mediaSizeError(file, type)
         if (sizeError) throw new Error(sizeError)
@@ -317,30 +319,14 @@ export function ProductDrawer({ product, data, act, flash, onClose, onQueue }: P
                   <circle cx="8.5" cy="9" r="1.5" />
                   <path d="m4 17 5-5 4 4 3-3 4 4" />
                 </svg>
-                Add photos
+                Add media
                 <input
                   type="file"
-                  accept="image/*"
+                  accept="image/*,video/mp4,video/webm,video/quicktime"
                   multiple
                   hidden
                   disabled={savingState}
-                  onChange={(e) => (addFiles('photo', e.target.files), (e.target.value = ''))}
-                />
-              </label>
-              <label className="adm-tile adm-tile-add">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <rect x="3" y="4" width="18" height="16" rx="2" />
-                  <path d="M7 4v16M17 4v16M3 9h4m-4 6h4m10-6h4m-4 6h4" />
-                  <path d="m10 9 4 3-4 3z" />
-                </svg>
-                Add videos
-                <input
-                  type="file"
-                  accept="video/mp4,video/webm,video/quicktime"
-                  multiple
-                  hidden
-                  disabled={savingState}
-                  onChange={(e) => (addFiles('video', e.target.files), (e.target.value = ''))}
+                  onChange={(e) => (addFiles(e.target.files), (e.target.value = ''))}
                 />
               </label>
               <button type="button" className="adm-tile adm-tile-add" onClick={() => setPicking(true)} disabled={savingState}>

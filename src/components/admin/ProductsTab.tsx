@@ -143,7 +143,7 @@ export function ProductsTab({ data, act, flash, uploads }: TabProps & { uploads:
                     {videos ? ` · ${videos} video` : ''}
                   </span>
                   {linked.map((k) => (
-                    <span key={k} className={`chip chip-${k}`} title="Taps on this buy button">
+                    <span key={k} className={`chip chip-${k}`} title="Clicks on this buy button">
                       {PLATFORM_LABEL[k].chip} · {p.links.reduce((n, l) => n + (l.platform === k ? l.clicks : 0), 0)}
                     </span>
                   ))}

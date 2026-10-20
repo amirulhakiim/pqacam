@@ -101,7 +101,7 @@ export function getAnalytics(db: Db, f: AnalyticsFilter, now = Date.now()) {
 
   return {
     days,
-    period: rolling ? '24 hours' : `${days} days`,
+    period: rolling ? '24 hours' : days === 1 ? 'day' : `${days} days`,
     firstDate: isoDate(firstDay),
     lastDate: isoDate(lastDay),
     filtered: f.categoryId !== null || f.productId !== null || f.platform !== null,
