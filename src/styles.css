@@ -34,9 +34,10 @@ body {
 .page-glow::before {
   content: '';
   position: fixed;
-  inset: -25vh 0;
+  inset: 0;
   z-index: -1;
   background:
+    linear-gradient(to bottom, var(--bg), transparent 160px),
     radial-gradient(60% 40% at 0% 0%, oklch(0.93 0.04 30) 0%, transparent 70%),
     radial-gradient(55% 45% at 100% 15%, oklch(0.93 0.04 150) 0%, transparent 70%),
     radial-gradient(70% 50% at 20% 100%, oklch(0.93 0.035 260) 0%, transparent 70%),
