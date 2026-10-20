@@ -409,6 +409,8 @@ textarea.adm-input { height: auto; padding: 12px 14px; line-height: 1.55; resize
 .adm-stat-label { font-size: 12.5px; font-weight: 600; color: oklch(0.42 0.02 60); }
 .adm-stat-value { font-size: 34px; font-weight: 600; line-height: 1.1; letter-spacing: -0.01em; }
 .adm-stat-delta { font-size: 12.5px; color: var(--ink-soft); }
+.adm-delta-up { color: oklch(0.5 0.13 150); font-weight: 600; }
+.adm-delta-down { color: oklch(0.52 0.17 28); font-weight: 600; }
 .adm-card-title { margin: 0 0 12px; font-size: 14px; font-weight: 600; }
 .adm-card-pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; }
 .adm-an-note { grid-column: 1 / -1; margin: 0; }

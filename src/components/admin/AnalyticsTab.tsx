@@ -140,7 +140,7 @@ export function AnalyticsTab({ data, flash }: TabProps) {
         <>
           <Kpis a={report} />
           {report.filtered && (
-            <div className="adm-wm-note">Filters apply to product views and buy clicks. Visits, searches and chats always count the whole page.</div>
+            <div className="adm-wm-note">Filters apply to product views and link clicks. Visits, searches and chats always count the whole page.</div>
           )}
           <div className="adm-wm-folders" role="tablist" aria-label="Section">
             {SECTIONS.map((s) => (
@@ -173,7 +173,7 @@ function Delta({ now, before, period }: { now: number; before: number; period: s
   if (!before) return <span className="adm-stat-delta">{now ? 'New this period' : 'None in the previous period'}</span>
   const change = Math.round(((now - before) / before) * 100)
   return (
-    <span className="adm-stat-delta">
+    <span className={`adm-stat-delta${change > 0 ? ' adm-delta-up' : change < 0 ? ' adm-delta-down' : ''}`}>
       {change > 0 ? '▲' : change < 0 ? '▼' : '='} {Math.abs(change)}% vs previous {period}
     </span>
   )
@@ -183,12 +183,12 @@ function Kpis({ a }: { a: Analytics }) {
   const tiles: [string, string, ReactNode][] = [
     ['Visits', n(a.visits.total), <Delta key="v" now={a.visits.total} before={a.visits.previous} period={a.period} />],
     ['Product views', n(a.views.total), <Delta key="p" now={a.views.total} before={a.views.previous} period={a.period} />],
-    ['Buy clicks', n(a.taps.total), <Delta key="t" now={a.taps.total} before={a.taps.previous} period={a.period} />],
+    ['Link clicks', n(a.taps.total), <Delta key="t" now={a.taps.total} before={a.taps.previous} period={a.period} />],
     [
       'Clicks per visit',
       a.visits.total ? `${pct(a.taps.total, a.visits.total)}%` : '–',
       <span key="r" className="adm-stat-delta">
-        Buy clicks ÷ visits
+        Link clicks ÷ visits
       </span>,
     ],
     ['WhatsApp chats', n(a.chats.total), <Delta key="c" now={a.chats.total} before={a.chats.previous} period={a.period} />],
@@ -249,7 +249,7 @@ function Overview({ a }: { a: Analytics }) {
             steps={[
               ['Visits', a.visits.total],
               ['Product views', a.views.total],
-              ['Buy clicks', a.taps.total],
+              ['Link clicks', a.taps.total],
             ]}
           />
         </Tile>
@@ -286,8 +286,8 @@ function Overview({ a }: { a: Analytics }) {
           )}
         </Tile>
       </div>
-      <Card title="Buy clicks by day">
-        <Columns items={byDay(a, a.taps.byDay)} label="Buy clicks by day" />
+      <Card title="Link clicks by day">
+        <Columns items={byDay(a, a.taps.byDay)} label="Link clicks by day" />
       </Card>
     </>
   )
@@ -323,16 +323,16 @@ function Visits({ a }: { a: Analytics }) {
 function Clicks({ a }: { a: Analytics }) {
   return (
     <>
-      <Card title="Buy clicks by day">
-        <Columns items={byDay(a, a.taps.byDay)} label="Buy clicks by day" />
+      <Card title="Link clicks by day">
+        <Columns items={byDay(a, a.taps.byDay)} label="Link clicks by day" />
         <Table head={['Day', 'Clicks']} rows={dates(a).map((d, i) => [dayLabel(d), n(a.taps.byDay[i])])} />
       </Card>
       <div className="adm-card-pair">
-        <Card title="Buy clicks by hour of day">
-          <Columns items={byHour(a.taps.byHour)} label="Buy clicks by hour of day" />
+        <Card title="Link clicks by hour of day">
+          <Columns items={byHour(a.taps.byHour)} label="Link clicks by hour of day" />
         </Card>
-        <Card title="Buy clicks by day of week">
-          <Columns items={byWeekday(a.taps.byWeekday)} label="Buy clicks by day of week" />
+        <Card title="Link clicks by day of week">
+          <Columns items={byWeekday(a.taps.byWeekday)} label="Link clicks by day of week" />
         </Card>
       </div>
     </>
@@ -349,7 +349,7 @@ function Products({ a }: { a: Analytics }) {
           <i className="adm-key adm-key-views" /> Views
         </span>
         <span>
-          <i className="adm-key adm-key-taps" /> Buy clicks
+          <i className="adm-key adm-key-taps" /> Link clicks
         </span>
       </div>
       <div className="adm-an-products">
@@ -375,13 +375,13 @@ function Products({ a }: { a: Analytics }) {
 function Shops({ a }: { a: Analytics }) {
   return (
     <div className="adm-card-pair">
-      <Card title="Buy clicks by shop">
+      <Card title="Link clicks by shop">
         <Bars
           total={a.taps.total}
           rows={PLATFORMS.map((k) => ({ key: k, name: PLATFORM_LABEL[k].chip, value: a.byPlatform[k], color: `var(--chart-${k})` }))}
         />
       </Card>
-      <Card title="Top buy links">
+      <Card title="Top links">
         <Bars
           total={a.taps.total}
           rows={a.topLinks.map((l) => ({
@@ -405,14 +405,14 @@ function Sources({ a }: { a: Analytics }) {
           empty="No visits in this range."
         />
       </Card>
-      <Card title="Buy clicks by source">
+      <Card title="Link clicks by source">
         <Bars
           total={a.taps.total}
           rows={[...a.sources]
             .sort((x, y) => y.taps - x.taps)
             .filter((s) => s.taps > 0)
             .map((s) => ({ key: s.source, name: s.source, value: s.taps }))}
-          empty="No buy clicks in this range."
+          empty="No link clicks in this range."
         />
       </Card>
       <p className="adm-sub adm-an-note">
