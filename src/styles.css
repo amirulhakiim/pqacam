@@ -125,13 +125,10 @@ button { font: inherit; color: inherit; }
 .legal-back { font-size: 13.5px; font-weight: 500; text-decoration: none; color: oklch(0.45 0.05 150); }
 
 @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
-@keyframes sheet-up { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
-.pp-backdrop { position: fixed; inset: 0; z-index: 20; background: oklch(0.3 0.02 60 / 0.35); display: flex; align-items: flex-end; justify-content: center; animation: fade-in 0.2s ease; }
-.pp-sheet { width: 100%; max-width: 460px; max-height: 92vh; overflow-y: auto; box-sizing: border-box; background: oklch(0.985 0.006 80); border-radius: 28px 28px 0 0; padding: 10px 20px 28px; display: flex; flex-direction: column; gap: 16px; animation: sheet-up 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); }
-.pp-grip { align-self: center; width: 40px; height: 4px; margin: 4px 0; border-radius: 2px; background: oklch(0.85 0.01 70); }
-/* Square and capped at 40% of the screen, so the title and buy buttons show without scrolling. */
-/* width follows the 40vh cap, so on a short phone the square is narrower than the sheet: centred, not left aligned. */
-.pp-stage { position: relative; flex: none; aspect-ratio: 1 / 1; width: min(100%, 40vh); align-self: center; cursor: zoom-in; border-radius: 20px; overflow: hidden; touch-action: pan-y; background: repeating-linear-gradient(135deg, oklch(0.9 0.03 70) 0 8px, oklch(0.95 0.01 75) 8px 16px); }
+.pp-product { display: flex; flex-direction: column; gap: 16px; animation: fade-in 0.2s ease; }
+.pp-product-bar { position: sticky; top: 0; z-index: 6; margin: -16px -18px 0; padding: 10px 18px; background: oklch(0.98 0.008 75 / 0.55); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+.pp-back { display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 16px 0 10px; border: none; border-radius: 999px; background: oklch(0.32 0.02 60); color: oklch(0.98 0.005 80); font: inherit; font-size: 14.5px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 14px oklch(0.3 0.02 60 / 0.18); }
+.pp-stage { position: relative; flex: none; aspect-ratio: 1 / 1; width: min(100%, 55vh); align-self: center; cursor: zoom-in; border-radius: 20px; overflow: hidden; touch-action: pan-y; background: repeating-linear-gradient(135deg, oklch(0.9 0.03 70) 0 8px, oklch(0.95 0.01 75) 8px 16px); }
 .pp-track { display: flex; height: 100%; transition: transform 0.55s cubic-bezier(0.2, 0.8, 0.2, 1); }
 .pp-slide { position: relative; flex: 0 0 100%; height: 100%; }
 .pp-slide video, .pp-cover video { pointer-events: none; }
@@ -151,7 +148,6 @@ button { font: inherit; color: inherit; }
 .pp-lightbox-close { top: calc(12px + env(safe-area-inset-top)); right: 12px; font-size: 16px; }
 .pp-lightbox-counter { top: calc(18px + env(safe-area-inset-top)); }
 .pp-sound svg { width: 20px; height: 20px; fill: currentColor; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.pp-close { top: 10px; right: 10px; font-size: 16px; background: var(--surface); }
 .pp-prev { left: 10px; top: 50%; transform: translateY(-50%); }
 .pp-next { right: 10px; top: 50%; transform: translateY(-50%); }
 .pp-dots { position: absolute; bottom: 14px; left: 0; right: 0; z-index: 3; display: flex; justify-content: center; gap: 10px; }

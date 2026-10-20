@@ -1,10 +1,10 @@
 import { createFileRoute, useRouter } from '@tanstack/react-router'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { BackToTop } from '../components/BackToTop'
 import { Filters, type View } from '../components/public/Filters'
 import { Header } from '../components/public/Header'
 import { ProductGrid } from '../components/public/ProductGrid'
-import { ProductSheet } from '../components/public/ProductSheet'
+import { ProductPage } from '../components/public/ProductPage'
 import { type Filter, filterProducts } from '../lib/filter'
 import { useMediaProtection } from '../lib/protect'
 import { previewText, SHARE_HEIGHT, SHARE_WIDTH, shareCover, sharePath } from '../lib/share'
@@ -65,9 +65,11 @@ function Home() {
   const openId = Route.useSearch().p ?? null
   // True when this page opened the product, so closing can go back one step instead of adding a history entry.
   const openedHere = useRef(false)
+  const listScroll = useRef(0)
   const setOpenId = useCallback(
     (id: number) => {
       openedHere.current = true
+      listScroll.current = window.scrollY
       navigate({ search: { p: id }, resetScroll: false })
     },
     [navigate],
@@ -99,6 +101,10 @@ function Home() {
     if (openId !== null) track({ type: 'view', productId: openId })
   }, [openId])
 
+  useLayoutEffect(() => {
+    window.scrollTo(0, openId === null ? listScroll.current : 0)
+  }, [openId])
+
   // A search counts once the visitor stops typing, not on each letter.
   const term = filter.q.trim().toLowerCase()
   const found = products.length
@@ -114,10 +120,16 @@ function Home() {
   return (
     <div className="pp page-glow">
       <div className="pp-column">
-        <Header profile={page.profile} />
-        <Filters filter={filter} categories={page.categories} onChange={(patch) => setFilter((f) => ({ ...f, ...patch }))} view={view} onView={setView} />
-        <ProductGrid products={products} onOpen={setOpenId} list={view === 'list'} />
-        {products.length === 0 && (
+        {open ? (
+          <ProductPage key={open.id} product={open} hidden={hidden} onClose={close} />
+        ) : (
+          <>
+            <Header profile={page.profile} />
+            <Filters filter={filter} categories={page.categories} onChange={(patch) => setFilter((f) => ({ ...f, ...patch }))} view={view} onView={setView} />
+            <ProductGrid products={products} onOpen={setOpenId} list={view === 'list'} />
+          </>
+        )}
+        {!open && products.length === 0 && (
           <div className="pp-empty">
             <div className="pp-empty-title">Nothing here yet</div>
             <div>
@@ -134,7 +146,6 @@ function Home() {
         </footer>
       </div>
       <BackToTop />
-      {open && <ProductSheet key={open.id} product={open} hidden={hidden} onClose={close} />}
     </div>
   )
 }
