@@ -9,7 +9,6 @@
   --tiktok: oklch(0.26 0.015 60);
   --whatsapp: oklch(0.5 0.11 150);
   --danger: oklch(0.5 0.1 30);
-  --serif: 'Instrument Serif', serif;
   --sans: 'DM Sans', sans-serif;
   --mono: 'DM Mono', monospace;
   /* Chart marks, checked with the dataviz palette validator against --surface: every pair stays apart for colour-blind readers.
@@ -49,7 +48,7 @@ body {
 .notice-box { box-sizing: border-box; width: 100%; padding: 12px 14px; border-radius: 12px; background: oklch(0.95 0.03 150); color: oklch(0.36 0.07 150); font-size: 13.5px; line-height: 1.45; }
 .login-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; box-sizing: border-box; }
 .login-card { width: 100%; max-width: 400px; box-sizing: border-box; padding: 40px 32px; border-radius: 28px; background: oklch(0.99 0.004 80 / 0.8); backdrop-filter: blur(16px); box-shadow: 0 20px 60px oklch(0.5 0.03 60 / 0.12); display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; }
-.login-title { margin: 0; font-family: var(--serif); font-weight: 400; font-size: 40px; line-height: 1; }
+.login-title { margin: 0; font-family: var(--sans); font-weight: 600; letter-spacing: -0.01em; font-size: 32px; line-height: 1; }
 .login-lead { margin: 4px 0 18px; font-size: 14.5px; line-height: 1.5; color: oklch(0.45 0.02 60); text-wrap: pretty; }
 .login-google { width: 100%; height: 52px; box-sizing: border-box; border-radius: 14px; border: 1px solid oklch(0.88 0.01 70); background: oklch(0.995 0.002 80); font-size: 15px; font-weight: 600; color: var(--ink); text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 12px; }
 .login-google:hover { background: oklch(0.97 0.006 80); }
@@ -71,7 +70,7 @@ button { font: inherit; color: inherit; }
 .pp-header { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; }
 .pp-avatar { width: 72px; height: 72px; border-radius: 50%; border: 3px solid var(--surface); overflow: hidden; background: repeating-linear-gradient(135deg, oklch(0.9 0.02 70) 0 6px, oklch(0.93 0.015 70) 6px 12px); }
 .pp-avatar img, .pp-cover img, .pp-cover video, .pp-slide img, .pp-slide video { width: 100%; height: 100%; object-fit: cover; display: block; }
-.pp-name { margin: 4px 0 0; font-family: var(--serif); font-weight: 400; font-size: 38px; line-height: 1; letter-spacing: -0.01em; }
+.pp-name { margin: 4px 0 0; font-family: var(--sans); font-weight: 600; font-size: 30px; line-height: 1; letter-spacing: -0.01em; }
 .pp-handle { font-size: 13px; color: var(--ink-soft); }
 .pp-bio { margin: 2px 0 0; font-size: 14.5px; line-height: 1.5; max-width: 320px; text-wrap: pretty; white-space: pre-line; color: oklch(0.4 0.02 60); }
 .pp-bio-small { font-size: 13px; }
@@ -113,14 +112,14 @@ button { font: inherit; color: inherit; }
 .pp-row-name { font-size: 14.5px; font-weight: 600; line-height: 1.3; }
 .pp-row-meta { font-size: 12.5px; color: var(--ink-soft); }
 .pp-related { display: flex; flex-direction: column; gap: 12px; padding-top: 8px; border-top: 1px solid var(--line); }
-.pp-related h3 { margin: 8px 0 0; font-family: var(--serif); font-weight: 400; font-size: 24px; color: var(--ink); }
+.pp-related h3 { margin: 8px 0 0; font-family: var(--sans); font-weight: 600; letter-spacing: -0.01em; font-size: 20px; color: var(--ink); }
 .pp-empty { text-align: center; padding: 40px 20px; display: flex; flex-direction: column; gap: 6px; align-items: center; font-size: 14px; color: var(--ink-soft); }
 .pp-empty-title { font-size: 16px; font-weight: 600; color: var(--ink); }
 .pp-footer { text-align: center; font-size: 12px; color: oklch(0.55 0.02 65); padding-top: 10px; }
 .pp-footer a { color: inherit; }
 .legal { gap: 12px; font-size: 15px; line-height: 1.6; color: oklch(0.33 0.02 60); }
-.legal h1 { margin: 8px 0 0; font-family: var(--serif); font-weight: 400; font-size: 38px; line-height: 1; color: var(--ink); }
-.legal h2 { margin: 14px 0 0; font-family: var(--serif); font-weight: 400; font-size: 24px; color: var(--ink); }
+.legal h1 { margin: 8px 0 0; font-family: var(--sans); font-weight: 600; letter-spacing: -0.01em; font-size: 30px; line-height: 1; color: var(--ink); }
+.legal h2 { margin: 14px 0 0; font-family: var(--sans); font-weight: 600; letter-spacing: -0.01em; font-size: 20px; color: var(--ink); }
 .legal p, .legal ul { margin: 0; }
 .legal ul { padding-left: 20px; display: flex; flex-direction: column; gap: 8px; }
 .legal-date { font-size: 13px; color: var(--ink-soft); }
@@ -163,7 +162,7 @@ button { font: inherit; color: inherit; }
 .pp-title-row { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 12px; }
 /* The same face as the review text, larger and in the heaviest weight that is loaded. */
 .pp-title-row h2 { margin: 0; font-family: var(--sans); font-weight: 600; font-size: 22px; line-height: 1.25; letter-spacing: -0.01em; text-wrap: pretty; color: var(--ink); }
-.pp-price { font-family: var(--serif); font-size: 24px; white-space: nowrap; }
+.pp-price { font-family: var(--sans); font-weight: 600; letter-spacing: -0.01em; font-size: 20px; white-space: nowrap; }
 .pp-review { background: oklch(0.955 0.014 75); border-radius: 18px; padding: 16px 18px; display: flex; flex-direction: column; gap: 8px; }
 .pp-review p { margin: 0; font-size: 15px; line-height: 1.6; text-wrap: pretty; white-space: pre-line; color: oklch(0.33 0.02 60); }
 /* Bottom left, under the product sheet's backdrop, and clear of the iPhone home bar. */
@@ -205,7 +204,7 @@ button { font: inherit; color: inherit; }
 
 .adm { min-height: 100vh; display: flex; align-items: flex-start; background: oklch(0.965 0.01 75); }
 .adm-brand { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
-.adm-brand-name { font-family: var(--serif); font-size: 26px; line-height: 1.05; }
+.adm-brand-name { font-family: var(--sans); font-weight: 600; letter-spacing: -0.01em; font-size: 22px; line-height: 1.05; }
 .adm-me { width: 34px; height: 34px; flex: none; border-radius: 50%; border: none; background: oklch(0.62 0.07 150); color: var(--surface); display: flex; align-items: center; justify-content: center; font-weight: 600; }
 .adm-nav { border: none; border-radius: 12px; background: transparent; color: oklch(0.42 0.02 60); font-size: 14.5px; font-weight: 500; cursor: pointer; }
 .adm-nav-on { background: oklch(0.92 0.02 75); color: oklch(0.25 0.02 60); }
@@ -243,7 +242,7 @@ button { font: inherit; color: inherit; }
 }
 
 .adm-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px; }
-.adm-head h2 { margin: 0 0 4px; font-family: var(--serif); font-weight: 400; font-size: 38px; line-height: 1; }
+.adm-head h2 { margin: 0 0 4px; font-family: var(--sans); font-weight: 600; letter-spacing: -0.01em; font-size: 30px; line-height: 1; }
 .adm-sub { font-size: 13.5px; color: var(--ink-soft); }
 .adm-head-actions { display: flex; gap: 10px; flex-wrap: wrap; }
 .adm-input { box-sizing: border-box; width: 100%; min-width: 0; height: 44px; padding: 0 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); font: inherit; font-size: 14.5px; color: var(--ink); outline: none; }
@@ -285,7 +284,7 @@ textarea.adm-input { height: auto; padding: 12px 14px; line-height: 1.55; resize
 .adm-backdrop { position: fixed; inset: 0; z-index: 20; background: oklch(0.3 0.02 60 / 0.3); display: flex; justify-content: flex-end; animation: fade-in 0.2s; }
 .adm-drawer { width: 100%; max-width: 580px; height: 100%; background: oklch(0.98 0.007 78); display: flex; flex-direction: column; animation: drawer-in 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); box-shadow: -20px 0 60px oklch(0.3 0.02 60 / 0.12); }
 .adm-drawer-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 20px 24px; border-bottom: 1px solid oklch(0.91 0.01 70); }
-.adm-drawer-head h3 { margin: 0; font-family: var(--serif); font-weight: 400; font-size: 28px; }
+.adm-drawer-head h3 { margin: 0; font-family: var(--sans); font-weight: 600; letter-spacing: -0.01em; font-size: 22px; }
 .adm-x { width: 38px; height: 38px; border-radius: 50%; border: none; background: oklch(0.94 0.012 75); font-size: 15px; cursor: pointer; color: oklch(0.35 0.02 60); }
 .adm-drawer-body { flex: 1; overflow-y: auto; padding: 22px 24px; display: flex; flex-direction: column; gap: 20px; }
 .adm-drawer-foot { display: flex; align-items: center; gap: 10px; padding: 16px 24px; border-top: 1px solid oklch(0.91 0.01 70); }
@@ -483,7 +482,7 @@ textarea.adm-input { height: auto; padding: 12px 14px; line-height: 1.55; resize
 .adm-pick { width: min(560px, calc(100vw - 32px)); max-height: 80vh; box-sizing: border-box; border: none; border-radius: 22px; padding: 18px; background: var(--surface); color: var(--ink); box-shadow: 0 20px 60px oklch(0.3 0.02 60 / 0.2); }
 .adm-pick::backdrop { background: oklch(0.3 0.02 60 / 0.35); }
 .adm-pick-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
-.adm-pick-head h3 { margin: 0; font-family: var(--serif); font-weight: 400; font-size: 26px; }
+.adm-pick-head h3 { margin: 0; font-family: var(--sans); font-weight: 600; letter-spacing: -0.01em; font-size: 22px; }
 .adm-pick-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 14px; }
 .adm-pick-tools .adm-pick-folder { flex: 1 1 160px; max-width: 260px; }
 .adm-pick-all { flex: none; margin-left: auto; }
