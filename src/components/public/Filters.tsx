@@ -1,6 +1,4 @@
 import type { Filter } from '../../lib/filter'
-import { PLATFORM_LABEL } from '../../lib/platforms'
-import { PLATFORMS } from '../../server/validate'
 import { Select } from '../admin/Select'
 
 export type View = 'grid' | 'list'
@@ -13,7 +11,7 @@ type Props = {
   onView: (view: View) => void
 }
 
-const SHOWN = 3
+const SHOWN = 2
 
 export function Filters({ filter, categories, onChange, view, onView }: Props) {
   const more = categories.slice(SHOWN)
@@ -67,20 +65,6 @@ export function Filters({ filter, categories, onChange, view, onView }: Props) {
             aria-label="More categories"
           />
         )}
-      </div>
-      <div className="pp-platforms">
-        <span>Shop</span>
-        {(['all', ...PLATFORMS] as const).map((k) => (
-          <button
-            type="button"
-            key={k}
-            className={k === filter.platform ? 'pp-platform pp-platform-on' : 'pp-platform'}
-            onClick={() => onChange({ platform: k })}
-          >
-            <span className={`dot dot-${k}`} />
-            {k === 'all' ? 'Any' : PLATFORM_LABEL[k].chip}
-          </button>
-        ))}
       </div>
     </div>
   )

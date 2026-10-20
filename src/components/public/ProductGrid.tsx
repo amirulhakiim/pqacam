@@ -19,7 +19,7 @@ export function ProductGrid({ products, onOpen, list }: Props) {
             {list ? (
               <span className="pp-row-text">
                 <span className="pp-row-name">{p.name}</span>
-                <span className="pp-row-meta">{[p.category, p.price].filter(Boolean).join(' · ')}</span>
+                <span className="pp-row-meta">{p.price}</span>
               </span>
             ) : (
               <span className="pp-tile-name">{p.shortName || p.name}</span>

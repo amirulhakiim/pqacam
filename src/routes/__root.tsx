@@ -11,7 +11,7 @@ export const Route = createRootRoute({
   head: () => ({
     meta: [
       { charSet: 'utf-8' },
-      { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+      { name: 'viewport', content: 'width=device-width, initial-scale=1, viewport-fit=cover' },
       { name: 'application-name', content: 'Pqacam' },
       { name: 'apple-mobile-web-app-title', content: 'Pqacam' },
       { name: 'mobile-web-app-capable', content: 'yes' },

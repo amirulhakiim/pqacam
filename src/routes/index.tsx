@@ -11,7 +11,7 @@ import { previewText, SHARE_HEIGHT, SHARE_WIDTH, shareCover, sharePath } from '.
 import { track } from '../lib/track'
 import { getPublicPageFn } from '../server/fns'
 
-const NO_FILTER: Filter = { q: '', category: 'All', platform: 'all' }
+const NO_FILTER: Filter = { q: '', category: 'All' }
 
 // ?p=<id> opens that product, so a product can be shared as a link.
 type Search = { p?: number }
