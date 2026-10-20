@@ -68,11 +68,12 @@ function Home() {
   const listScroll = useRef(0)
   const setOpenId = useCallback(
     (id: number) => {
+      if (openId !== null) return navigate({ search: { p: id }, replace: true, resetScroll: false })
       openedHere.current = true
       listScroll.current = window.scrollY
       navigate({ search: { p: id }, resetScroll: false })
     },
-    [navigate],
+    [navigate, openId],
   )
   const close = useCallback(() => {
     if (openedHere.current) {
@@ -84,6 +85,7 @@ function Home() {
   const hidden = useMediaProtection()
   const products = filterProducts(page.products, filter)
   const open = page.products.find((p) => p.id === openId)
+  const related = open ? page.products.filter((p) => p.category === open.category && p.id !== open.id).slice(0, 6) : []
   const searched = useRef('')
 
   // One visit for each browser tab session, so a reload is not a second visit.
@@ -121,7 +123,15 @@ function Home() {
     <div className="pp page-glow">
       <div className="pp-column">
         {open ? (
-          <ProductPage key={open.id} product={open} hidden={hidden} onClose={close} />
+          <>
+            <ProductPage key={open.id} product={open} hidden={hidden} onClose={close} />
+            {related.length > 0 && (
+              <section className="pp-related">
+                <h3>More in {open.category}</h3>
+                <ProductGrid products={related} onOpen={setOpenId} />
+              </section>
+            )}
+          </>
         ) : (
           <>
             <Header profile={page.profile} />
