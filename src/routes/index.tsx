@@ -1,7 +1,7 @@
 import { createFileRoute, useRouter } from '@tanstack/react-router'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { BackToTop } from '../components/BackToTop'
-import { Filters } from '../components/public/Filters'
+import { Filters, type View } from '../components/public/Filters'
 import { Header } from '../components/public/Header'
 import { ProductGrid } from '../components/public/ProductGrid'
 import { ProductSheet } from '../components/public/ProductSheet'
@@ -59,6 +59,7 @@ export const Route = createFileRoute('/')({
 function Home() {
   const page = Route.useLoaderData()
   const [filter, setFilter] = useState(NO_FILTER)
+  const [view, setView] = useState<View>('grid')
   const router = useRouter()
   const navigate = Route.useNavigate()
   const openId = Route.useSearch().p ?? null
@@ -114,8 +115,8 @@ function Home() {
     <div className="pp page-glow">
       <div className="pp-column">
         <Header profile={page.profile} />
-        <Filters filter={filter} categories={page.categories} onChange={(patch) => setFilter((f) => ({ ...f, ...patch }))} />
-        <ProductGrid products={products} onOpen={setOpenId} />
+        <Filters filter={filter} categories={page.categories} onChange={(patch) => setFilter((f) => ({ ...f, ...patch }))} view={view} onView={setView} />
+        <ProductGrid products={products} onOpen={setOpenId} list={view === 'list'} />
         {products.length === 0 && (
           <div className="pp-empty">
             <div className="pp-empty-title">Nothing here yet</div>

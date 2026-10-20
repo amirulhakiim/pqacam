@@ -1,20 +1,29 @@
 import type { PublicProduct } from '../../server/catalog'
 import { VideoThumb } from '../VideoThumb'
 
-export function ProductGrid({ products, onOpen }: { products: PublicProduct[]; onOpen: (id: number) => void }) {
+type Props = { products: PublicProduct[]; onOpen: (id: number) => void; list?: boolean }
+
+export function ProductGrid({ products, onOpen, list }: Props) {
   return (
-    <div className="pp-grid">
+    <div className={list ? 'pp-list' : 'pp-grid'}>
       {products.map((p) => {
         const cover = p.media.find((m) => m.type === 'photo')
         // A product with only videos shows the first one's opening frame.
         const firstVideo = cover ? undefined : p.media.find((m) => m.type === 'video')
         return (
-          <button type="button" key={p.id} className="pp-tile" onClick={() => onOpen(p.id)}>
+          <button type="button" key={p.id} className={list ? 'pp-row' : 'pp-tile'} onClick={() => onOpen(p.id)}>
             <div className="pp-cover" data-protect="">
               {cover && <img src={cover.url} alt="" loading="lazy" draggable={false} />}
               {firstVideo && <VideoThumb url={firstVideo.url} />}
             </div>
-            <span className="pp-tile-name">{p.shortName || p.name}</span>
+            {list ? (
+              <span className="pp-row-text">
+                <span className="pp-row-name">{p.name}</span>
+                <span className="pp-row-meta">{[p.category, p.price].filter(Boolean).join(' · ')}</span>
+              </span>
+            ) : (
+              <span className="pp-tile-name">{p.shortName || p.name}</span>
+            )}
           </button>
         )
       })}

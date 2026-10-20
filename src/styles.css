@@ -30,7 +30,12 @@ body {
   color: var(--ink);
   -webkit-font-smoothing: antialiased;
 }
-.page-glow {
+:root:has(.page-glow) { overscroll-behavior-y: none; }
+.page-glow::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
   background:
     radial-gradient(60% 40% at 0% 0%, oklch(0.93 0.04 30) 0%, transparent 70%),
     radial-gradient(55% 45% at 100% 15%, oklch(0.93 0.04 150) 0%, transparent 70%),
@@ -59,7 +64,7 @@ button { font: inherit; color: inherit; }
 .pill { flex: none; height: 36px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: oklch(0.38 0.02 60); font-size: 13.5px; font-weight: 500; cursor: pointer; }
 .pill-on { border-color: oklch(0.32 0.02 60); background: oklch(0.32 0.02 60); color: oklch(0.98 0.005 80); }
 
-.pp { min-height: 100vh; display: flex; justify-content: center; background-attachment: fixed; }
+.pp { min-height: 100vh; display: flex; justify-content: center; }
 /* 96px at the bottom, so the WhatsApp button never covers the footer. */
 .pp-column { width: 100%; max-width: 460px; padding: 16px 18px 96px; box-sizing: border-box; display: flex; flex-direction: column; gap: 22px; }
 .pp-header { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; }
@@ -87,6 +92,12 @@ button { font: inherit; color: inherit; }
 .pp-clear { width: 32px; height: 32px; border-radius: 50%; border: none; background: oklch(0.94 0.012 75); color: oklch(0.4 0.02 60); font-size: 14px; cursor: pointer; }
 .pp-tabs { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: 0 -18px; padding: 0 18px; }
 .pp-platforms { display: flex; gap: 6px; align-items: center; font-size: 12.5px; color: var(--ink-soft); overflow-x: auto; scrollbar-width: none; margin: 0 -18px; padding: 0 18px; }
+.pp-more { gap: 6px; display: flex; align-items: center; }
+.pp-search-row { display: flex; gap: 8px; align-items: center; }
+.pp-search-row .pp-search { flex: 1; min-width: 0; }
+.pp-view { flex: none; display: flex; gap: 2px; padding: 3px; border-radius: 999px; background: oklch(0.94 0.012 75); }
+.pp-view button { width: 34px; height: 34px; border: none; border-radius: 999px; background: none; color: var(--ink-soft); cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.pp-view button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px oklch(0.5 0.03 60 / 0.12); }
 .pp-platforms > span { flex: none; margin-right: 4px; white-space: nowrap; }
 .pp-platform { flex: none; height: 30px; padding: 0 12px; border-radius: 999px; border: none; background: transparent; color: oklch(0.45 0.02 65); font-size: 12.5px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 10px; }
 .pp-platform-on { background: oklch(0.93 0.04 150); color: oklch(0.4 0.09 150); }
@@ -103,6 +114,12 @@ button { font: inherit; color: inherit; }
 .pp-tile:hover { transform: translateY(-2px); }
 .pp-cover { position: relative; aspect-ratio: 1 / 1; overflow: hidden; background: repeating-linear-gradient(135deg, oklch(0.9 0.03 70) 0 7px, oklch(0.95 0.01 75) 7px 14px); }
 .pp-tile-name { position: absolute; inset: auto 0 0 0; padding: 28px 10px 9px; font-size: 14px; font-weight: 600; line-height: 1.25; color: #fff; text-wrap: pretty; background: linear-gradient(to top, oklch(0.15 0.01 60 / 0.75), transparent); text-shadow: 0 1px 2px rgb(0 0 0 / 0.4); pointer-events: none; }
+.pp-list { display: flex; flex-direction: column; gap: 8px; }
+.pp-row { display: flex; align-items: center; gap: 12px; padding: 8px; border: none; border-radius: 16px; background: oklch(0.99 0.004 80 / 0.7); cursor: pointer; text-align: left; font: inherit; color: var(--ink); }
+.pp-row .pp-cover { flex: none; width: 64px; border-radius: 12px; }
+.pp-row-text { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.pp-row-name { font-size: 14.5px; font-weight: 600; line-height: 1.3; }
+.pp-row-meta { font-size: 12.5px; color: var(--ink-soft); }
 .pp-empty { text-align: center; padding: 40px 20px; display: flex; flex-direction: column; gap: 6px; align-items: center; font-size: 14px; color: var(--ink-soft); }
 .pp-empty-title { font-size: 16px; font-weight: 600; color: var(--ink); }
 .pp-footer { text-align: center; font-size: 12px; color: oklch(0.55 0.02 65); padding-top: 10px; }

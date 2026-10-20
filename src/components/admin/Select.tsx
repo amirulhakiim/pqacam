@@ -7,12 +7,13 @@ type Props = {
   options: SelectOption[]
   onChange: (value: string) => void
   className?: string
+  triggerClassName?: string
   disabled?: boolean
   placeholder?: string
   'aria-label'?: string
 }
 
-export function Select({ value, options, onChange, className, disabled, placeholder, 'aria-label': label }: Props) {
+export function Select({ value, options, onChange, className, triggerClassName, disabled, placeholder, 'aria-label': label }: Props) {
   const id = useId()
   const trigger = useRef<HTMLButtonElement>(null)
   const menu = useRef<HTMLDivElement>(null)
@@ -51,7 +52,7 @@ export function Select({ value, options, onChange, className, disabled, placehol
       <button
         type="button"
         ref={trigger}
-        className={`adm-input adm-select ${className ?? ''}`}
+        className={triggerClassName ?? `adm-input adm-select ${className ?? ''}`}
         popoverTarget={id}
         disabled={disabled}
         aria-haspopup="listbox"
